@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>APUNTIA — Apuntes Inteligentes</title>
+<meta name="theme-color" content="#0f332d">
+<meta name="description" content="Prototipo de APUNTIA: convierte la foto de un pizarrón en apuntes digitales organizados con visión por computadora e IA.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%230a7d62'/%3E%3Cpath d='M14 35 24 12l10 23M18.5 28h11' stroke='%23fff' stroke-width='3.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='12' r='3' fill='%23ffd666'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<div class="app">
+  <!-- Navegación de escritorio -->
+  <aside class="sidebar" aria-label="Barra lateral">
+    <div class="brand"><span class="logo" data-logo></span><div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div></div>
+    <nav class="nav" aria-label="Navegación principal">
+      <button class="nav-btn" data-nav="home" aria-current="page"><span data-i="home"></span>Inicio</button>
+      <button class="nav-btn" data-nav="library"><span data-i="book"></span>Mis apuntes<span class="badge" data-count="all">0</span></button>
+      <button class="nav-btn" data-nav="favs"><span data-i="star"></span>Favoritos<span class="badge" data-count="favs">0</span></button>
+      <button class="nav-btn" data-nav="settings"><span data-i="sliders"></span>Configuración</button>
+    </nav>
+    <div class="side-foot">
+      <div class="proto-card"><b>Prototipo UX/UI</b>La IA y el OCR son simulados. Tus apuntes se guardan solo en este navegador.</div>
+      <button class="btn" data-theme-toggle><span data-i="moon"></span><span class="tt">Modo oscuro</span></button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="brand"><span class="logo" data-logo></span><div><strong>APUNTIA</strong></div></div>
+      <button class="icon-btn" data-theme-toggle aria-label="Cambiar tema"><span data-i="moon"></span></button>
+    </header>
+
+    <main class="main" id="main">
+
+      <!-- INICIO -->
+      <section class="view" data-view="home">
+        <div id="homeErr" class="alert" role="alert" hidden>
+          <span data-i="alert"></span><p id="homeErrMsg"></p>
+          <button class="icon-btn sm" id="homeErrX" aria-label="Cerrar aviso"><span data-i="x" data-s="18"></span></button>
+        </div>
+
+        <div class="hero" id="drop">
+          <span class="doodle hm" style="--x:4%;--y:14%;--r:-8deg;--s:2.6rem;--t:7s">E = mc²</span>
+          <span class="doodle" style="--x:70%;--y:70%;--r:6deg;--s:2.4rem;--t:9s">∫ f(x) dx</span>
+          <span class="doodle hm" style="--x:6%;--y:72%;--r:5deg;--s:2.2rem;--t:8s">F = m·a</span>
+          <span class="doodle" style="--x:82%;--y:34%;--r:-6deg;--s:3rem;--t:10s">π</span>
+          <span class="doodle hm" style="--x:20%;--y:88%;--r:-4deg;--s:2rem;--t:11s">&lt;/&gt;</span>
+          <span class="doodle hm" style="--x:60%;--y:6%;--r:4deg;--s:2rem;--t:9.5s">a² + b² = c²</span>
+          <span class="doodle" style="--x:2%;--y:44%;--r:-10deg;--s:2.4rem;--t:12s">∑</span>
+          <svg class="net" viewBox="0 0 170 110" fill="none" aria-hidden="true">
+            <g stroke="#4ee8b0" stroke-width="1.4"><path d="M15 20 60 55M15 55 60 55M15 90 60 55M60 55 110 25M60 55 110 85M110 25 155 55M110 85 155 55"/></g>
+            <g fill="#4ee8b0"><circle cx="15" cy="20" r="5"/><circle cx="15" cy="55" r="5"/><circle cx="15" cy="90" r="5"/><circle cx="60" cy="55" r="6"/><circle cx="110" cy="25" r="5"/><circle cx="110" cy="85" r="5"/><circle cx="155" cy="55" r="6" fill="#ffd666"/></g>
+          </svg>
+
+          <div class="hero-in">
+            <span class="pill">✨ Visión por Computadora + Inteligencia Artificial</span>
+            <span class="logo big" data-logo></span>
+            <h1 class="wordmark" tabindex="-1" data-focus>APUNTIA</h1>
+            <p class="subtitle">Apuntes Inteligentes</p>
+
+            <div class="cta">
+              <button class="cta-btn cta-load" id="btnLoad">
+                <span class="cta-ic" aria-hidden="true">📁</span>
+                <span class="cta-tx"><b>Cargar imagen</b><small>Elige una foto de tu dispositivo</small></span>
+              </button>
+              <button class="cta-btn cta-photo" id="btnPhoto">
+                <span class="cta-ic" aria-hidden="true">📷</span>
+                <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
+              </button>
+            </div>
+
+            <p class="tagline">Convierte tus apuntes del pizarrón en contenido digital organizado mediante Inteligencia Artificial.</p>
+            <p class="alt">o arrastra una imagen aquí · <button class="linkbtn" id="btnDemo">probar con un pizarrón de ejemplo</button></p>
+          </div>
+          <div class="drop-hint" aria-hidden="true">Suelta tu imagen aquí</div>
+        </div>
+        <div class="tray" aria-hidden="true"></div>
+
+        <ol class="how" aria-label="Cómo funciona">
+          <li><span class="n">1</span><div><b>Captura</b><span>Toma o sube la foto del pizarrón.</span></div></li>
+          <li><span class="n">2</span><div><b>Procesa</b><span>La IA lee texto, fórmulas y diagramas.</span></div></li>
+          <li><span class="n">3</span><div><b>Revisa</b><span>Compara con la imagen original.</span></div></li>
+          <li><span class="n">4</span><div><b>Guarda</b><span>Organiza y estudia desde Mis apuntes.</span></div></li>
+        </ol>
+
+        <div id="homeRecent"></div>
+      </section>
+
+      <!-- PROCESANDO -->
+      <section class="view" data-view="proc" hidden>
+        <div class="proc">
+          <div class="proc-img" id="procImgWrap">
+            <img id="procImg" alt="Fotografía del pizarrón que se está analizando">
+            <div class="scan"></div>
+            <i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+          </div>
+          <div class="proc-panel">
+            <h1 id="procTitle" tabindex="-1" data-focus>Analizando tu pizarrón...</h1>
+            <p id="procSub">Esto tomará unos segundos. No cierres esta pantalla.</p>
+            <ol class="steps" id="steps"></ol>
+            <div class="pwrap">
+              <div class="pbar" id="pbar" role="progressbar" aria-label="Progreso del análisis" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="pfill"></i></div>
+              <span id="pPct">0%</span>
+            </div>
+            <div class="found" id="found" aria-live="polite"><span>Elementos detectados:</span></div>
+            <div class="proc-actions" id="procActions"><button class="btn" id="procCancel">Cancelar</button></div>
+            <div class="proc-err" id="procErr" role="alert" hidden>
+              <h2><span data-i="alert"></span>No pudimos leer el pizarrón</h2>
+              <p>La imagen parece tener poca luz o estar movida. Prueba de nuevo o elige otra fotografía.</p>
+              <div class="proc-actions" style="margin:0">
+                <button class="btn primary" id="procRetry"><span data-i="refresh" data-s="18"></span>Reintentar</button>
+                <button class="btn" id="procOther"><span data-i="image" data-s="18"></span>Elegir otra imagen</button>
+                <button class="btn" id="procBack">Volver al inicio</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RESULTADO -->
+      <section class="view" data-view="result" hidden id="v-result">
+        <div class="res-top">
+          <button class="icon-btn" id="resBack" aria-label="Volver"><span data-i="arrowLeft"></span></button>
+          <div class="grow"><h1 tabindex="-1" data-focus>Resultado del análisis</h1><small id="resSub"></small></div>
+          <span class="chip" id="resConf"></span>
+        </div>
+        <div class="res-grid">
+          <aside class="img-pane" aria-label="Imagen original">
+            <div class="pane-head">
+              <h2>Imagen original</h2>
+              <button class="btn sm" id="toggleDet" aria-pressed="true"><span data-i="eye" data-s="18"></span><span>Detecciones</span></button>
+            </div>
+            <div class="board" id="board"><img id="boardImg" alt="Fotografía original del pizarrón"><div class="boxes" id="boxes" aria-hidden="true"></div></div>
+            <div class="legend" id="legend" role="group" aria-label="Tipos de elementos detectados"></div>
+            <p class="img-note"><span data-i="scan" data-s="18"></span><span>Pasa el cursor sobre una caja o una sección del apunte para ver cómo se relacionan. Toca una leyenda para ocultar ese tipo.</span></p>
+          </aside>
+          <div id="noteRoot"></div>
+        </div>
+      </section>
+
+      <!-- BIBLIOTECA / FAVORITOS -->
+      <section class="view" data-view="library" hidden>
+        <div class="page-head">
+          <div><h1 id="libTitle" tabindex="-1" data-focus>Mis apuntes</h1><p id="libSub"></p></div>
+          <button class="btn primary" id="libNew"><span data-i="plus" data-s="18"></span>Nuevo apunte</button>
+        </div>
+        <div class="tools">
+          <label class="search"><span class="sr-only">Buscar apuntes</span><span data-i="search" data-s="18"></span><input type="search" id="q" placeholder="Buscar por título, materia, concepto o etiqueta" autocomplete="off"></label>
+          <label><span class="sr-only">Ordenar por</span>
+            <select class="sel" id="sort"><option value="recent">Más recientes</option><option value="az">Título A–Z</option><option value="items">Más elementos</option></select></label>
+          <button class="fchip" id="groupBtn" aria-pressed="false"><span data-i="layers" data-s="18"></span>Agrupar por materia</button>
+        </div>
+        <div class="filters" id="filters" role="group" aria-label="Filtrar por materia"></div>
+        <div id="libBody"></div>
+      </section>
+
+      <!-- CONFIGURACIÓN -->
+      <section class="view" data-view="settings" hidden>
+        <div class="page-head"><div><h1 tabindex="-1" data-focus>Configuración</h1><p>Ajusta APUNTIA a tu manera de estudiar.</p></div></div>
+        <div class="set-card">
+          <div class="set-row"><div><b>Apariencia</b><small>Elige claro, oscuro o el del sistema.</small></div>
+            <div class="seg" role="radiogroup" aria-label="Tema">
+              <label><input type="radio" name="theme" value="light"><span>Claro</span></label>
+              <label><input type="radio" name="theme" value="dark"><span>Oscuro</span></label>
+              <label><input type="radio" name="theme" value="system"><span>Sistema</span></label>
+            </div></div>
+          <div class="set-row"><div><b>Velocidad de la voz</b><small>Para la función «Leer apunte».</small></div>
+            <div style="display:flex;gap:10px;align-items:center"><input type="range" id="rate" min="0.7" max="1.3" step="0.1" aria-label="Velocidad de lectura"><span id="rateV" style="min-width:3.5ch">1×</span><button class="btn sm" id="rateTest"><span data-i="volume" data-s="16"></span>Probar</button></div></div>
+        </div>
+        <div class="set-card">
+          <div class="set-row"><div><b>Procesamiento rápido</b><small>Acorta la animación de la IA para tus demostraciones.</small></div>
+            <label class="switch"><input type="checkbox" id="optFast" aria-label="Procesamiento rápido"><i></i></label></div>
+          <div class="set-row"><div><b>Simular un error en el próximo análisis</b><small>Para ver cómo se comporta el estado de error.</small></div>
+            <label class="switch"><input type="checkbox" id="optErr" aria-label="Simular error"><i></i></label></div>
+        </div>
+        <div class="set-card">
+          <div class="set-row"><div><b>Restablecer apuntes de ejemplo</b><small>Vuelve a cargar los 3 apuntes de muestra.</small></div><button class="btn" id="resetSeed"><span data-i="refresh" data-s="18"></span>Restablecer</button></div>
+          <div class="set-row"><div><b>Borrar todos los apuntes</b><small>Elimina todo lo guardado en este navegador.</small></div><button class="btn" id="clearAll" style="color:var(--danger)"><span data-i="trash" data-s="18"></span>Borrar todo</button></div>
+        </div>
+        <p style="color:var(--ink-2);font-size:.85rem">APUNTIA v0.1 · Prototipo funcional de interfaz. El reconocimiento de contenido es una simulación.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Navegación móvil -->
+  <nav class="tabbar" aria-label="Navegación principal móvil">
+    <button class="tab" data-nav="home" aria-current="page"><span data-i="home" data-s="24"></span>Inicio</button>
+    <button class="tab" data-nav="library"><span data-i="book" data-s="24"></span>Apuntes</button>
+    <button class="tab" data-nav="favs"><span data-i="star" data-s="24"></span>Favoritos</button>
+    <button class="tab" data-nav="settings"><span data-i="sliders" data-s="24"></span>Ajustes</button>
+  </nav>
+</div>
+
+<div id="toasts" aria-live="polite" aria-atomic="false"></div>
+<input type="file" id="fileIn" accept="image/*" hidden>
+<input type="file" id="camIn" accept="image/*" capture="environment" hidden>
+
+<dialog id="camDlg" aria-labelledby="camTitle">
+  <div class="cam-head"><h2 id="camTitle">Tomar foto</h2><button class="icon-btn sm" id="camClose" aria-label="Cerrar cámara"><span data-i="x" data-s="18"></span></button></div>
+  <div class="viewfinder">
+    <video id="camVideo" playsinline muted hidden></video>
+    <img id="camFake" alt="Vista simulada de un pizarrón" hidden>
+    <div class="guides"></div><i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+    <div class="cam-msg" id="camMsg">Alinea el pizarrón dentro del marco</div>
+    <div class="flash" id="camFlash"></div>
+  </div>
+  <div class="cam-foot">
+    <button class="btn" id="camGallery"><span data-i="image" data-s="18"></span>Galería</button>
+    <button class="shutter" id="camShot" aria-label="Capturar fotografía"></button>
+    <span style="width:110px"></span>
+  </div>
+</dialog>
+
+<dialog id="confirmDlg" aria-labelledby="cdTitle">
+  <form method="dialog" class="dlg">
+    <h2 id="cdTitle"></h2><p id="cdText"></p>
+    <div class="row"><button class="btn" value="cancel" id="cdCancel">Cancelar</button><button class="btn primary" value="ok" id="cdOk">Aceptar</button></div>
+  </form>
+</dialog>
+
+<script type="module" src="js/index.js"></script>
+</body>
+</html>

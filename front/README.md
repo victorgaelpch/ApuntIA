@@ -9,6 +9,7 @@
 | `css/principal.css`  | Componentes propios de la pantalla principal: encabezado, zona de resultados, estados. |
 | `js/config.js`       | Configuración: URL de la API, tiempo máximo y límites de los archivos.                |
 | `js/api.js`          | Cliente de la API (FRONT-05): peticiones, cabeceras y errores, según `docs/api.md`.   |
+| `js/mensajes.js`     | Catálogo de mensajes de error y validación para el usuario (FRONT-08).               |
 | `js/validacion.js`   | Validación en el navegador (FRONT-02): firma binaria, tamaño y archivo vacío.       |
 | `js/camara.js`       | Cámara en vivo con `getUserMedia` y alternativas (FRONT-03).                          |
 | `js/api-mock.js`     | Respuestas simuladas para trabajar sin backend (`?mock=...`).                         |
@@ -93,6 +94,29 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Controles bloqueados durante la espera:** «Procesar» (que muestra «Procesando…»), «Cargar imagen», «Tomar foto», «Cambiar», «Quitar» y arrastrar y soltar.
 - **Cancelar:** aborta la petición con un `AbortController`.
 - **Restauración garantizada:** al terminar, fallar o cancelar, un bloque `finally` vuelve a habilitar todos los controles.
+
+## Mensajes de error y validación (FRONT-08)
+
+`front/js/mensajes.js` traduce cada código, sea del contrato de la API, de la validación, de la cámara o de la red, a un **mensaje público con una acción para resolverlo**:
+
+| Situación | Código | Acciones ofrecidas |
+|-----------|--------|--------------------|
+| Tipo no admitido (incluido HEIC) | `TIPO_NO_PERMITIDO` | Elegir otra imagen |
+| Tamaño excedido | `ARCHIVO_DEMASIADO_GRANDE` / `IMAGEN_DEMASIADO_GRANDE` | Elegir otra imagen |
+| Archivo vacío o dañado | `ARCHIVO_VACIO` / `IMAGEN_CORRUPTA` | Elegir otra imagen |
+| Sin archivo | `ARCHIVO_AUSENTE` | Cargar imagen · Tomar foto |
+| Permiso de cámara denegado | `CAMARA_PERMISO_DENEGADO` | Usar la app de cámara · Cargar imagen |
+| Sin cámara / cámara ocupada | `CAMARA_NO_DISPONIBLE` / `CAMARA_OCUPADA` | App de cámara o Tomar foto · Cargar imagen |
+| Sin red / servidor apagado | `SIN_CONEXION` (con texto distinto si `navigator.onLine` es falso) | Reintentar |
+| Tiempo agotado | `TIEMPO_AGOTADO` | Reintentar · Elegir otra imagen |
+| Error del servidor | `ERROR_INTERNO` / `ERROR_PROCESAMIENTO` / cualquier 5xx | Reintentar (+ Elegir otra) |
+| Resultado no mostrable | `RESPUESTA_INVALIDA` | Reintentar |
+| Fallo de configuración o de la app | `PARAMETRO_INVALIDO`, `RUTA_NO_ENCONTRADA`… | Recargar / Reintentar |
+
+**Mensajes públicos frente a técnicos:**
+- El texto visible siempre sale del catálogo; el mensaje del servidor y la causa técnica no se muestran.
+- El detalle técnico (`console.error`) solo va a la consola.
+- Si hubo respuesta HTTP, se ofrece un desplegable «Detalles técnicos» con el código, el estado HTTP y la referencia `X-ApuntIA-Error-Id`, útil para buscar el fallo en el log del servidor. **Nunca** se muestran trazas.
 
 ## Cliente de la API (FRONT-05)
 

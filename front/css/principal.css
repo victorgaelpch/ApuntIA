@@ -90,6 +90,9 @@ section[id] { scroll-margin-top: 84px; }
 .status { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
 .status__texto { flex: 1 1 200px; }
 .status__acciones { flex-basis: 100%; }
+.status__detalle { flex-basis: 100%; font-size: .8rem; color: var(--ink-2); }
+.status__detalle summary { cursor: pointer; width: fit-content; }
+.status__detalle p { margin: 4px 0 0; font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
 .status__reloj { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .85rem; }
 .spinner {
   width: 20px; height: 20px; flex: none; border-radius: 50%;

@@ -1,0 +1,74 @@
+// Catálogo de mensajes para el usuario (FRONT-08).
+//
+// Cada código, ya sea del contrato de la API (docs/api.md), de validación en el
+// navegador, de la cámara o de red, se traduce a:
+//   texto:    mensaje público, en lenguaje sencillo y orientado a la solución
+//   acciones: lo que se ofrece para resolverlo (ids que app.js convierte en botones)
+//
+// El detalle técnico (status, codigo, errorId, causa) nunca se muestra como
+// texto principal: va a la consola y a un desplegable «Detalles técnicos»
+// que solo contiene el código y la referencia, sin trazas.
+(function (global) {
+    "use strict";
+
+    const NS = (global.ApuntIA = global.ApuntIA || {});
+    const maxMb = () => (NS.config && NS.config.maxMb) || 10;
+
+    const CATALOGO = {
+        // --- selección y validación (navegador y API)
+        ARCHIVO_AUSENTE: { texto: "Primero elige una imagen del pizarrón.", acciones: ["cargar", "camara"] },
+        ARCHIVO_VACIO: { texto: "El archivo está vacío. Elige otra imagen.", acciones: ["elegirOtra"] },
+        TIPO_NO_PERMITIDO: {
+            texto: "Ese archivo no es una imagen admitida. Usa una foto JPEG, PNG o WEBP. (Las fotos HEIC del iPhone se pueden exportar como JPEG.)",
+            acciones: ["elegirOtra"],
+        },
+        ARCHIVO_DEMASIADO_GRANDE: { texto: () => `La imagen pesa más de ${maxMb()} MB. Elige una más ligera o reduce su tamaño.`, acciones: ["elegirOtra"] },
+        IMAGEN_DEMASIADO_GRANDE: { texto: "La imagen tiene demasiada resolución. Usa una foto de menor resolución.", acciones: ["elegirOtra"] },
+        IMAGEN_CORRUPTA: { texto: "No se pudo leer la imagen; puede estar dañada o incompleta. Elige otra.", acciones: ["elegirOtra"] },
+
+        // --- cámara
+        CAMARA_PERMISO_DENEGADO: {
+            texto: "No se dio permiso para usar la cámara. Puedes permitirlo desde el icono junto a la dirección del navegador, o usar otra opción:",
+            acciones: ["camaraApp", "cargar"],
+        },
+        CAMARA_NO_DISPONIBLE: { texto: "No se encontró ninguna cámara en este dispositivo. Usa otra opción:", acciones: ["camaraApp", "cargar"] },
+        CAMARA_OCUPADA: { texto: "La cámara está siendo usada por otra aplicación. Ciérrala y vuelve a intentarlo, o usa otra opción:", acciones: ["camara", "cargar"] },
+        CAMARA_ERROR: { texto: "No se pudo iniciar la cámara. Usa otra opción:", acciones: ["camaraApp", "cargar"] },
+
+        // --- red y tiempos
+        SIN_CONEXION: {
+            texto: () => (global.navigator.onLine === false
+                ? "No hay conexión a la red. Revisa tu conexión y vuelve a intentarlo."
+                : "No se pudo conectar con el servidor de ApuntIA. Comprueba que esté encendido y vuelve a intentarlo."),
+            acciones: ["reintentar"],
+        },
+        TIEMPO_AGOTADO: { texto: "El servidor tardó demasiado en responder. Vuelve a intentarlo; si se repite, prueba con una foto más ligera.", acciones: ["reintentar", "elegirOtra"] },
+        CANCELADO: { texto: "Procesamiento cancelado. Puedes volver a intentarlo o elegir otra imagen.", acciones: ["reintentar"], tipo: "listo" },
+
+        // --- servidor
+        ERROR_PROCESAMIENTO: { texto: "No se pudo procesar esta imagen. Vuelve a intentarlo o prueba con otra foto.", acciones: ["reintentar", "elegirOtra"] },
+        ERROR_INTERNO: { texto: "Ocurrió un problema en el servidor. Vuelve a intentarlo en unos momentos.", acciones: ["reintentar"] },
+        RESPUESTA_INVALIDA: { texto: "El servidor devolvió un resultado que no se puede mostrar. Vuelve a intentarlo.", acciones: ["reintentar"] },
+
+        // --- errores de configuración o de la aplicación (no causados por el usuario)
+        PARAMETRO_INVALIDO: { texto: "La aplicación envió una petición incorrecta. Recarga la página y vuelve a intentarlo.", acciones: ["recargar"] },
+        RUTA_NO_ENCONTRADA: { texto: "La dirección del servidor no es la correcta. Revisa la configuración de la API.", acciones: ["reintentar"] },
+        METODO_NO_PERMITIDO: { texto: "La dirección del servidor no es la correcta. Revisa la configuración de la API.", acciones: ["reintentar"] },
+    };
+
+    const GENERICO = { texto: "Algo salió mal. Vuelve a intentarlo.", acciones: ["reintentar"] };
+
+    /**
+     * @param {string} codigo
+     * @param {{status?: number, errorId?: string}} [error]
+     * @returns {{tipo: string, texto: string, acciones: string[], detalle: string|null}}
+     */
+    function paraUsuario(codigo, error = {}) {
+        const entrada = CATALOGO[codigo] || (error.status >= 500 ? CATALOGO.ERROR_INTERNO : GENERICO);
+        const texto = typeof entrada.texto === "function" ? entrada.texto() : entrada.texto;
+        const partes = [codigo && `Código: ${codigo}`, error.status && `HTTP ${error.status}`, error.errorId && `Referencia: ${error.errorId}`].filter(Boolean);
+        return { tipo: entrada.tipo || "error", texto, acciones: entrada.acciones, detalle: partes.length ? partes.join(" · ") : null };
+    }
+
+    NS.mensajes = { paraUsuario, CATALOGO };
+})(window);

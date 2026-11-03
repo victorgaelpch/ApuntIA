@@ -13,6 +13,10 @@
         inpCamara: $("inpCamara"),
         hero: $("inicio"),
         imgPreview: $("imagenEnviada"),
+        infoPreview: $("infoPreview"),
+        accionesPreview: $("accionesPreview"),
+        btCambiar: $("btCambiar"),
+        btQuitar: $("btQuitar"),
         imgResult: $("imagenResultado"),
         estado: $("estado"),
         resultados: $("resultados"),
@@ -23,6 +27,7 @@
         archivo: null,      // File listo para enviar (FRONT-02)
         origen: null,       // "archivo" | "camara" | "arrastre"
         enviando: false,    // evita envíos duplicados
+        urlPreview: null,   // URL temporal de la vista previa (FRONT-04)
     };
 
     const MENSAJES_VALIDACION = {
@@ -39,7 +44,52 @@
 
     function actualizarControles() {
         el.btEnviar.disabled = !estado.archivo || estado.enviando;
+        el.btCambiar.disabled = el.btQuitar.disabled = estado.enviando;
     }
+
+    // ---------------------------------------------------------------- vista previa (FRONT-04)
+
+    function liberarPreview() {
+        if (estado.urlPreview) URL.revokeObjectURL(estado.urlPreview);
+        estado.urlPreview = null;
+    }
+
+    function mostrarPreview(archivo) {
+        liberarPreview();
+        estado.urlPreview = URL.createObjectURL(archivo);
+        el.imgPreview.onload = () => {
+            const { naturalWidth: w, naturalHeight: h } = el.imgPreview;
+            const orientacion = w > h ? "horizontal" : w < h ? "vertical" : "cuadrada";
+            el.infoPreview.textContent =
+                `${archivo.name} · ${validacion.formatearTamano(archivo.size)} · ${w}×${h} px (${orientacion})`;
+            el.infoPreview.hidden = false;
+        };
+        el.imgPreview.onerror = () => {
+            el.infoPreview.textContent = `${archivo.name} · ${validacion.formatearTamano(archivo.size)} · el navegador no puede mostrar la vista previa`;
+            el.infoPreview.hidden = false;
+        };
+        el.imgPreview.src = estado.urlPreview;
+        el.imgPreview.hidden = false;
+        el.accionesPreview.hidden = false;
+    }
+
+    function quitarImagen() {
+        if (estado.enviando) return;
+        liberarPreview();
+        estado.archivo = null;
+        estado.origen = null;
+        el.imgPreview.hidden = true;
+        el.imgPreview.removeAttribute("src");
+        el.infoPreview.hidden = true;
+        el.accionesPreview.hidden = true;
+        limpiarResultado();
+        actualizarControles();
+        mostrarEstado("vacio", "Imagen quitada. Usa «Cargar imagen» o «Tomar foto» para elegir otra.");
+        el.inpImagen.focus();
+    }
+
+    el.btQuitar.addEventListener("click", quitarImagen);
+    el.btCambiar.addEventListener("click", () => el.inpImagen.click());
 
     function limpiarResultado() {
         el.imgResult.hidden = true;
@@ -61,13 +111,7 @@
         estado.archivo = archivo;
         estado.origen = origen;
 
-        const lector = new FileReader();
-        lector.onload = (e) => {
-            el.imgPreview.src = e.target.result;
-            el.imgPreview.hidden = false;
-        };
-        lector.readAsDataURL(archivo);
-
+        mostrarPreview(archivo);
         limpiarResultado();
         actualizarControles();
         mostrarEstado("listo", `Imagen lista: ${archivo.name} (${validacion.formatearTamano(archivo.size)}). Pulsa «Procesar imagen».`);

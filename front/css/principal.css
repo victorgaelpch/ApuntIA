@@ -73,7 +73,10 @@ section[id] { scroll-margin-top: 84px; }
   margin: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow);
 }
+.pane__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; flex-wrap: wrap; }
 .pane figcaption { font: 600 1rem var(--f-display); }
+.pane__acciones { display: flex; gap: 8px; }
+.pane__info { margin: 0; font-size: .85rem; color: var(--ink-2); overflow-wrap: anywhere; }
 .pane__frame {
   position: relative; display: grid; place-items: center; min-height: 240px; border-radius: 14px; overflow: hidden;
   background: var(--surface-2); border: 2px dashed var(--line);

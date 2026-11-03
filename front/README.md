@@ -48,6 +48,13 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Estado:** `estado.archivo` guarda el `File` listo para `api.procesarImagen`, junto con su origen (`archivo`, `camara` o `arrastre`).
 - **Sin envíos duplicados:** mientras se procesa, `estado.enviando` bloquea el botón y se ignoran nuevas selecciones; tres clics seguidos producen una sola petición.
 
+## Vista previa (FRONT-04)
+
+- Se muestra en el panel *Original* con `object-fit: contain` y una altura máxima del 60 % de la pantalla, así **no se deforma ni desborda**, sea vertical u horizontal.
+- Debajo aparecen el **archivo elegido**, su peso, sus dimensiones y su orientación (p. ej. `vert.jpg · 114 KB · 1500×4000 px (vertical)`).
+- **Cambiar** abre de nuevo el selector y **Quitar** elimina la selección: se vacía la vista previa, se deshabilita «Procesar» y el foco vuelve a «Cargar imagen». Ambos botones se bloquean mientras se procesa.
+- Usa `URL.createObjectURL` en lugar de leer la imagen como base64, que es más rápido y consume menos memoria, y **libera la URL temporal** (`revokeObjectURL`) al reemplazar o quitar la imagen.
+
 ## Cliente de la API (FRONT-05)
 
 `front/js/api.js` expone `window.ApuntIA.api`:

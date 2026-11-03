@@ -11,7 +11,7 @@
     "lint:commits": "commitlint --from origin/main --to HEAD --verbose"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^19.8.1",
     "playwright": "^1.50.0"
   }

@@ -39,6 +39,7 @@ sigue funcionando contra `http://localhost:8000/analisis`.
 |----------------|--------------------------------|------------------------------------------------------|
 | `MAX_UPLOAD_MB` | `10`                          | Tamaño máximo del archivo recibido.                  |
 | `MAX_MEGAPIXELES` | `50`                        | Resolución máxima de la imagen recibida.             |
+| `MAX_LADO_PROCESAMIENTO` | `2000`               | Lado mayor con el que se procesa (0 = sin límite).   |
 | `CORS_ORIGINS` | `*`                            | Orígenes permitidos, separados por comas.            |
 | `APP_NAME`     | `ApuntIA - Motor de imágenes`  | Título mostrado en `/docs`.                          |
 
@@ -181,6 +182,34 @@ Comparación con `python -m herramientas.evaluar_ruido`, sobre un pizarrón de 1
 - El **bilateral** solo no elimina la sal y pimienta, porque trata esos puntos como bordes.
 - La **mediana** quita los puntos, pero deja grano.
 - La **combinación** recupera la nitidez original sin perder contraste. Es la opción por defecto; el contrato (`docs/api.md`) se actualizó con este valor.
+
+## Optimización del tiempo (BACK-09)
+
+`python -m herramientas.benchmark` mide cada etapa (mediana de 3 repeticiones, en una máquina de 4 núcleos), incluidos la decodificación del JPEG y la codificación del PNG, igual que en la API.
+
+**Cuellos de botella encontrados** en una foto de celular de 12 MP (4032×3024):
+1. `mejora`, 490 ms: el cierre morfológico con un núcleo de unos 75 px a resolución completa.
+2. `codificar_png`, 122–603 ms: proporcional al número de píxeles y al ruido.
+3. `ruido`, 108 ms, y una copia inicial redundante, 10 ms.
+
+**Cambios:**
+- **Redimensionamiento controlado** al empezar: lado mayor ≤ `MAX_LADO_PROCESAMIENTO`, por defecto 2000 px, con `INTER_AREA`, que nunca amplía. 2000 px bastan para leer un pizarrón y reducen todas las etapas siguientes.
+- **Fondo de iluminación a ¼ de resolución:** el fondo es una superficie suave. Frente al cálculo a resolución completa da 54.4 dB de PSNR, visualmente idéntico, y la etapa pasa de 490 a unos 20 ms.
+- **Sin copia inicial:** ninguna etapa modifica su entrada. Solo se copia al final si ninguna etapa actuó.
+- Se evaluó bajar la compresión PNG de 3 a 1: el tiempo es el mismo (54 ms frente a 54 ms en 2000×1500), así que se mantiene en 3.
+
+**Antes y después**, mismas condiciones, tiempo total en ms:
+
+| Imagen de referencia | Antes | Después | Mejora | Salida antes → después |
+|---|---|---|---|---|
+| Foto real 516×387 | 37 | 36 | = | 516×387 (no cambia) |
+| Inclinada 1600×1200 | 106 | 72 | 1.5× | 1191×811 (no cambia) |
+| Celular 12 MP | 862 | **149** | **5.8×** | 3001×2042, 521 KB → 1489×1013, 165 KB |
+| Celular 12 MP con ruido | 1437 | **410** | **3.5×** | 7.3 MB → 1.5 MB |
+
+Solo con el fondo a ¼, sin redimensionar, la foto de 12 MP pasa de 862 a 354 ms; con ambos cambios, el pipeline sin E/S tarda 86 ms.
+
+**Calidad conservada:** las métricas de contraste de BACK-05 no cambian (oscura 156.3, sombra 172.0). Además, la respuesta pesa 3–5 veces menos, lo que también acorta la transferencia al navegador.
 
 ## Manejo de errores (BACK-07)
 

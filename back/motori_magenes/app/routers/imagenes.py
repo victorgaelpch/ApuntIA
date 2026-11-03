@@ -13,6 +13,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, File, Query, UploadFile
 from fastapi.responses import Response, StreamingResponse
 
+from app.core.config import settings
 from app.services.procesamiento import (
     OpcionesProcesamiento,
     codificar_png,
@@ -43,7 +44,8 @@ def motori_magenes(
     inicio = time.perf_counter()
     recibida = validar_imagen(file)
 
-    opciones = OpcionesProcesamiento(perspectiva=perspectiva, ruido=ruido, mejorar=mejorar, grises=grises)
+    opciones = OpcionesProcesamiento(
+        max_lado=settings.max_lado_procesamiento, perspectiva=perspectiva, ruido=ruido, mejorar=mejorar, grises=grises)
     resultado = procesar(recibida.imagen, opciones)
     png = codificar_png(resultado.imagen)
 

@@ -71,6 +71,14 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Cambiar** abre de nuevo el selector y **Quitar** elimina la selección: se vacía la vista previa, se deshabilita «Procesar» y el foco vuelve a «Cargar imagen». Ambos botones se bloquean mientras se procesa.
 - Usa `URL.createObjectURL` en lugar de leer la imagen como base64, que es más rápido y consume menos memoria, y **libera la URL temporal** (`revokeObjectURL`) al reemplazar o quitar la imagen.
 
+## Resultado del procesamiento (FRONT-06)
+
+- El panel *Procesada* recibe el **blob PNG** de la API (según el contrato) y lo muestra junto al *Original*, así se distinguen claramente.
+- **Ver original:** mientras se mantiene pulsado (ratón, dedo, o Espacio/Enter con teclado), el panel del resultado muestra la imagen original en el mismo lugar, con la etiqueta «Original». No se usa un comparador superpuesto porque la corrección de perspectiva cambia el encuadre y las dimensiones, y las dos imágenes no coincidirían.
+- **Datos:** si el pizarrón se enderezó o no (`X-ApuntIA-Perspectiva`), dimensiones, peso y tiempo de procesamiento. Los datos que falten se omiten.
+- **Tamaño real** abre el PNG en una pestaña nueva para leer los detalles; **Descargar** usa el nombre de `Content-Disposition` (`<nombre>_apuntia.png`).
+- **Resultado vacío o fallido:** una respuesta vacía, que no es imagen o que el navegador no puede decodificar se trata como un error (`RESPUESTA_INVALIDA`) y no deja acciones a medias. No hay resultados que caduquen, porque la API devuelve la imagen directamente (ver `docs/api.md`). La URL temporal del resultado se libera al elegir otra imagen o al volver a procesar.
+
 ## Cliente de la API (FRONT-05)
 
 `front/js/api.js` expone `window.ApuntIA.api`:

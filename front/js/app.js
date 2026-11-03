@@ -20,6 +20,12 @@
         btCambiar: $("btCambiar"),
         btQuitar: $("btQuitar"),
         imgResult: $("imagenResultado"),
+        infoResultado: $("infoResultado"),
+        accionesResultado: $("accionesResultado"),
+        btComparar: $("btComparar"),
+        btDescargar: $("btDescargar"),
+        btVerCompleta: $("btVerCompleta"),
+        selloComparar: $("selloComparar"),
         estado: $("estado"),
         resultados: $("resultados"),
     };
@@ -30,6 +36,7 @@
         origen: null,       // "archivo" | "camara" | "arrastre"
         enviando: false,    // evita envíos duplicados
         urlPreview: null,   // URL temporal de la vista previa (FRONT-04)
+        urlResultado: null, // URL temporal del resultado (FRONT-06)
     };
 
     const MENSAJES_VALIDACION = {
@@ -107,10 +114,74 @@
     el.btQuitar.addEventListener("click", quitarImagen);
     el.btCambiar.addEventListener("click", () => el.inpImagen.click());
 
+    // ---------------------------------------------------------------- resultado (FRONT-06)
+
+    const TEXTO_PERSPECTIVA = {
+        corregida: "✓ Pizarrón detectado y enderezado",
+        no_detectada: "Pizarrón no detectado: se mejoró la imagen sin enderezarla",
+        desactivada: "Corrección de perspectiva desactivada",
+    };
+
     function limpiarResultado() {
+        if (estado.urlResultado) URL.revokeObjectURL(estado.urlResultado);
+        estado.urlResultado = null;
+        dejarDeComparar();
         el.imgResult.hidden = true;
         el.imgResult.removeAttribute("src");
+        el.infoResultado.hidden = true;
+        el.accionesResultado.hidden = true;
     }
+
+    // Carga el blob en el panel y resuelve cuando el navegador lo ha decodificado.
+    function mostrarResultado(resultado) {
+        return new Promise((resolve, reject) => {
+            limpiarResultado();
+            estado.urlResultado = URL.createObjectURL(resultado.blob);
+            el.imgResult.onload = () => {
+                el.imgResult.onload = el.imgResult.onerror = null; // comparar cambia el src después
+                const partes = [];
+                if (resultado.perspectiva && TEXTO_PERSPECTIVA[resultado.perspectiva]) {
+                    const clase = resultado.perspectiva === "corregida" ? ' class="ok"' : "";
+                    partes.push(`<span${clase}>${TEXTO_PERSPECTIVA[resultado.perspectiva]}</span>`);
+                }
+                partes.push(`${el.imgResult.naturalWidth}×${el.imgResult.naturalHeight} px`);
+                partes.push(validacion.formatearTamano(resultado.blob.size));
+                if (resultado.tiempoMs !== null) partes.push(`procesada en ${(resultado.tiempoMs / 1000).toFixed(1)} s`);
+                el.infoResultado.innerHTML = partes.join(" · ");
+                el.infoResultado.hidden = false;
+                el.btDescargar.href = el.btVerCompleta.href = estado.urlResultado;
+                el.btDescargar.download = resultado.nombreDescarga;
+                el.accionesResultado.hidden = false;
+                resolve();
+            };
+            el.imgResult.onerror = () => {
+                el.imgResult.onload = el.imgResult.onerror = null;
+                limpiarResultado();
+                reject(new api.ApiError({ tipo: "respuesta", codigo: "RESPUESTA_INVALIDA" }));
+            };
+            el.imgResult.src = estado.urlResultado;
+            el.imgResult.hidden = false;
+        });
+    }
+
+    // Comparar: mientras se mantiene pulsado (o al activarlo con teclado) el
+    // panel de resultado muestra la original, para alternar en el mismo sitio.
+    function comparar() {
+        if (!estado.urlResultado || !estado.urlPreview) return;
+        el.imgResult.src = estado.urlPreview;
+        el.selloComparar.hidden = false;
+        el.btComparar.setAttribute("aria-pressed", "true");
+    }
+    function dejarDeComparar() {
+        if (el.btComparar.getAttribute("aria-pressed") !== "true") return;
+        el.btComparar.setAttribute("aria-pressed", "false");
+        el.selloComparar.hidden = true;
+        if (estado.urlResultado) el.imgResult.src = estado.urlResultado;
+    }
+    el.btComparar.addEventListener("pointerdown", (e) => { e.preventDefault(); comparar(); });
+    ["pointerup", "pointerleave", "pointercancel", "blur"].forEach((ev) => el.btComparar.addEventListener(ev, dejarDeComparar));
+    el.btComparar.addEventListener("keydown", (e) => { if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); comparar(); } });
+    el.btComparar.addEventListener("keyup", (e) => { if (e.key === " " || e.key === "Enter") dejarDeComparar(); });
 
     // ---------------------------------------------------------------- selección (FRONT-02)
 
@@ -228,9 +299,8 @@
 
         try {
             const resultado = await api.procesarImagen(estado.archivo);
-            el.imgResult.src = URL.createObjectURL(resultado.blob);
-            el.imgResult.hidden = false;
-            mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada.");
+            await mostrarResultado(resultado);
+            mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada o descárgala.");
         } catch (error) {
             console.error(error);
             const texto = error.tipo === "red"

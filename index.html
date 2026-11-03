@@ -104,11 +104,21 @@
         <p class="pane__info" id="infoPreview" hidden></p>
       </figure>
       <figure class="pane" data-pane="resultado">
-        <figcaption>Procesada</figcaption>
+        <div class="pane__head">
+          <figcaption>Procesada</figcaption>
+          <div class="pane__acciones" id="accionesResultado" hidden>
+            <button type="button" class="btn sm" id="btComparar" aria-pressed="false"
+                    title="Mantén pulsado para ver la original en este panel">Ver original</button>
+            <a class="btn sm" id="btVerCompleta" target="_blank" rel="noopener">Tamaño real</a>
+            <a class="btn sm primary" id="btDescargar" download>Descargar</a>
+          </div>
+        </div>
         <div class="pane__frame">
           <img id="imagenResultado" alt="Imagen procesada por ApuntIA" hidden>
           <p class="pane__empty">Aquí aparecerá el resultado.</p>
+          <span class="pane__sello" id="selloComparar" hidden>Original</span>
         </div>
+        <p class="pane__info" id="infoResultado" hidden></p>
       </figure>
     </div>
   </section>

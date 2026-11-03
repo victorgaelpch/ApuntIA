@@ -87,6 +87,15 @@ section[id] { scroll-margin-top: 84px; }
 .results[aria-busy=true] [data-pane=resultado] .pane__frame { animation: pulso 1.2s ease-in-out infinite alternate; }
 @keyframes pulso { to { opacity: .55; } }
 
+.pane__sello {
+  position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 99px;
+  background: rgba(0,0,0,.65); color: #fff; font: 600 .78rem var(--f-body);
+}
+.pane__acciones { flex-wrap: wrap; }
+.pane__acciones a.btn { text-decoration: none; }
+#btComparar[aria-pressed=true] { border-color: var(--brand); color: var(--brand-text); }
+.pane__info .ok { color: var(--brand-text); font-weight: 600; }
+
 /* ---------- Cámara ---------- */
 .cta-btn.cta-photo { font: inherit; }
 .cam-foot__espacio { width: 120px; }

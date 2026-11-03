@@ -1,10 +1,24 @@
-"""Errores de la API con la estructura acordada en docs/api.md.
+"""Manejo de errores de la API (BACK-07).
+
+Todas las respuestas de error usan la estructura acordada en docs/api.md:
 
     {"error": {"codigo": "TIPO_NO_PERMITIDO", "mensaje": "..."}}
+
+- Errores del cliente (4xx): `codigo` y `mensaje` explican qué corregir.
+- Errores del servidor (5xx): mensaje genérico. El detalle técnico y la traza
+  solo se escriben en el log del servidor, junto con un identificador que
+  también se devuelve en la cabecera X-ApuntIA-Error-Id para poder rastrearlo.
 """
 
-from fastapi import Request
+import logging
+import uuid
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+logger = logging.getLogger("apuntia.errores")
 
 
 class ApiError(Exception):
@@ -17,12 +31,67 @@ class ApiError(Exception):
         self.mensaje = mensaje
 
 
-def respuesta_error(status_code: int, codigo: str, mensaje: str) -> JSONResponse:
+class ProcesamientoError(Exception):
+    """Fallo dentro del pipeline de OpenCV. Se responde con 500 ERROR_PROCESAMIENTO."""
+
+
+MENSAJES_HTTP = {
+    404: ("RUTA_NO_ENCONTRADA", "La ruta solicitada no existe."),
+    405: ("METODO_NO_PERMITIDO", "Método HTTP no permitido en esta ruta."),
+}
+
+
+def respuesta_error(status_code: int, codigo: str, mensaje: str,
+                    headers: dict[str, str] | None = None) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
         content={"error": {"codigo": codigo, "mensaje": mensaje}},
+        headers=headers,
     )
 
 
 async def manejar_api_error(_: Request, exc: ApiError) -> JSONResponse:
+    logger.info("Petición rechazada: %s %s", exc.status_code, exc.codigo)
     return respuesta_error(exc.status_code, exc.codigo, exc.mensaje)
+
+
+async def manejar_validacion(_: Request, exc: RequestValidationError) -> JSONResponse:
+    campos = sorted({str(e.get("loc", ["?"])[-1]) for e in exc.errors()})
+    return respuesta_error(
+        422, "PARAMETRO_INVALIDO",
+        f"Valor no válido en: {', '.join(campos)}. Revisa los parámetros de la petición.",
+    )
+
+
+async def manejar_http(_: Request, exc: StarletteHTTPException) -> JSONResponse:
+    codigo, mensaje = MENSAJES_HTTP.get(
+        exc.status_code,
+        ("ERROR_CLIENTE" if exc.status_code < 500 else "ERROR_INTERNO",
+         "La petición no se pudo completar."),
+    )
+    return respuesta_error(exc.status_code, codigo, mensaje, headers=getattr(exc, "headers", None))
+
+
+def _error_servidor(request: Request, exc: Exception, codigo: str, mensaje: str) -> JSONResponse:
+    error_id = uuid.uuid4().hex[:12]
+    logger.error("Error %s en %s %s (id=%s)", codigo, request.method, request.url.path,
+                 error_id, exc_info=exc)
+    return respuesta_error(500, codigo, mensaje, headers={"X-ApuntIA-Error-Id": error_id})
+
+
+async def manejar_procesamiento(request: Request, exc: ProcesamientoError) -> JSONResponse:
+    return _error_servidor(request, exc, "ERROR_PROCESAMIENTO",
+                           "No se pudo procesar la imagen. Inténtalo de nuevo o prueba con otra foto.")
+
+
+async def manejar_inesperado(request: Request, exc: Exception) -> JSONResponse:
+    return _error_servidor(request, exc, "ERROR_INTERNO",
+                           "Ocurrió un error inesperado en el servidor. Inténtalo más tarde.")
+
+
+def registrar_manejadores(app: FastAPI) -> None:
+    app.add_exception_handler(ApiError, manejar_api_error)
+    app.add_exception_handler(RequestValidationError, manejar_validacion)
+    app.add_exception_handler(StarletteHTTPException, manejar_http)
+    app.add_exception_handler(ProcesamientoError, manejar_procesamiento)
+    app.add_exception_handler(Exception, manejar_inesperado)

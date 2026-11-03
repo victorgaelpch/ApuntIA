@@ -69,6 +69,8 @@ Todos los errores, incluidos los 404 y 500, tienen **la misma estructura JSON**:
 
 - `codigo`: identificador estable en MAYÚSCULAS. El frontend decide qué mostrar según este valor.
 - `mensaje`: texto en español apto para el usuario. **Nunca** incluye trazas ni rutas internas.
+- En los errores `500`, la cabecera `X-ApuntIA-Error-Id` trae un identificador que también aparece
+  en el log del servidor, junto a la traza completa, para poder investigar el fallo.
 
 | HTTP | `codigo` | Cuándo |
 |------|----------|--------|

@@ -2,6 +2,9 @@
   "name": "apuntia",
   "private": true,
   "description": "ApuntIA: digitalización de fotos de pizarrón (frontend estático + backend FastAPI)",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test:front": "node --test \"front/tests/*.test.js\"",
     "test:integracion": "node --test \"tests/integracion/*.test.js\""

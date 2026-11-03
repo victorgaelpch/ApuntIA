@@ -1,0 +1,72 @@
+# Integración continua de ApuntIA (rúbrica punto 2: Definition of Done).
+# Se ejecuta en cada push y en cada pull request hacia main. Un PR solo cumple
+# la DoD si los tres trabajos terminan en verde (ver docs/definicion-de-hecho.md).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (pytest + auditoría de dependencias)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: back/motori_magenes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: back/motori_magenes/requirements*.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dev.txt
+      - name: Pruebas (pytest)
+        run: python -m pytest
+      - name: Vulnerabilidades conocidas (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt -r requirements-dev.txt
+
+  frontend:
+    name: Interfaz (Playwright, API simulada)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:front
+
+  integracion:
+    name: Integración (interfaz + FastAPI reales)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: back/motori_magenes/requirements*.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: pip install -r back/motori_magenes/requirements.txt
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:integracion
+        env:
+          PYTHON: python

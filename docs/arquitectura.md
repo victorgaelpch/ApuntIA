@@ -128,7 +128,7 @@ Las variables del backend se leen del entorno o de `back/motori_magenes/.env` (p
 | Backend | Python ≥ 3.10, `fastapi`, `uvicorn[standard]`, `python-multipart`, `opencv-python`, `numpy`, `pillow` | Python 3.13 · FastAPI 0.162 · OpenCV 5.0 · NumPy 2.5 · Pillow 13 |
 | Pruebas del backend | `pytest`, `httpx` | pytest 9.2 |
 | Frontend | Ninguna (HTML, CSS y JS sin compilar); fuentes de Google Fonts | Navegadores actuales |
-| Pruebas de Node | Node ≥ 18, `playwright` | Node 22 · Playwright 1.63 · Chromium |
+| Pruebas de Node | Node ≥ 22 (los patrones `*.test.js` de `node --test` requieren Node 21+), `playwright` | Node 22 · Playwright 1.63 · Chromium |
 
 ## 7. Documentación de la API
 

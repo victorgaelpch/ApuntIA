@@ -41,6 +41,9 @@ class Settings:
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
     max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 
+    # Lado mayor con el que se procesa la imagen (BACK-09). 0 = sin límite.
+    max_lado_procesamiento: int = int(os.getenv("MAX_LADO_PROCESAMIENTO", "2000"))
+
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [
         origen.strip()

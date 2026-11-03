@@ -6,7 +6,7 @@ pruebas o un futuro procesamiento por lotes.
 
 Orden de las etapas (cada una se puede desactivar con OpcionesProcesamiento):
 
-    1. copia        -> el original nunca se modifica
+    1. redimensionar -> limita el lado mayor a MAX_LADO_PROCESAMIENTO (BACK-09)
     2. perspectiva  -> detecta el pizarrón y lo endereza (BACK-04)
     3. ruido        -> elimina ruido antes de enfocar, para no amplificarlo (BACK-06)
     4. mejora       -> brillo, iluminación, contraste local y nitidez (BACK-05)
@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class OpcionesProcesamiento:
+    max_lado: int = 0  # 0 = sin redimensionar; la API usa settings.max_lado_procesamiento
     perspectiva: bool = True
     ruido: str = RUIDO_POR_DEFECTO  # ninguno | mediana | gaussiano | bilateral | combinado
     mejorar: bool = True
@@ -77,6 +78,19 @@ def a_grises(imagen: np.ndarray) -> np.ndarray:
 Etapa = Callable[[np.ndarray, OpcionesProcesamiento, ResultadoProcesamiento], np.ndarray]
 
 
+def redimensionar(img: np.ndarray, max_lado: int) -> np.ndarray:
+    """Reduce la imagen (INTER_AREA) si su lado mayor supera max_lado. Nunca amplía."""
+    lado = max(img.shape[:2])
+    if max_lado <= 0 or lado <= max_lado:
+        return img
+    escala = max_lado / lado
+    return cv2.resize(img, None, fx=escala, fy=escala, interpolation=cv2.INTER_AREA)
+
+
+def _etapa_redimensionar(img, opciones, _res):
+    return redimensionar(img, opciones.max_lado)
+
+
 def _etapa_perspectiva(img, _opciones, res):
     img, res.perspectiva = corregir_perspectiva(img)
     return img
@@ -98,6 +112,8 @@ def _etapa_grises(img, opciones, _res):
 def construir_etapas(opciones: OpcionesProcesamiento) -> list[tuple[str, Etapa]]:
     """Devuelve las etapas activas, en el orden en que se aplican."""
     etapas: list[tuple[str, Etapa]] = []
+    if opciones.max_lado > 0:
+        etapas.append(("redimensionar", _etapa_redimensionar))
     if opciones.perspectiva:
         etapas.append(("perspectiva", _etapa_perspectiva))
     if opciones.ruido != "ninguno":
@@ -116,9 +132,9 @@ def procesar(imagen: np.ndarray, opciones: OpcionesProcesamiento | None = None) 
         raise ProcesamientoError("Imagen vacía")
 
     resultado = ResultadoProcesamiento(imagen=imagen)
-    inicio = time.perf_counter()
-    actual = a_bgr(imagen).copy()  # 1. nunca se modifica el original
-    resultado.tiempos_ms["copia"] = (time.perf_counter() - inicio) * 1000
+    # Ninguna etapa modifica su entrada (todas devuelven una matriz nueva), así
+    # que no hace falta copiar la imagen al empezar (BACK-09: ahorraba ~10 ms en 12 MP).
+    actual = a_bgr(imagen)
 
     for nombre, etapa in construir_etapas(opciones):
         inicio = time.perf_counter()
@@ -128,7 +144,8 @@ def procesar(imagen: np.ndarray, opciones: OpcionesProcesamiento | None = None) 
             raise ProcesamientoError(f"Fallo en la etapa «{nombre}»: {exc}") from exc
         resultado.tiempos_ms[nombre] = (time.perf_counter() - inicio) * 1000
 
-    resultado.imagen = actual
+    # Si ninguna etapa actuó, se devuelve una copia para no compartir memoria con el original.
+    resultado.imagen = actual.copy() if actual is imagen else actual
     logger.debug("Tiempos por etapa (ms): %s", resultado.tiempos_ms)
     return resultado
 

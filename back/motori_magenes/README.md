@@ -57,6 +57,25 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+## Pruebas automáticas (BACK-08)
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+```bash
+python -m pytest
+```
+
+Hay 70 pruebas con `pytest` y el `TestClient` de FastAPI:
+
+| Archivo | Qué cubre |
+|---------|-----------|
+| `tests/test_api.py` | `/`, `/salud`, `/imagen-memoria` y `/docs`. Carga correcta de JPEG, PNG y WEBP, cabeceras `X-ApuntIA-*`, perspectiva corregida con la proporción conservada, parámetros (`perspectiva`, `ruido`, `mejorar`, `grises`) y redimensionamiento. **Todos los errores del contrato**: 400 ×3, 413 ×2, 415, 422, 404, 405 y 500 ×2, comprobando la estructura JSON y que no se filtran trazas ni datos internos. |
+| `tests/test_procesamiento.py` | Pipeline sin HTTP: el original no se modifica, varias dimensiones y canales, redimensionado, orden de esquinas, precisión de la detección (< 10 px), ausencia de falsos positivos, PSNR del filtro de ruido, contraste de la mejora, firma de formatos y saneado de nombres. |
+
+**Hallazgos durante las pruebas:** el cliente HTTP, como los navegadores, ya escapa `"` y los saltos de línea del nombre de archivo como `%22` y `%0D%0A` antes de enviarlo. La prueba de nombre malicioso comprueba, por tanto, que no llegan rutas, comillas ni saltos de línea a las cabeceras. No se encontraron fallos en el código.
+
 ## Cómo comprobarlo
 
 ```bash

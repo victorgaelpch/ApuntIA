@@ -14,3 +14,4 @@ venv/
 
 # Muestras sintéticas regenerables (python -m herramientas.muestras ../bd/muestras)
 back/bd/muestras/
+.pytest_cache/

@@ -15,9 +15,10 @@ back/motori_magenes/
     ├── routers/            # Rutas HTTP (solo reciben y responden)
     │   ├── general.py      # GET  /
     │   └── imagenes.py     # POST /analisis, POST /imagen-memoria
+    ├── core/errores.py     # ApiError y respuesta JSON de error común
     └── services/           # Lógica reutilizable, sin dependencias de rutas
-        ├── almacenamiento.py   # Guardado seguro de archivos subidos
-        └── procesamiento.py    # Procesamiento con Pillow (escala de grises, ejemplo)
+        ├── validacion.py       # Validación de la imagen recibida (BACK-02)
+        └── procesamiento.py    # Procesamiento de imágenes
 ```
 
 ## Rutas disponibles
@@ -25,7 +26,8 @@ back/motori_magenes/
 | Método | Ruta              | Descripción                                                     |
 |--------|-------------------|-----------------------------------------------------------------|
 | GET    | `/`               | Comprobación de estado. Responde `{"message": "Hola Mundo"}`.   |
-| POST   | `/analisis`       | Recibe `file` (multipart), lo convierte a grises y lo devuelve. |
+| GET    | `/salud`          | Estado del servicio, versión y límites vigentes.                |
+| POST   | `/analisis`       | Recibe `file` (multipart), lo valida y lo devuelve procesado.   |
 | POST   | `/imagen-memoria` | Devuelve una imagen PNG de ejemplo generada en memoria.         |
 
 Las rutas y sus respuestas no cambiaron, por lo que `front/js/fastapi.js`
@@ -35,7 +37,8 @@ sigue funcionando contra `http://localhost:8000/analisis`.
 
 | Variable       | Por defecto                    | Uso                                                  |
 |----------------|--------------------------------|------------------------------------------------------|
-| `IMAGES_DIR`   | `imagenes` (relativo a esta carpeta) | Carpeta donde se guardan las imágenes recibidas. Se crea sola. |
+| `MAX_UPLOAD_MB` | `10`                          | Tamaño máximo del archivo recibido.                  |
+| `MAX_MEGAPIXELES` | `50`                        | Resolución máxima de la imagen recibida.             |
 | `CORS_ORIGINS` | `*`                            | Orígenes permitidos, separados por comas.            |
 | `APP_NAME`     | `ApuntIA - Motor de imágenes`  | Título mostrado en `/docs`.                          |
 
@@ -64,6 +67,19 @@ curl -X POST -F "file=@../bd/img/image.png" http://127.0.0.1:8000/analisis -o re
 ```
 
 También puede probarse desde `http://127.0.0.1:8000/docs`.
+
+## Validación de imágenes (BACK-02)
+
+El contrato completo está en [`docs/api.md`](../../docs/api.md). `POST /analisis` comprueba, en este orden:
+
+1. Que exista el campo `file` → si no, `400 ARCHIVO_AUSENTE`.
+2. Que no esté vacío → si lo está, `400 ARCHIVO_VACIO`.
+3. Que no supere `MAX_UPLOAD_MB` → si lo supera, `413 ARCHIVO_DEMASIADO_GRANDE`. Se leen como máximo `límite + 1` bytes.
+4. Que su **firma binaria** sea JPEG, PNG o WEBP; la extensión y el `Content-Type` no bastan → si no, `415 TIPO_NO_PERMITIDO`.
+5. Que no supere `MAX_MEGAPIXELES`, leyendo solo la cabecera → si la supera, `413 IMAGEN_DEMASIADO_GRANDE`.
+6. Que OpenCV pueda decodificarla → si no puede, `400 IMAGEN_CORRUPTA`.
+
+Todo ocurre en memoria: ya no se escriben archivos en disco, por lo que desaparece la variable `IMAGES_DIR`. El nombre recibido se limpia antes de usarlo en las cabeceras de la respuesta.
 
 ## Cambios realizados (BACK-01)
 

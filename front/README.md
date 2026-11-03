@@ -79,6 +79,21 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Tamaño real** abre el PNG en una pestaña nueva para leer los detalles; **Descargar** usa el nombre de `Content-Disposition` (`<nombre>_apuntia.png`).
 - **Resultado vacío o fallido:** una respuesta vacía, que no es imagen o que el navegador no puede decodificar se trata como un error (`RESPUESTA_INVALIDA`) y no deja acciones a medias. No hay resultados que caduquen, porque la API devuelve la imagen directamente (ver `docs/api.md`). La URL temporal del resultado se libera al elegir otra imagen o al volver a procesar.
 
+## Indicadores de carga (FRONT-07)
+
+| Momento | Qué ve el usuario |
+|---------|-------------------|
+| 0–2 s | Spinner y «Enviando la imagen al servidor…» |
+| 2–8 s | «Procesando la imagen…» y un reloj con los segundos transcurridos |
+| > 8 s | «Sigue procesando… Las fotos grandes pueden tardar un poco más.» |
+| Al llegar | «Recibiendo el resultado…» y, a continuación, el resultado |
+
+- **Sin porcentajes:** el backend no informa del progreso, así que no se inventan.
+- **Accesible:** el mensaje está en una región `role="status"`. El spinner y el reloj son `aria-hidden`, así el lector de pantalla anuncia solo los cambios de fase y no cada segundo. La sección tiene `aria-busy="true"` mientras dura la espera.
+- **Controles bloqueados durante la espera:** «Procesar» (que muestra «Procesando…»), «Cargar imagen», «Tomar foto», «Cambiar», «Quitar» y arrastrar y soltar.
+- **Cancelar:** aborta la petición con un `AbortController`.
+- **Restauración garantizada:** al terminar, fallar o cancelar, un bloque `finally` vuelve a habilitar todos los controles.
+
 ## Cliente de la API (FRONT-05)
 
 `front/js/api.js` expone `window.ApuntIA.api`:

@@ -162,7 +162,7 @@
 
     const TEXTO_PERSPECTIVA = {
         corregida: "✓ Pizarrón detectado y enderezado",
-        no_detectada: "Pizarrón no detectado: se mejoró la imagen sin enderezarla",
+        no_detectada: "Pizarrón no detectado: se mejoró la imagen sin enderezarla (para enderezarla, fotografía el pizarrón completo)",
         desactivada: "Corrección de perspectiva desactivada",
     };
 
@@ -190,7 +190,9 @@
                 }
                 partes.push(`${el.imgResult.naturalWidth}×${el.imgResult.naturalHeight} px`);
                 partes.push(validacion.formatearTamano(resultado.blob.size));
-                if (resultado.tiempoMs !== null) partes.push(`procesada en ${(resultado.tiempoMs / 1000).toFixed(1)} s`);
+                if (resultado.tiempoMs !== null) {
+                    partes.push(resultado.tiempoMs < 100 ? "procesada en menos de 0.1 s" : `procesada en ${(resultado.tiempoMs / 1000).toFixed(1)} s`);
+                }
                 el.infoResultado.innerHTML = partes.join(" · ");
                 el.infoResultado.hidden = false;
                 el.btDescargar.href = el.btVerCompleta.href = estado.urlResultado;
@@ -206,6 +208,16 @@
             el.imgResult.src = estado.urlResultado;
             el.imgResult.hidden = false;
         });
+    }
+
+    // En una sola columna (celular) el resultado queda debajo de la original y
+    // fuera de la pantalla: se desplaza hasta él para que el usuario lo vea (FULL-09).
+    function llevarAlResultado() {
+        const panel = el.imgResult.closest(".pane");
+        const r = panel.getBoundingClientRect();
+        if (r.top >= 0 && r.top < window.innerHeight * 0.6) return; // ya está a la vista
+        const suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        panel.scrollIntoView({ block: "start", behavior: suave ? "smooth" : "auto" });
     }
 
     // Comparar: mientras se mantiene pulsado (o al activarlo con teclado) el
@@ -369,6 +381,7 @@
             el.estado.querySelector(".status__texto").textContent = "Recibiendo el resultado…";
             await mostrarResultado(resultado);
             mostrarEstado("hecho", `Listo: resultado de «${archivoEnviado.name}». Compara con la original o descárgala.`);
+            llevarAlResultado();
         } catch (error) {
             // Los mensajes públicos salen del catálogo; el mensaje del servidor y
             // la causa solo se registran en la consola.

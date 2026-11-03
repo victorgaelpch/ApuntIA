@@ -4,7 +4,7 @@
 (function () {
     "use strict";
 
-    const { api, validacion, camara } = window.ApuntIA;
+    const { api, validacion, camara, mensajes } = window.ApuntIA;
     const $ = (id) => document.getElementById(id);
 
     const el = {
@@ -40,16 +40,9 @@
         controlador: null,  // AbortController del envío en curso (FRONT-07)
     };
 
-    const MENSAJES_VALIDACION = {
-        ARCHIVO_AUSENTE: "No se recibió ningún archivo. Elige una imagen.",
-        ARCHIVO_VACIO: "El archivo está vacío. Elige otra imagen.",
-        ARCHIVO_DEMASIADO_GRANDE: `La imagen pesa más de ${window.ApuntIA.config.maxMb} MB. Elige una más ligera.`,
-        TIPO_NO_PERMITIDO: "Formato no admitido. Usa una imagen JPEG, PNG o WEBP.",
-    };
-
     // acciones: [{texto, alHacer}] botones opcionales bajo el mensaje.
     // spinner: indicador animado de espera (FRONT-07), decorativo para lectores de pantalla.
-    function mostrarEstado(tipo, mensaje, acciones = [], { spinner = false } = {}) {
+    function mostrarEstado(tipo, mensaje, acciones = [], { spinner = false, detalle = null } = {}) {
         el.estado.dataset.estado = tipo;
         el.estado.textContent = "";
         if (spinner) {
@@ -75,6 +68,36 @@
             }
             el.estado.appendChild(caja);
         }
+        if (detalle) {
+            const det = document.createElement("details");
+            det.className = "status__detalle";
+            det.innerHTML = "<summary>Detalles técnicos</summary>";
+            const p = document.createElement("p");
+            p.textContent = detalle;
+            det.appendChild(p);
+            el.estado.appendChild(det);
+        }
+    }
+
+    // ---------------------------------------------------------------- errores (FRONT-08)
+
+    const ACCIONES = {
+        cargar: { texto: "Cargar imagen", alHacer: () => el.inpImagen.click() },
+        elegirOtra: { texto: "Elegir otra imagen", alHacer: () => el.inpImagen.click() },
+        camara: { texto: "Tomar foto", alHacer: () => el.btCamara.click() },
+        camaraApp: { texto: "Usar la app de cámara", alHacer: () => el.inpCamara.click() },
+        reintentar: { texto: "Reintentar", alHacer: () => enviarImagen() },
+        recargar: { texto: "Recargar la página", alHacer: () => window.location.reload() },
+    };
+
+    // Muestra el mensaje público de un código y registra el detalle técnico en la consola.
+    function mostrarError(codigo, error = {}, sufijo = "") {
+        const m = mensajes.paraUsuario(codigo, error);
+        const acciones = m.acciones
+            .filter((id) => id !== "reintentar" || estado.archivo) // sin imagen no hay nada que reintentar
+            .map((id) => ACCIONES[id]);
+        if (m.tipo === "error") console.error("[ApuntIA]", codigo, error);
+        mostrarEstado(m.tipo, m.texto + sufijo, acciones, { detalle: m.tipo === "error" && error.status ? m.detalle : null });
     }
 
     // Mientras se procesa se bloquea todo lo que cambiaría la imagen o lanzaría
@@ -211,7 +234,7 @@
         const resultado = await validacion.validarArchivo(archivo);
         if (!resultado.ok) {
             const mantiene = estado.archivo ? ` Se mantiene «${estado.archivo.name}».` : "";
-            mostrarEstado("error", MENSAJES_VALIDACION[resultado.codigo] + mantiene);
+            mostrarError(resultado.codigo, {}, mantiene);
             return;
         }
 
@@ -270,18 +293,6 @@
 
     // ---------------------------------------------------------------- cámara (FRONT-03)
 
-    const MENSAJES_CAMARA = {
-        CAMARA_PERMISO_DENEGADO: "No se dio permiso para usar la cámara. Puedes permitirlo en la configuración del navegador (icono junto a la dirección) o usar una alternativa:",
-        CAMARA_NO_DISPONIBLE: "No se encontró ninguna cámara en este dispositivo. Usa una alternativa:",
-        CAMARA_OCUPADA: "La cámara está siendo usada por otra aplicación. Ciérrala e inténtalo de nuevo, o usa una alternativa:",
-        CAMARA_ERROR: "No se pudo iniciar la cámara. Usa una alternativa:",
-    };
-
-    const alternativasCamara = [
-        { texto: "Usar la app de cámara", alHacer: () => el.inpCamara.click() },
-        { texto: "Cargar imagen", alHacer: () => el.inpImagen.click() },
-    ];
-
     const visor = camara.crearVisor({
         dialogo: $("dlgCamara"),
         video: $("camVideo"),
@@ -300,7 +311,7 @@
         }
         visor.abrir({
             onFoto: (archivo) => seleccionarArchivo(archivo, "camara"),
-            onError: (codigo) => mostrarEstado("error", MENSAJES_CAMARA[codigo], alternativasCamara),
+            onError: (codigo, error) => mostrarError(codigo, { causa: error }),
         });
     });
 
@@ -347,15 +358,9 @@
             await mostrarResultado(resultado);
             mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada o descárgala.");
         } catch (error) {
-            if (error.codigo === "CANCELADO") {
-                mostrarEstado("listo", "Procesamiento cancelado. Puedes volver a intentarlo o elegir otra imagen.");
-            } else {
-                console.error(error);
-                const texto = error.tipo === "red"
-                    ? `No se pudo conectar con el servidor (${api.urlBase()}). Verifica que esté activo e inténtalo de nuevo.`
-                    : error.mensaje || "No se pudo procesar la imagen. Inténtalo de nuevo.";
-                mostrarEstado("error", texto);
-            }
+            // Los mensajes públicos salen del catálogo; el mensaje del servidor y
+            // la causa solo se registran en la consola.
+            mostrarError(error.codigo || "ERROR_DESCONOCIDO", error);
         } finally {
             clearInterval(intervalo);
             estado.enviando = false;

@@ -1,89 +1,91 @@
-# ApuntIA – Backend de procesamiento de imágenes
+# ApuntIA: apuntes del pizarrón, legibles
 
-> **Ejecutar la aplicación completa (frontend + backend):** ver [`docs/ejecutar.md`](docs/ejecutar.md).
+ApuntIA convierte la foto de un pizarrón en una imagen **enderezada, sin ruido y más nítida**.
+Se toma la foto (o se elige de la galería), se procesa con visión por computadora y se compara con la original antes de descargarla.
 
-Backend desarrollado con Python y FastAPI para el procesamiento y análisis de imágenes del proyecto ApuntIA.
+| Parte | Tecnología | Carpeta |
+|-------|------------|---------|
+| Frontend | HTML, CSS y JavaScript sin dependencias | `index.html`, `front/` |
+| Backend | Python, FastAPI y OpenCV | `back/motori_magenes/` |
 
-## Requisitos previos
-
-Antes de ejecutar el proyecto, instala:
-
-- Python 3.11 o una versión compatible con las dependencias.
-- Git.
-- pip, incluido normalmente con Python.
-
-## Instalación
-
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/victorgaelpch/ApuntIA.git
-cd ApuntIA/back/motori_magenes
+```mermaid
+flowchart LR
+    U["📷 Foto del pizarrón"] --> F["Frontend<br/>index.html"]
+    F -- "POST /analisis (multipart «file»)" --> B["Backend FastAPI :8000"]
+    B --> P["OpenCV: perspectiva → ruido → contraste y nitidez"]
+    P --> B
+    B -- "PNG procesado" --> F
+    F --> R["Comparar · Descargar"]
 ```
 
-> Consulta `back/motori_magenes/README.md` para ver la estructura del backend, las rutas y las variables de entorno.
+## Inicio rápido
 
-### 2. Crear un entorno virtual
+Requisitos: **Python 3.10 o superior** y, solo para las pruebas automáticas, **Node.js 18 o superior**.
 
-En Windows:
+**1. Backend** (la guía completa para Windows, macOS y Linux está en [`back/motori_magenes/README.md`](back/motori_magenes/README.md)):
 
-```powershell
+```bash
+cd back/motori_magenes
+```
+
+```bash
 python -m venv .venv
 ```
 
-### 3. Activar el entorno virtual
-
-En Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-### 4. Instalar las dependencias
-
-Con el entorno virtual activado, ejecuta:
+Activa el entorno (Windows: `.\.venv\Scripts\Activate.ps1` · macOS/Linux: `source .venv/bin/activate`) y después:
 
 ```bash
-python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
-
-Este comando instala las librerías necesarias para ejecutar el backend.
-
-## Ejecución del servidor
-
-Desde la carpeta `motori_magenes`, inicia el servidor con:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-El punto de entrada es `main.py`, que expone la instancia `app` creada en `app/main.py`. Por compatibilidad, `uvicorn index:app --reload` también funciona.
+**2. Frontend:** en otra terminal, desde la raíz del repositorio:
 
-## Acceso a la API
+```bash
+python -m http.server 5500
+```
 
-Cuando el servidor esté iniciado, puedes acceder a:
+Abre http://localhost:5500/index.html, elige una foto y pulsa **«Procesar imagen»**. También funciona abriendo `index.html` con doble clic.
+Para usarlo desde el celular en la misma red, ver [`docs/ejecutar.md`](docs/ejecutar.md).
 
-- **Servidor:** http://127.0.0.1:8000
-- **Documentación Swagger:** http://127.0.0.1:8000/docs
-- **Documentación alternativa:** http://127.0.0.1:8000/redoc
+| Dirección | Qué es |
+|-----------|--------|
+| http://localhost:5500/index.html | La aplicación |
+| http://localhost:8000/docs | Documentación interactiva de la API |
+| http://localhost:8000/salud | Estado del backend |
+| `index.html?mock=ok` | La aplicación con respuestas simuladas, sin backend |
 
-## Detener el servidor
+## Pruebas
 
-Para detener Uvicorn, presiona `Ctrl + C` en la terminal donde se está ejecutando.
+| Batería | Comando | Resultado |
+|---------|---------|-----------|
+| Backend (pytest) | `python -m pytest` desde `back/motori_magenes`, tras instalar `requirements-dev.txt` | 74 correctas |
+| Interfaz (Playwright, API simulada) | `npm run test:front` | 20 correctas |
+| Integración (interfaz + FastAPI reales) | `npm run test:integracion` | 19 correctas |
 
-## Tecnologías utilizadas
+Antes de las pruebas de Node, instala sus dependencias:
 
-- Python
-- FastAPI
-- Uvicorn
-- OpenCV
-- NumPy
+```bash
+npm install
+```
 
-## Estado del proyecto
+```bash
+npx playwright install chromium
+```
 
-En desarrollo.
+## Documentación
 
-## Autoría
+- [**Arquitectura**](docs/arquitectura.md): componentes, flujo, carpetas, puertos, variables, CORS, comandos, dependencias, decisiones y cómo reproducir una prueba integral.
+- [Flujo y alcance](docs/flujo.md) · [Contrato de la API](docs/api.md) · [Ejecutar el proyecto completo](docs/ejecutar.md)
+- [Plan de integración](docs/integracion.md) · [Compatibilidad](docs/compatibilidad.md) · [Incidencias](docs/incidencias.md)
+- [Pruebas de interfaz](docs/pruebas-frontend.md) · [Pruebas de integración](docs/pruebas-integracion.md) · [Validación de UX](docs/validacion-ux.md)
+- [Backend: instalación y uso](back/motori_magenes/README.md) · [Detalles del procesamiento](back/motori_magenes/PROCESAMIENTO.md) · [Frontend](front/README.md)
 
-Proyecto ApuntIA.
+## Estado
+
+Versión 1.0: todos los issues BACK, FRONT y FULL implementados, con pruebas y evidencias. Quedan pendientes, con responsables humanos: la aprobación formal del flujo y el contrato, las pruebas en Firefox, Safari y celulares reales, y la bitácora de cada issue (ver [`docs/integracion.md`](docs/integracion.md#4-bloqueos-y-riesgos)).
+
+Proyecto académico ApuntIA.

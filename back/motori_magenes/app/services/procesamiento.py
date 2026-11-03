@@ -8,8 +8,9 @@ Orden de las etapas (cada una se puede desactivar con OpcionesProcesamiento):
 
     1. copia        -> el original nunca se modifica
     2. perspectiva  -> detecta el pizarrón y lo endereza (BACK-04)
-    3. grises       -> conversión de espacio de color (opcional)
-    4. codificación -> PNG sin pérdida (codificar_png)
+    3. mejora       -> brillo, iluminación, contraste local y nitidez (BACK-05)
+    4. grises       -> conversión de espacio de color (opcional)
+    5. codificación -> PNG sin pérdida (codificar_png)
 """
 
 import io
@@ -23,6 +24,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from app.core.errores import ProcesamientoError
+from app.services.mejora import mejorar
 from app.services.perspectiva import corregir_perspectiva
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class OpcionesProcesamiento:
     perspectiva: bool = True
+    mejorar: bool = True
     grises: bool = False
 
 
@@ -75,6 +78,11 @@ def _etapa_perspectiva(img, _opciones, res):
     return img
 
 
+def _etapa_mejora(img, _opciones, res):
+    # La normalización de iluminación solo es segura si la imagen es el pizarrón.
+    return mejorar(img, normalizar_iluminacion_fondo=res.perspectiva == "corregida")
+
+
 def _etapa_grises(img, opciones, _res):
     return a_grises(img) if opciones.grises else img
 
@@ -84,6 +92,8 @@ def construir_etapas(opciones: OpcionesProcesamiento) -> list[tuple[str, Etapa]]
     etapas: list[tuple[str, Etapa]] = []
     if opciones.perspectiva:
         etapas.append(("perspectiva", _etapa_perspectiva))
+    if opciones.mejorar:
+        etapas.append(("mejora", _etapa_mejora))
     if opciones.grises:
         etapas.append(("grises", _etapa_grises))
     return etapas

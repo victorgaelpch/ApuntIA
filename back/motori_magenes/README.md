@@ -18,7 +18,7 @@ back/motori_magenes/
     ├── core/errores.py     # ApiError y respuesta JSON de error común
     └── services/           # Lógica reutilizable, sin dependencias de rutas
         ├── validacion.py       # Validación de la imagen recibida (BACK-02)
-        └── procesamiento.py    # Procesamiento de imágenes
+        └── procesamiento.py    # Pipeline de OpenCV (BACK-03 en adelante)
 ```
 
 ## Rutas disponibles
@@ -80,6 +80,24 @@ El contrato completo está en [`docs/api.md`](../../docs/api.md). `POST /analisi
 6. Que OpenCV pueda decodificarla → si no puede, `400 IMAGEN_CORRUPTA`.
 
 Todo ocurre en memoria: ya no se escriben archivos en disco, por lo que desaparece la variable `IMAGES_DIR`. El nombre recibido se limpia antes de usarlo en las cabeceras de la respuesta.
+
+## Pipeline de procesamiento (BACK-03)
+
+`app/services/procesamiento.py` no depende de FastAPI: trabaja con matrices NumPy en BGR `uint8`.
+
+```python
+from app.services.procesamiento import procesar, codificar_png, OpcionesProcesamiento
+
+resultado = procesar(imagen_bgr, OpcionesProcesamiento(grises=True))
+png = codificar_png(resultado.imagen)
+resultado.tiempos_ms        # {"copia": 0.4, "grises": 1.2, ...}
+resultado.perspectiva       # "corregida" | "no_detectada" | "desactivada"
+```
+
+- **Decodificación:** `cv2.imdecode`, dentro de la validación (BACK-02). Las imágenes en gris o con canal alfa se normalizan a BGR.
+- **Orden fijo de etapas:** `construir_etapas()` devuelve las etapas activas en orden. Cada una mide su tiempo y, si OpenCV falla, se convierte en `ProcesamientoError` (500).
+- **El original no se modifica:** el pipeline trabaja sobre una copia.
+- **Salida:** PNG sin pérdida, devuelto directamente en la respuesta con las cabeceras `X-ApuntIA-*` del contrato.
 
 ## Manejo de errores (BACK-07)
 

@@ -1,16 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>APUNTIA — Apuntes Inteligentes</title>
+<meta name="description" content="ApuntIA: convierte la foto de un pizarrón en apuntes digitales.">
+<meta name="theme-color" content="#0f332d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%230a7d62'/%3E%3Cpath d='M14 35 24 12l10 23M18.5 28h11' stroke='%23fff' stroke-width='3.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='12' r='3' fill='%23ffd666'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Sistema visual compartido con la maqueta (front/maqueta.html) -->
+<link rel="stylesheet" href="front/css/index.css">
+<!-- Componentes propios de la pantalla principal -->
+<link rel="stylesheet" href="front/css/principal.css">
 </head>
 <body>
-   <h1>Hola Mundo</h1>
-   <img id="imagenEnviada" alt="Imagen enviada" />
-   <input type="file" value="Buscar" id="inpImagen" />
-   <img id="imagenResultado" src="" alt="Imagen seleccionada" />
-   <button type="button" id="btEnviar">enviar</button>
-</body>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<!-- ===== Encabezado y navegación ===== -->
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="#inicio" aria-label="APUNTIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" aria-label="Navegación principal">
+      <a href="#inicio" aria-current="page">Inicio</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#resultados">Resultados</a>
+    </nav>
+  </div>
+</header>
+
+<main class="main" id="main">
+
+  <!-- ===== Acciones principales ===== -->
+  <section id="inicio" class="hero" aria-labelledby="titulo">
+    <div class="hero-in">
+      <span class="pill">✨ Visión por Computadora + Inteligencia Artificial</span>
+      <h1 id="titulo" class="wordmark">APUNTIA</h1>
+      <p class="subtitle">Apuntes Inteligentes</p>
+
+      <div class="cta" role="group" aria-label="Elige cómo agregar la imagen del pizarrón">
+        <!-- Cada acción es un <label> asociado a un input de archivo: funciona con teclado y lector de pantalla -->
+        <label class="cta-btn cta-load" for="inpImagen">
+          <span class="cta-ic" aria-hidden="true">📁</span>
+          <span class="cta-tx"><b>Cargar imagen</b><small>Elige una foto de tu dispositivo</small></span>
+        </label>
+        <label class="cta-btn cta-photo" for="inpCamara">
+          <span class="cta-ic" aria-hidden="true">📷</span>
+          <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
+        </label>
+      </div>
+      <input class="sr-only" type="file" id="inpImagen" accept="image/*">
+      <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment">
+
+      <p class="tagline">Convierte tus apuntes del pizarrón en contenido digital organizado.</p>
+    </div>
+  </section>
+  <div class="tray" aria-hidden="true"></div>
+
+  <!-- ===== Cómo funciona ===== -->
+  <section id="como-funciona" aria-labelledby="como-titulo">
+    <h2 id="como-titulo" class="sr-only">Cómo funciona</h2>
+    <ol class="how">
+      <li><span class="n">1</span><div><b>Captura</b><span>Toma o sube la foto del pizarrón.</span></div></li>
+      <li><span class="n">2</span><div><b>Revisa</b><span>Comprueba la vista previa.</span></div></li>
+      <li><span class="n">3</span><div><b>Procesa</b><span>El servidor mejora la imagen.</span></div></li>
+      <li><span class="n">4</span><div><b>Compara</b><span>Mira el resultado junto al original.</span></div></li>
+    </ol>
+  </section>
+
+  <!-- ===== Zona de resultados ===== -->
+  <section id="resultados" class="results" aria-labelledby="res-titulo">
+    <div class="sec-head">
+      <div>
+        <h2 id="res-titulo">Tu imagen</h2>
+        <p>Revisa la imagen seleccionada y procésala.</p>
+      </div>
+      <button type="button" class="btn primary" id="btEnviar" disabled>Procesar imagen</button>
+    </div>
+
+    <!-- Mensajes de estado para el usuario (se anuncian en lectores de pantalla) -->
+    <p id="estado" class="status" role="status" aria-live="polite" data-estado="vacio">Aún no has elegido una imagen.</p>
+
+    <div class="panes">
+      <figure class="pane" data-pane="original">
+        <figcaption>Original</figcaption>
+        <div class="pane__frame">
+          <img id="imagenEnviada" alt="Imagen seleccionada" hidden>
+          <p class="pane__empty">Usa «Cargar imagen» o «Tomar foto» para comenzar.</p>
+        </div>
+      </figure>
+      <figure class="pane" data-pane="resultado">
+        <figcaption>Procesada</figcaption>
+        <div class="pane__frame">
+          <img id="imagenResultado" alt="Imagen procesada por ApuntIA" hidden>
+          <p class="pane__empty">Aquí aparecerá el resultado.</p>
+        </div>
+      </figure>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>ApuntIA · Proyecto académico</p>
+</footer>
+
 <script src="front/js/fastapi.js"></script>
+</body>
 </html>

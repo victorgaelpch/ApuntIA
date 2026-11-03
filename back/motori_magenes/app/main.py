@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.errores import registrar_manejadores
+from app.core.errores import CapturarErroresInesperados, registrar_manejadores
 from app.routers import general, imagenes
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,9 @@ def create_app() -> FastAPI:
     """Construye la aplicación, registra middleware y rutas."""
     app = FastAPI(title=settings.app_name, version=settings.version)
     registrar_manejadores(app)
+
+    # Debe registrarse ANTES que CORS para quedar dentro de él (FULL-08, defecto D1).
+    app.add_middleware(CapturarErroresInesperados)
 
     # CORS (FULL-04): el frontend se sirve desde otro origen (file://, :5500, la IP
     # del PC...). Hay que exponer las cabeceras del contrato para que el navegador

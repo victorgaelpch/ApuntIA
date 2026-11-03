@@ -31,10 +31,10 @@ npm run test:integracion
 | I06 | Backend apagado | sin respuesta | «No se pudo conectar con el servidor…» · *Reintentar*, sin resultado viejo | 0.9 s | ✅ |
 | I06b | «Reintentar» con el backend activo | 200 | Resultado visible | — | ✅ |
 | I07 | Error de procesamiento (`cv2.error` en el pipeline) | 500 | «No se pudo procesar esta imagen…» · *Reintentar* · *Elegir otra* · referencia del error; la traza solo en el log | 1.0 s | ✅ |
-| I08 | Excepción no prevista en el servidor (`RuntimeError`) | 500 | ❌ «No se pudo conectar con el servidor…» (falso: el servidor sí respondió) | 1.1 s | ❌ **Defecto D1** |
+| I08 | Excepción no prevista en el servidor (`RuntimeError`) | 500 | «Ocurrió un problema en el servidor…» · *Reintentar* · referencia. Antes de FULL-08: ❌ «No se pudo conectar…» (defecto D1) | 1.0 s | ✅ (tras corregir D1) |
 | I09 | Servidor lento (+3 s) | 200 | Spinner → «Procesando la imagen…» → resultado | 4.2 s | ✅ |
 
-Además, la batería de compatibilidad ([`compatibilidad.md`](compatibilidad.md)) añade 10 pruebas. **Total: 18 correctas, 1 defecto registrado (D1).**
+Además, la batería de compatibilidad ([`compatibilidad.md`](compatibilidad.md)) añade 10 pruebas. **Total: 19 de 19 correctas.** Antes de FULL-08 eran 18 correctas y 1 defecto registrado (D1).
 
 Evidencias: [válida](evidencias/full-07-valida.jpg) · [sin red](evidencias/full-07-red.jpg) · [error de procesamiento](evidencias/full-07-error-procesamiento.jpg)
 
@@ -55,4 +55,4 @@ Evidencias: [válida](evidencias/full-07-valida.jpg) · [sin red](evidencias/ful
   3. **Esperado:** «Ocurrió un problema en el servidor…» con la referencia del error. **Obtenido:** «No se pudo conectar con el servidor de ApuntIA…».
   4. Comprobación sin navegador: `curl -D - -H "Origin: http://localhost:5500" -F "file=@../bd/img/image.png" http://localhost:8123/analisis` devuelve `500` y `x-apuntia-error-id`, pero **sin** `access-control-allow-origin`. Con `APUNTIA_FALLO=procesamiento`, el 500 sí lleva las cabeceras CORS.
 - **Causa probable:** en Starlette, el manejador de `Exception` se ejecuta en `ServerErrorMiddleware`, que está **fuera** de `CORSMiddleware`; los manejadores de excepciones concretas (`ApiError`, `ProcesamientoError`) se ejecutan dentro.
-- **Estado:** abierto → se corrige en **FULL-08**. La prueba I08 está marcada como `todo` hasta entonces.
+- **Estado:** ✅ **cerrado en FULL-08**. Causa, solución y evidencia en [`incidencias.md`](incidencias.md#d1-un-500-por-excepción-no-prevista-llega-como-sin-conexión).

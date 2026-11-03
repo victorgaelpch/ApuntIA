@@ -11,7 +11,8 @@ Referencias: [flujo](flujo.md) · [contrato de la API](api.md) · [pruebas del f
 | Full | FULL-03 Contrato API v1.0 | ✅ Escrito e implementado · ⏳ revisión de los responsables | `docs/api.md` |
 | Back | BACK-01 a BACK-10 | ✅ Implementados, 70 pruebas en verde | `back/motori_magenes` |
 | Front | FRONT-01 a FRONT-10 | ✅ Implementados, 20 pruebas en verde (Chromium) | `index.html`, `front/` |
-| Full | FULL-04 a FULL-10 | 🔄 En curso (ver la sección 4) | — |
+| Full | FULL-04 a FULL-08 | ✅ Integración, flujo, compatibilidad, pruebas e incidencias | `docs/ejecutar.md`, `docs/compatibilidad.md`, `docs/pruebas-integracion.md`, `docs/incidencias.md` |
+| Full | FULL-09, FULL-10 | 🔄 Validación de experiencia y arquitectura | — |
 
 ## 2. Ramas y entregas
 

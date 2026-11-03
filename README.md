@@ -1,5 +1,7 @@
 # ApuntIA – Backend de procesamiento de imágenes
 
+> **Ejecutar la aplicación completa (frontend + backend):** ver [`docs/ejecutar.md`](docs/ejecutar.md).
+
 Backend desarrollado con Python y FastAPI para el procesamiento y análisis de imágenes del proyecto ApuntIA.
 
 ## Requisitos previos

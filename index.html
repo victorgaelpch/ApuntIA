@@ -89,11 +89,18 @@
 
     <div class="panes">
       <figure class="pane" data-pane="original">
-        <figcaption>Original</figcaption>
+        <div class="pane__head">
+          <figcaption>Original</figcaption>
+          <div class="pane__acciones" id="accionesPreview" hidden>
+            <button type="button" class="btn sm" id="btCambiar">Cambiar</button>
+            <button type="button" class="btn sm" id="btQuitar">Quitar</button>
+          </div>
+        </div>
         <div class="pane__frame">
-          <img id="imagenEnviada" alt="Imagen seleccionada" hidden>
+          <img id="imagenEnviada" alt="Vista previa de la imagen seleccionada" hidden>
           <p class="pane__empty">Usa «Cargar imagen» o «Tomar foto» para comenzar.</p>
         </div>
+        <p class="pane__info" id="infoPreview" hidden></p>
       </figure>
       <figure class="pane" data-pane="resultado">
         <figcaption>Procesada</figcaption>

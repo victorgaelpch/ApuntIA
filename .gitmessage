@@ -1,0 +1,12 @@
+# <tipo>(<ámbito>): <descripción en imperativo, minúscula, máx. 100 caracteres>
+#
+# Tipos:   feat fix perf refactor test docs ci build style chore revert
+# Ámbitos: back front api full docs alcance deps git ci tests
+#
+# Cuerpo: qué cambia y por qué. Cómo se comprobó.
+#
+# Pie: vincula el issue de victorgaelpch/ApuntIA
+#   Refs: #<n>      (avanza el issue)
+#   Closes #<n>     (lo termina)
+#
+# Ver CONTRIBUTING.md

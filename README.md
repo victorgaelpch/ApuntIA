@@ -78,7 +78,7 @@ npx playwright install chromium
 
 ## Documentación
 
-- [Alcance y trazabilidad](docs/alcance.md) · [Definición de Hecho](docs/definicion-de-hecho.md)
+- [Alcance y trazabilidad](docs/alcance.md) · [Definición de Hecho](docs/definicion-de-hecho.md) · [Historial de Git](docs/historial-git.md) · [Cómo contribuir](CONTRIBUTING.md)
 - [**Arquitectura**](docs/arquitectura.md): componentes, flujo, carpetas, puertos, variables, CORS, comandos, dependencias, decisiones y cómo reproducir una prueba integral.
 - [Flujo y alcance](docs/flujo.md) · [Contrato de la API](docs/api.md) · [Ejecutar el proyecto completo](docs/ejecutar.md)
 - [Plan de integración](docs/integracion.md) · [Compatibilidad](docs/compatibilidad.md) · [Incidencias](docs/incidencias.md)

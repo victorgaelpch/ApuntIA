@@ -51,8 +51,7 @@ section[id] { scroll-margin-top: 84px; }
 .hero .wordmark { margin-top: 18px; }
 /* Las acciones son <label>; el foco real está en el input oculto */
 .cta-btn { -webkit-tap-highlight-color: transparent; }
-.hero-in:has(#inpImagen:focus-visible) .cta-load,
-.hero-in:has(#inpCamara:focus-visible) .cta-photo {
+.hero-in:has(#inpImagen:focus-visible) .cta-load {
   outline: 3px solid #6aa7ff; outline-offset: 4px;
 }
 
@@ -88,6 +87,15 @@ section[id] { scroll-margin-top: 84px; }
 .results[aria-busy=true] [data-pane=resultado] .pane__frame { animation: pulso 1.2s ease-in-out infinite alternate; }
 @keyframes pulso { to { opacity: .55; } }
 
+/* ---------- Cámara ---------- */
+.cta-btn.cta-photo { font: inherit; }
+.cam-foot__espacio { width: 120px; }
+.shutter[disabled] { opacity: .45; cursor: not-allowed; }
+#dlgCamara .icon-btn { font-size: 1rem; }
+/* Se ve exactamente lo que se captura (la maqueta usa cover, que recorta). */
+#dlgCamara .viewfinder video { object-fit: contain; }
+.status__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
 /* ---------- Pie ---------- */
 .site-footer { padding: 24px 16px 32px; text-align: center; color: var(--ink-2); font-size: .85rem; }
 
@@ -102,4 +110,6 @@ section[id] { scroll-margin-top: 84px; }
   .panes { grid-template-columns: 1fr; }
   .pane__frame { min-height: 180px; }
   .results .sec-head .btn { width: 100%; }
+  .cam-foot__espacio { width: 0; }
+  #dlgCamara { width: 100vw; max-width: 100vw; max-height: 100dvh; border-radius: 0; }
 }

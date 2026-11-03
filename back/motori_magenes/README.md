@@ -75,7 +75,7 @@ pip install -r requirements.txt
 | `fastapi` | Framework de la API |
 | `uvicorn[standard]` | Servidor ASGI |
 | `python-multipart` | Recibir archivos con `multipart/form-data` (sin él, `/analisis` no arranca) |
-| `opencv-python` | Procesamiento de imágenes |
+| `opencv-python-headless` | Procesamiento de imágenes (variante sin interfaz gráfica, para servidores) |
 | `numpy` | Matrices de las imágenes |
 | `pillow` | Leer las dimensiones antes de decodificar e imagen de ejemplo |
 
@@ -84,6 +84,14 @@ Para desarrollar y ejecutar las pruebas, instala también `requirements-dev.txt`
 ```bash
 pip install -r requirements-dev.txt
 ```
+
+Para instalar **exactamente** las versiones con las que se probó, por ejemplo si una versión nueva da problemas, añade las restricciones:
+
+```bash
+pip install -r requirements-dev.txt -c constraints.txt
+```
+
+Las licencias y el mantenimiento de cada dependencia están en [`docs/dependencias.md`](../../docs/dependencias.md).
 
 ### 2.5 Configurar las variables de entorno (opcional)
 
@@ -257,7 +265,7 @@ back/motori_magenes/
 | `Form data requires "python-multipart" to be installed` | Falta `python-multipart` | `pip install -r requirements.txt`. |
 | `Error loading ASGI app. Could not import module "main"` | Uvicorn se ejecutó desde otra carpeta | Ejecútalo desde `back/motori_magenes`. |
 | `[Errno 98] / [WinError 10048] address already in use` | El puerto 8000 está ocupado | Cierra el otro servidor o usa `--port 8001`; en ese caso, cambia también la URL de la API en el frontend. |
-| `ImportError: libGL.so.1` (Linux sin entorno gráfico) | `opencv-python` necesita librerías gráficas | `pip uninstall opencv-python` y `pip install opencv-python-headless`. |
+| `ImportError: libGL.so.1` (Linux sin entorno gráfico) | Hay instalado `opencv-python` (con interfaz gráfica) de un proyecto anterior | `pip uninstall opencv-python` y `pip install -r requirements.txt` (usa `opencv-python-headless`). |
 | El navegador muestra un error de CORS | El origen del frontend no está permitido | Añádelo a `CORS_ORIGINS` (o deja `*` en desarrollo) y reinicia uvicorn. |
 | `413 ARCHIVO_DEMASIADO_GRANDE` | La foto pesa más de `MAX_UPLOAD_MB` | Usa una foto más ligera o sube el límite en `.env`. |
 | `415 TIPO_NO_PERMITIDO` con fotos de iPhone | Formato HEIC | En el iPhone: Ajustes → Cámara → Formatos → «Más compatible» (JPEG), o exporta la foto como JPEG. |

@@ -85,6 +85,20 @@ section[id] { scroll-margin-top: 84px; }
 .pane__frame:has(img:not([hidden])) .pane__empty { display: none; }
 .pane__empty { padding: 24px; text-align: center; color: var(--ink-2); font-size: .9rem; max-width: 32ch; }
 .results[aria-busy=true] [data-pane=resultado] .pane__frame { animation: pulso 1.2s ease-in-out infinite alternate; }
+
+/* Indicador de espera (FRONT-07) */
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.status__texto { flex: 1 1 200px; }
+.status__acciones { flex-basis: 100%; }
+.status__reloj { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .85rem; }
+.spinner {
+  width: 20px; height: 20px; flex: none; border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--brand-2) 25%, transparent);
+  border-top-color: var(--brand-2);
+  animation: girar .8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+.hero.ocupado .cta-btn { opacity: .55; pointer-events: none; }
 @keyframes pulso { to { opacity: .55; } }
 
 .pane__sello {

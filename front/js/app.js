@@ -37,6 +37,7 @@
         enviando: false,    // evita envíos duplicados
         urlPreview: null,   // URL temporal de la vista previa (FRONT-04)
         urlResultado: null, // URL temporal del resultado (FRONT-06)
+        controlador: null,  // AbortController del envío en curso (FRONT-07)
     };
 
     const MENSAJES_VALIDACION = {
@@ -47,9 +48,20 @@
     };
 
     // acciones: [{texto, alHacer}] botones opcionales bajo el mensaje.
-    function mostrarEstado(tipo, mensaje, acciones = []) {
+    // spinner: indicador animado de espera (FRONT-07), decorativo para lectores de pantalla.
+    function mostrarEstado(tipo, mensaje, acciones = [], { spinner = false } = {}) {
         el.estado.dataset.estado = tipo;
-        el.estado.textContent = mensaje;
+        el.estado.textContent = "";
+        if (spinner) {
+            const giro = document.createElement("span");
+            giro.className = "spinner";
+            giro.setAttribute("aria-hidden", "true");
+            el.estado.appendChild(giro);
+        }
+        const texto = document.createElement("span");
+        texto.className = "status__texto";
+        texto.textContent = mensaje;
+        el.estado.appendChild(texto);
         if (acciones.length) {
             const caja = document.createElement("div");
             caja.className = "status__acciones";
@@ -65,9 +77,17 @@
         }
     }
 
+    // Mientras se procesa se bloquea todo lo que cambiaría la imagen o lanzaría
+    // otro envío; al terminar (bien o mal) se restaura (FRONT-07).
     function actualizarControles() {
-        el.btEnviar.disabled = !estado.archivo || estado.enviando;
-        el.btCambiar.disabled = el.btQuitar.disabled = el.btCamara.disabled = estado.enviando;
+        const ocupado = estado.enviando;
+        el.btEnviar.disabled = !estado.archivo || ocupado;
+        el.btEnviar.textContent = ocupado ? "Procesando…" : "Procesar imagen";
+        el.btCambiar.disabled = el.btQuitar.disabled = el.btCamara.disabled = ocupado;
+        el.inpImagen.disabled = el.inpCamara.disabled = ocupado;
+        el.hero.classList.toggle("ocupado", ocupado);
+        if (ocupado) el.resultados.setAttribute("aria-busy", "true");
+        else el.resultados.removeAttribute("aria-busy");
     }
 
     // ---------------------------------------------------------------- vista previa (FRONT-04)
@@ -243,6 +263,7 @@
         profundidadArrastre = 0;
         el.hero.classList.remove("dropping");
         const archivos = e.dataTransfer ? [...e.dataTransfer.files] : [];
+        if (estado.enviando) return;
         if (archivos.length > 1) mostrarEstado("error", "Suelta una sola imagen.");
         else seleccionarArchivo(archivos[0], "arrastre");
     });
@@ -290,26 +311,55 @@
 
     // ---------------------------------------------------------------- envío
 
+    // Texto de espera por fases. No se muestran porcentajes: el backend no
+    // informa del progreso. Los segundos van en un elemento aria-hidden para que
+    // el lector de pantalla anuncie solo los cambios de fase, no cada segundo.
+    function faseEspera(segundos) {
+        if (segundos < 2) return "Enviando la imagen al servidor…";
+        if (segundos < 8) return "Procesando la imagen…";
+        return "Sigue procesando… Las fotos grandes pueden tardar un poco más.";
+    }
+
     async function enviarImagen() {
         if (!estado.archivo || estado.enviando) return;
         estado.enviando = true;
+        estado.controlador = new AbortController();
         actualizarControles();
-        el.resultados.setAttribute("aria-busy", "true");
-        mostrarEstado("cargando", "Procesando imagen...");
+
+        const inicio = Date.now();
+        const cancelar = [{ texto: "Cancelar", alHacer: () => estado.controlador && estado.controlador.abort() }];
+        mostrarEstado("cargando", faseEspera(0), cancelar, { spinner: true });
+        const reloj = document.createElement("span");
+        reloj.className = "status__reloj";
+        reloj.setAttribute("aria-hidden", "true");
+        el.estado.querySelector(".status__texto").after(reloj);
+        // Cada segundo se actualizan solo el reloj y, si cambia, la fase.
+        const intervalo = setInterval(() => {
+            const segundos = Math.floor((Date.now() - inicio) / 1000);
+            const texto = el.estado.querySelector(".status__texto");
+            if (texto && texto.textContent !== faseEspera(segundos)) texto.textContent = faseEspera(segundos);
+            reloj.textContent = `${segundos} s`;
+        }, 1000);
 
         try {
-            const resultado = await api.procesarImagen(estado.archivo);
+            const resultado = await api.procesarImagen(estado.archivo, {}, { signal: estado.controlador.signal });
+            el.estado.querySelector(".status__texto").textContent = "Recibiendo el resultado…";
             await mostrarResultado(resultado);
             mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada o descárgala.");
         } catch (error) {
-            console.error(error);
-            const texto = error.tipo === "red"
-                ? `No se pudo conectar con el servidor (${api.urlBase()}). Verifica que esté activo e inténtalo de nuevo.`
-                : error.mensaje || "No se pudo procesar la imagen. Inténtalo de nuevo.";
-            mostrarEstado("error", texto);
+            if (error.codigo === "CANCELADO") {
+                mostrarEstado("listo", "Procesamiento cancelado. Puedes volver a intentarlo o elegir otra imagen.");
+            } else {
+                console.error(error);
+                const texto = error.tipo === "red"
+                    ? `No se pudo conectar con el servidor (${api.urlBase()}). Verifica que esté activo e inténtalo de nuevo.`
+                    : error.mensaje || "No se pudo procesar la imagen. Inténtalo de nuevo.";
+                mostrarEstado("error", texto);
+            }
         } finally {
+            clearInterval(intervalo);
             estado.enviando = false;
-            el.resultados.removeAttribute("aria-busy");
+            estado.controlador = null;
             actualizarControles();
         }
     }

@@ -124,6 +124,33 @@ Resultados con las muestras de `herramientas/muestras.py` (`python -m herramient
 
 **Limitación conocida:** en la foto real `bd/img/image.png` el pizarrón **se sale del encuadre** por arriba y por abajo, y es blanco sobre pared blanca, así que no hay cuatro esquinas visibles. Se devuelve sin rectificar en lugar de deformarla con un cuadrilátero falso. Para estos casos, una mejora futura sería intersecar las rectas del marco (Hough).
 
+## Calidad y nitidez (BACK-05)
+
+`app/services/mejora.py`, activada por defecto (`?mejorar=false` la desactiva). Trabaja solo sobre el canal **L de LAB**, así que los colores de los marcadores se conservan.
+
+| Paso | Cuándo | Parámetros |
+|------|--------|------------|
+| Gamma automática | L medio < 105 (foto oscura) | Lleva la luminancia media al 50 %, con gamma entre 0.4 y 1 |
+| Normalización de iluminación | Solo si la perspectiva se **corrigió** | Fondo = cierre morfológico de tamaño lado/40 + desenfoque; L = L / fondo × 235 |
+| CLAHE | Si **no** se normalizó la iluminación | clipLimit 2.0, rejilla 8×8 |
+| Máscara de enfoque | Siempre | cantidad 0.6, sigma = max(0.8, lado/1500) |
+
+Comparación con `python -m herramientas.evaluar_mejora`. Contraste = diferencia media de L entre el fondo y el texto; más alto es más legible. «En sombra» es la franja del 45 % al 75 % del ancho. «Saturados» es el % de píxeles a 0 o 255:
+
+| Variante | clara | oscura | sombra |
+|---|---|---|---|
+| sin mejora | 168.9 / 195.0 / 0.0 | 69.2 / 77.6 / 0.0 | 100.6 / 117.9 / 0.0 |
+| CLAHE + enfoque (foto con pared) | 177.4 / 201.5 / 1.1 | 87.6 / 98.4 / 0.0 | 111.8 / 125.2 / 0.2 |
+| Iluminación + enfoque (pizarrón rectificado) | 169.7 / 194.2 / 0.3 | **156.3 / 179.9** / 0.1 | **172.0 / 198.6** / 0.4 |
+
+![Antes y después: foto real, oscura y con sombra](../../docs/evidencias/back-05-mejora.jpg)
+
+**Decisiones y limitaciones:**
+- La normalización de iluminación duplica el contraste en fotos oscuras o con sombra. Pero, aplicada a una foto con pared o muebles, aclara las zonas oscuras y hace visibles los bloques del JPEG. Por eso solo se usa cuando la imagen ya es el pizarrón rectificado.
+- Tras normalizar, el CLAHE no añadía contraste y creaba bandas en los degradados, así que se omite.
+- Se probaron CLAHE con clipLimit 4 y enfoque de 1.5: ganan unos pocos puntos de contraste, pero duplican los píxeles saturados y crean halos. Se descartaron por sobreprocesamiento.
+- En la foto real, que no se rectifica (ver BACK-04), solo se aplican CLAHE y enfoque: la mejora es moderada.
+
 ## Manejo de errores (BACK-07)
 
 `app/core/errores.py` registra un manejador para cada tipo de fallo, y todos responden `{"error": {"codigo", "mensaje"}}`:

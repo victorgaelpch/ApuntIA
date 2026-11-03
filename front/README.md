@@ -10,6 +10,7 @@
 | `js/config.js`       | Configuración: URL de la API, tiempo máximo y límites de los archivos.                |
 | `js/api.js`          | Cliente de la API (FRONT-05): peticiones, cabeceras y errores, según `docs/api.md`.   |
 | `js/validacion.js`   | Validación en el navegador (FRONT-02): firma binaria, tamaño y archivo vacío.       |
+| `js/camara.js`       | Cámara en vivo con `getUserMedia` y alternativas (FRONT-03).                          |
 | `js/api-mock.js`     | Respuestas simuladas para trabajar sin backend (`?mock=...`).                         |
 | `js/app.js`          | Controlador de la pantalla principal: estados, vista previa y resultado.             |
 | `maqueta.html` + `js/index.js` | Prototipo de UX con IA simulada, usado como referencia de diseño.            |
@@ -47,6 +48,21 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Cancelación:** el evento `cancel` del selector, o un `change` sin archivo en navegadores antiguos, informa «No elegiste otra imagen. Se mantiene «x»» o, si no había ninguna, cómo empezar.
 - **Estado:** `estado.archivo` guarda el `File` listo para `api.procesarImagen`, junto con su origen (`archivo`, `camara` o `arrastre`).
 - **Sin envíos duplicados:** mientras se procesa, `estado.enviando` bloquea el botón y se ignoran nuevas selecciones; tres clics seguidos producen una sola petición.
+
+## Captura con la cámara (FRONT-03)
+
+«Tomar foto» elige el mejor método disponible:
+
+| Situación | Comportamiento |
+|-----------|----------------|
+| `getUserMedia` disponible en contexto seguro (`https` o `localhost`) | Se abre un **visor en vivo** con la cámara trasera (`facingMode: environment`) y guías de encuadre. El botón de captura guarda un JPEG (`foto-AAAAMMDD-HHMMSS.jpg`) que pasa por la misma validación y vista previa que un archivo. |
+| Contexto no seguro (`http://192.168.x.x` desde el celular) o navegador sin `getUserMedia` | Se usa `<input capture="environment">`, que abre la **app de cámara** del móvil (en un ordenador, el selector de archivos). |
+| Permiso denegado | Explica cómo permitirlo en el navegador y ofrece «Usar la app de cámara» o «Cargar imagen». |
+| Sin cámara, o cámara ocupada por otra app | Mensaje específico y las mismas alternativas. |
+
+- La cámara **se apaga** (se detienen las pistas) al capturar, al cerrar con ✕ o al pulsar Esc.
+- El visor muestra el video con `object-fit: contain`: lo que se ve es exactamente lo que se captura.
+- Dentro del visor, «Elegir archivo» permite cambiar a la carga desde el dispositivo.
 
 ## Vista previa (FRONT-04)
 

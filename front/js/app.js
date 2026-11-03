@@ -4,13 +4,15 @@
 (function () {
     "use strict";
 
-    const { api, validacion } = window.ApuntIA;
+    const { api, validacion, camara } = window.ApuntIA;
     const $ = (id) => document.getElementById(id);
 
     const el = {
         btEnviar: $("btEnviar"),
         inpImagen: $("inpImagen"),
         inpCamara: $("inpCamara"),
+        btCamara: $("btCamara"),
+        btCamaraArchivo: $("btCamaraArchivo"),
         hero: $("inicio"),
         imgPreview: $("imagenEnviada"),
         infoPreview: $("infoPreview"),
@@ -37,14 +39,28 @@
         TIPO_NO_PERMITIDO: "Formato no admitido. Usa una imagen JPEG, PNG o WEBP.",
     };
 
-    function mostrarEstado(tipo, mensaje) {
+    // acciones: [{texto, alHacer}] botones opcionales bajo el mensaje.
+    function mostrarEstado(tipo, mensaje, acciones = []) {
         el.estado.dataset.estado = tipo;
         el.estado.textContent = mensaje;
+        if (acciones.length) {
+            const caja = document.createElement("div");
+            caja.className = "status__acciones";
+            for (const { texto, alHacer } of acciones) {
+                const b = document.createElement("button");
+                b.type = "button";
+                b.className = "btn sm";
+                b.textContent = texto;
+                b.addEventListener("click", alHacer);
+                caja.appendChild(b);
+            }
+            el.estado.appendChild(caja);
+        }
     }
 
     function actualizarControles() {
         el.btEnviar.disabled = !estado.archivo || estado.enviando;
-        el.btCambiar.disabled = el.btQuitar.disabled = estado.enviando;
+        el.btCambiar.disabled = el.btQuitar.disabled = el.btCamara.disabled = estado.enviando;
     }
 
     // ---------------------------------------------------------------- vista previa (FRONT-04)
@@ -158,6 +174,47 @@
         const archivos = e.dataTransfer ? [...e.dataTransfer.files] : [];
         if (archivos.length > 1) mostrarEstado("error", "Suelta una sola imagen.");
         else seleccionarArchivo(archivos[0], "arrastre");
+    });
+
+    // ---------------------------------------------------------------- cámara (FRONT-03)
+
+    const MENSAJES_CAMARA = {
+        CAMARA_PERMISO_DENEGADO: "No se dio permiso para usar la cámara. Puedes permitirlo en la configuración del navegador (icono junto a la dirección) o usar una alternativa:",
+        CAMARA_NO_DISPONIBLE: "No se encontró ninguna cámara en este dispositivo. Usa una alternativa:",
+        CAMARA_OCUPADA: "La cámara está siendo usada por otra aplicación. Ciérrala e inténtalo de nuevo, o usa una alternativa:",
+        CAMARA_ERROR: "No se pudo iniciar la cámara. Usa una alternativa:",
+    };
+
+    const alternativasCamara = [
+        { texto: "Usar la app de cámara", alHacer: () => el.inpCamara.click() },
+        { texto: "Cargar imagen", alHacer: () => el.inpImagen.click() },
+    ];
+
+    const visor = camara.crearVisor({
+        dialogo: $("dlgCamara"),
+        video: $("camVideo"),
+        mensaje: $("camMensaje"),
+        btCapturar: $("btCapturar"),
+        btCerrar: $("btCerrarCamara"),
+        flash: $("camFlash"),
+    });
+
+    el.btCamara.addEventListener("click", () => {
+        if (estado.enviando) return;
+        if (!camara.disponible()) {
+            // http en la red local o navegador sin getUserMedia: app de cámara nativa.
+            el.inpCamara.click();
+            return;
+        }
+        visor.abrir({
+            onFoto: (archivo) => seleccionarArchivo(archivo, "camara"),
+            onError: (codigo) => mostrarEstado("error", MENSAJES_CAMARA[codigo], alternativasCamara),
+        });
+    });
+
+    el.btCamaraArchivo.addEventListener("click", () => {
+        visor.cerrar();
+        el.inpImagen.click();
     });
 
     // ---------------------------------------------------------------- envío

@@ -48,13 +48,14 @@
           <span class="cta-ic" aria-hidden="true">📁</span>
           <span class="cta-tx"><b>Cargar imagen</b><small>Elige una foto de tu dispositivo</small></span>
         </label>
-        <label class="cta-btn cta-photo" for="inpCamara">
+        <button type="button" class="cta-btn cta-photo" id="btCamara">
           <span class="cta-ic" aria-hidden="true">📷</span>
           <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
-        </label>
+        </button>
       </div>
       <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
-      <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment">
+      <!-- Alternativa cuando no hay cámara en vivo (getUserMedia): abre la app de cámara del móvil -->
+      <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
 
       <p class="tagline">Convierte tus apuntes del pizarrón en contenido digital organizado.</p>
       <p class="alt" id="formatos">JPEG, PNG o WEBP de hasta 10 MB · también puedes arrastrar la imagen aquí</p>
@@ -113,6 +114,25 @@
   </section>
 </main>
 
+<!-- Cámara en vivo (FRONT-03) -->
+<dialog id="dlgCamara" aria-labelledby="camTitulo">
+  <div class="cam-head">
+    <h2 id="camTitulo">Tomar foto</h2>
+    <button type="button" class="icon-btn sm" id="btCerrarCamara" aria-label="Cerrar cámara">✕</button>
+  </div>
+  <div class="viewfinder">
+    <video id="camVideo" playsinline muted></video>
+    <div class="guides"></div><i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+    <div class="cam-msg" id="camMensaje" role="status">Solicitando permiso para usar la cámara...</div>
+    <div class="flash" id="camFlash"></div>
+  </div>
+  <div class="cam-foot">
+    <button type="button" class="btn" id="btCamaraArchivo">Elegir archivo</button>
+    <button type="button" class="shutter" id="btCapturar" aria-label="Capturar fotografía" disabled></button>
+    <span class="cam-foot__espacio" aria-hidden="true"></span>
+  </div>
+</dialog>
+
 <footer class="site-footer">
   <p>ApuntIA · Proyecto académico</p>
 </footer>
@@ -120,6 +140,7 @@
 <script src="front/js/config.js"></script>
 <script src="front/js/api.js"></script>
 <script src="front/js/validacion.js"></script>
+<script src="front/js/camara.js"></script>
 <script src="front/js/api-mock.js"></script>
 <script src="front/js/app.js"></script>
 </body>

@@ -132,7 +132,9 @@ El frontend lo usa para saber si el servidor está activo y para conocer los lí
 ## CORS
 
 - Orígenes permitidos: variable `CORS_ORIGINS` (por defecto `*` en desarrollo).
-- Cabeceras expuestas: `Content-Disposition` y todas las `X-ApuntIA-*`.
+- Métodos: `GET`, `POST`.
+- Cabeceras expuestas: `Content-Disposition`, `X-ApuntIA-Archivo`, `X-ApuntIA-Perspectiva`,
+  `X-ApuntIA-Dimensiones`, `X-ApuntIA-Tiempo-Ms` y `X-ApuntIA-Error-Id`.
 - El cliente no envía credenciales ni cookies.
 
 ## Validación en el cliente

@@ -197,3 +197,22 @@ def test_error_inesperado_sin_trazas(subir, monkeypatch):
     r = subir(imagen_pil("PNG"))
     assert_error(r, 500, "ERROR_INTERNO")
     assert "1234" not in r.text
+
+
+# ---------------------------------------------------------------- CORS (FULL-04)
+
+def test_cors_expone_cabeceras_del_contrato(subir, client):
+    r = client.post("/analisis", files={"file": ("a.png", imagen_pil("PNG"), "image/png")},
+                    headers={"Origin": "http://localhost:5500"})
+    assert r.headers["access-control-allow-origin"] == "*"
+    expuestas = {h.strip().lower() for h in r.headers["access-control-expose-headers"].split(",")}
+    assert {"content-disposition", "x-apuntia-perspectiva", "x-apuntia-dimensiones",
+            "x-apuntia-tiempo-ms", "x-apuntia-archivo", "x-apuntia-error-id"} <= expuestas
+    assert "access-control-allow-credentials" not in r.headers
+
+
+def test_cors_preflight(client):
+    r = client.options("/analisis", headers={"Origin": "http://192.168.1.20:5500",
+                                             "Access-Control-Request-Method": "POST"})
+    assert r.status_code == 200
+    assert "POST" in r.headers["access-control-allow-methods"]

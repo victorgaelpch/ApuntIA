@@ -17,7 +17,7 @@
 }
 
 html { scroll-behavior: smooth; }
-section[id] { scroll-margin-top: 84px; }
+section[id], .pane { scroll-margin-top: 84px; }
 
 /* ---------- Encabezado ---------- */
 .site-header {
@@ -51,8 +51,7 @@ section[id] { scroll-margin-top: 84px; }
 .hero .wordmark { margin-top: 18px; }
 /* Las acciones son <label>; el foco real está en el input oculto */
 .cta-btn { -webkit-tap-highlight-color: transparent; }
-.hero-in:has(#inpImagen:focus-visible) .cta-load,
-.hero-in:has(#inpCamara:focus-visible) .cta-photo {
+.hero-in:has(#inpImagen:focus-visible) .cta-load {
   outline: 3px solid #6aa7ff; outline-offset: 4px;
 }
 
@@ -73,7 +72,10 @@ section[id] { scroll-margin-top: 84px; }
   margin: 0; display: flex; flex-direction: column; gap: 10px; padding: 14px;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow);
 }
+.pane__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; flex-wrap: wrap; }
 .pane figcaption { font: 600 1rem var(--f-display); }
+.pane__acciones { display: flex; gap: 8px; }
+.pane__info { margin: 0; font-size: .85rem; color: var(--ink-2); overflow-wrap: anywhere; }
 .pane__frame {
   position: relative; display: grid; place-items: center; min-height: 240px; border-radius: 14px; overflow: hidden;
   background: var(--surface-2); border: 2px dashed var(--line);
@@ -83,10 +85,64 @@ section[id] { scroll-margin-top: 84px; }
 .pane__frame:has(img:not([hidden])) .pane__empty { display: none; }
 .pane__empty { padding: 24px; text-align: center; color: var(--ink-2); font-size: .9rem; max-width: 32ch; }
 .results[aria-busy=true] [data-pane=resultado] .pane__frame { animation: pulso 1.2s ease-in-out infinite alternate; }
+
+/* Indicador de espera (FRONT-07) */
+.status { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.status__texto { flex: 1 1 200px; }
+.status__acciones { flex-basis: 100%; }
+.status__detalle { flex-basis: 100%; font-size: .8rem; color: var(--ink-2); }
+.status__detalle summary { cursor: pointer; width: fit-content; }
+.status__detalle p { margin: 4px 0 0; font-family: ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+.status__reloj { font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: .85rem; }
+.spinner {
+  width: 20px; height: 20px; flex: none; border-radius: 50%;
+  border: 3px solid color-mix(in srgb, var(--brand-2) 25%, transparent);
+  border-top-color: var(--brand-2);
+  animation: girar .8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+.hero.ocupado .cta-btn { opacity: .55; pointer-events: none; }
 @keyframes pulso { to { opacity: .55; } }
+
+.pane__sello {
+  position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 99px;
+  background: rgba(0,0,0,.65); color: #fff; font: 600 .78rem var(--f-body);
+}
+.pane__acciones { flex-wrap: wrap; }
+.pane__acciones a.btn { text-decoration: none; }
+#btComparar[aria-pressed=true] { border-color: var(--brand); color: var(--brand-text); }
+.pane__info .ok { color: var(--brand-text); font-weight: 600; }
+
+/* ---------- Cámara ---------- */
+.cta-btn.cta-photo { font: inherit; }
+.cam-foot__espacio { width: 120px; }
+.shutter[disabled] { opacity: .45; cursor: not-allowed; }
+#dlgCamara .icon-btn { font-size: 1rem; }
+/* Se ve exactamente lo que se captura (la maqueta usa cover, que recorta). */
+#dlgCamara .viewfinder video { object-fit: contain; }
+.status__acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
 /* ---------- Pie ---------- */
 .site-footer { padding: 24px 16px 32px; text-align: center; color: var(--ink-2); font-size: .85rem; }
+
+/* ---------- Adaptación a dispositivos (FRONT-09) ---------- */
+/* Pantallas táctiles: áreas de al menos 44x44 px. */
+@media (pointer: coarse) {
+  .btn.sm, .pane__acciones .btn, .status__acciones .btn { min-height: 44px; padding-inline: 14px; }
+  .site-header .brand { min-height: 44px; }
+}
+.skip { padding: 12px 16px; }
+/* Pantallas bajas (móvil en horizontal): el encabezado deja de ser fijo para no tapar contenido. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .site-header { position: static; }
+  section[id], .pane { scroll-margin-top: 8px; }
+  .pane__frame img { max-height: 75vh; }
+}
+/* Pantallas muy estrechas (≤ 360 px). */
+@media (max-width: 360px) {
+  .site-nav a { font-size: .8rem; padding-inline: 4px; }
+  .pane { padding: 10px; }
+}
 
 /* ---------- Móvil ---------- */
 @media (max-width: 760px) {
@@ -94,9 +150,11 @@ section[id] { scroll-margin-top: 84px; }
   .site-header .brand small { display: none; }
   .site-nav { justify-content: space-between; }
   .site-nav a { flex: 1; justify-content: center; padding: 6px 8px; font-size: .88rem; white-space: nowrap; }
-  section[id] { scroll-margin-top: 120px; }
+  section[id], .pane { scroll-margin-top: 128px; }
   .main { padding-top: 16px; }
   .panes { grid-template-columns: 1fr; }
   .pane__frame { min-height: 180px; }
   .results .sec-head .btn { width: 100%; }
+  .cam-foot__espacio { width: 0; }
+  #dlgCamara { width: 100vw; max-width: 100vw; max-height: 100dvh; border-radius: 0; }
 }

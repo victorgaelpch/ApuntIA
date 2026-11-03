@@ -1,8 +1,8 @@
-// Pantalla principal de ApuntIA: selección de imagen, vista previa y envío a FastAPI.
-// La captura avanzada con cámara (FRONT-03), indicadores de carga (FRONT-07) y
-// mensajes de error detallados (FRONT-08) se completan en sus propios issues.
+// Controlador de la pantalla principal de ApuntIA: selección de imagen, vista
+// previa y presentación del resultado. La comunicación con FastAPI está en
+// api.js (FRONT-05); este archivo no conoce URLs ni el formato de la petición.
 
-const API_URL = "http://localhost:8000/analisis";
+const api = window.ApuntIA.api;
 
 const btEnviar = document.getElementById("btEnviar");
 const inputs = [document.getElementById("inpImagen"), document.getElementById("inpCamara")];
@@ -45,25 +45,21 @@ inputs.forEach((input) => {
 
 async function enviarImagen() {
     if (!archivoSeleccionado) return;
-    console.log("Enviando imagen...");
-    const formData = new FormData();
-    formData.append("file", archivoSeleccionado);
-
     btEnviar.disabled = true;
     zonaResultados.setAttribute("aria-busy", "true");
     mostrarEstado("cargando", "Procesando imagen...");
 
     try {
-        const response = await fetch(API_URL, { method: "POST", body: formData });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const blob = await response.blob();
-        imgResult.src = URL.createObjectURL(blob);
+        const resultado = await api.procesarImagen(archivoSeleccionado);
+        imgResult.src = URL.createObjectURL(resultado.blob);
         imgResult.hidden = false;
         mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada.");
     } catch (error) {
         console.error(error);
-        mostrarEstado("error", "No se pudo procesar la imagen. Verifica que el servidor esté activo e inténtalo de nuevo.");
+        const texto = error.tipo === "red"
+            ? `No se pudo conectar con el servidor (${api.urlBase()}). Verifica que esté activo e inténtalo de nuevo.`
+            : error.mensaje || "No se pudo procesar la imagen. Inténtalo de nuevo.";
+        mostrarEstado("error", texto);
     } finally {
         zonaResultados.removeAttribute("aria-busy");
         btEnviar.disabled = false;

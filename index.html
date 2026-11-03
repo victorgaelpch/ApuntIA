@@ -43,7 +43,9 @@
       <p class="subtitle">Apuntes Inteligentes</p>
 
       <div class="cta" role="group" aria-label="Elige cómo agregar la imagen del pizarrón">
-        <!-- Cada acción es un <label> asociado a un input de archivo: funciona con teclado y lector de pantalla -->
+        <!-- «Cargar imagen» es un <label> de un input de archivo (enfocable con teclado). El input va
+             justo antes para que el orden de tabulación coincida con el visual (FRONT-09). -->
+        <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
         <label class="cta-btn cta-load" for="inpImagen">
           <span class="cta-ic" aria-hidden="true">📁</span>
           <span class="cta-tx"><b>Cargar imagen</b><small>Elige una foto de tu dispositivo</small></span>
@@ -53,7 +55,6 @@
           <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
         </button>
       </div>
-      <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
       <!-- Alternativa cuando no hay cámara en vivo (getUserMedia): abre la app de cámara del móvil -->
       <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
 

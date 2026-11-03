@@ -128,7 +128,7 @@ for (const nombre of NAVEGADORES) {
                 assert.match(s.texto, /Se mantiene «buena\.png»/);
                 assert.equal(s.archivo, "buena.png");
             }
-            await pagina.evaluate(() => { window.ApuntIA.config.maxMb = 0.0001; });
+            await pagina.evaluate(async () => { await window.ApuntIA.app.limitesListos; window.ApuntIA.config.maxMb = 0.0001; });
             await elegir(pagina, { nombre: "grande.png", ancho: 200, alto: 200 });
             assert.match((await estadoUI(pagina)).texto, /pesa más de/);
             await contexto.close();

@@ -28,6 +28,7 @@
         selloComparar: $("selloComparar"),
         estado: $("estado"),
         resultados: $("resultados"),
+        formatos: $("formatos"),
     };
 
     // Estado único de la pantalla.
@@ -399,6 +400,19 @@
         secciones.forEach((s) => s && observer.observe(s));
     }
 
+    // ---------------------------------------------------------------- límites (FULL-06)
+
+    // El backend es la fuente de verdad de los límites (MAX_UPLOAD_MB, formatos).
+    // Se leen de GET /salud al cargar, para que la validación del navegador no
+    // quede desfasada si se cambian en el servidor. Si no responde, se usan los
+    // de config.js y el error de conexión se mostrará al procesar.
+    const limitesListos = api.obtenerSalud().then((salud) => {
+        const cfg = window.ApuntIA.config;
+        if (Number(salud.max_mb) > 0) cfg.maxMb = Number(salud.max_mb);
+        if (Array.isArray(salud.formatos) && salud.formatos.length) cfg.formatos = salud.formatos;
+        el.formatos.textContent = `${cfg.formatos.map((f) => f.replace("image/", "").toUpperCase()).join(", ")} de hasta ${cfg.maxMb} MB · también puedes arrastrar la imagen aquí`;
+    }).catch(() => { /* se mantienen los valores de config.js */ });
+
     // Acceso para pruebas automáticas (FRONT-10).
-    window.ApuntIA.app = { estado, seleccionarArchivo };
+    window.ApuntIA.app = { estado, seleccionarArchivo, limitesListos };
 })();

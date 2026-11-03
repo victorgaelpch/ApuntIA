@@ -140,7 +140,8 @@ El frontend lo usa para saber si el servidor está activo y para conocer los lí
 ## Validación en el cliente
 
 El frontend replica los límites (formatos y 10 MB) **solo para avisar antes al usuario**.
-El backend es la fuente de verdad: si los límites cambian, el cliente puede leerlos de `GET /salud`.
+El backend es la fuente de verdad: al cargar, el cliente lee `GET /salud` y usa esos límites (FULL-06).
+El borde es el mismo en las dos capas: se rechaza si `tamaño > floor(MAX_UPLOAD_MB × 1024 × 1024)`.
 
 > **Pendiente del equipo:** los responsables de backend y frontend deben revisar y aprobar este
 > contrato en el issue FULL-03.

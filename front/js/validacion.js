@@ -42,7 +42,8 @@
      */
     async function validarArchivo(archivo) {
         const cfg = NS.config || {};
-        const maxBytes = (cfg.maxMb || 10) * 1024 * 1024;
+        // Misma fórmula que el backend: int(MAX_UPLOAD_MB * 1024 * 1024), rechazo si es mayor.
+        const maxBytes = Math.floor((cfg.maxMb || 10) * 1024 * 1024);
         if (!archivo) return { ok: false, codigo: "ARCHIVO_AUSENTE" };
         if (archivo.size === 0) return { ok: false, codigo: "ARCHIVO_VACIO" };
         if (archivo.size > maxBytes) return { ok: false, codigo: "ARCHIVO_DEMASIADO_GRANDE" };

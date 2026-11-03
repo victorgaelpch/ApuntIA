@@ -13,13 +13,17 @@
 
     const NS = (global.ApuntIA = global.ApuntIA || {});
     const maxMb = () => (NS.config && NS.config.maxMb) || 10;
+    const formatos = () => {
+        const lista = ((NS.config && NS.config.formatos) || ["image/jpeg", "image/png", "image/webp"]).map((f) => f.replace("image/", "").toUpperCase());
+        return lista.length > 1 ? `${lista.slice(0, -1).join(", ")} o ${lista[lista.length - 1]}` : lista[0];
+    };
 
     const CATALOGO = {
         // --- selección y validación (navegador y API)
         ARCHIVO_AUSENTE: { texto: "Primero elige una imagen del pizarrón.", acciones: ["cargar", "camara"] },
         ARCHIVO_VACIO: { texto: "El archivo está vacío. Elige otra imagen.", acciones: ["elegirOtra"] },
         TIPO_NO_PERMITIDO: {
-            texto: "Ese archivo no es una imagen admitida. Usa una foto JPEG, PNG o WEBP. (Las fotos HEIC del iPhone se pueden exportar como JPEG.)",
+            texto: () => `Ese archivo no es una imagen admitida. Usa una foto ${formatos()}. (Las fotos HEIC del iPhone se pueden exportar como JPEG.)`,
             acciones: ["elegirOtra"],
         },
         ARCHIVO_DEMASIADO_GRANDE: { texto: () => `La imagen pesa más de ${maxMb()} MB. Elige una más ligera o reduce su tamaño.`, acciones: ["elegirOtra"] },

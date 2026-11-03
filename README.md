@@ -16,10 +16,10 @@ Antes de ejecutar el proyecto, instala:
 
 ```bash
 git clone https://github.com/victorgaelpch/ApuntIA.git
-cd ApuntIA/Proyecto-RC/back/motori_magenes
+cd ApuntIA/back/motori_magenes
 ```
 
-> La ruta anterior corresponde a la estructura esperada del repositorio. Si las carpetas cambian, ajusta el comando `cd`.
+> Consulta `back/motori_magenes/README.md` para ver la estructura del backend, las rutas y las variables de entorno.
 
 ### 2. Crear un entorno virtual
 
@@ -56,7 +56,7 @@ Desde la carpeta `motori_magenes`, inicia el servidor con:
 uvicorn main:app --reload
 ```
 
-**Nota:** el comando supone que el archivo principal se llama `main.py` y que la instancia de FastAPI se llama `app`. Si tienen otros nombres, sustituye `main:app` por el módulo y la variable correspondientes.
+El punto de entrada es `main.py`, que expone la instancia `app` creada en `app/main.py`. Por compatibilidad, `uvicorn index:app --reload` también funciona.
 
 ## Acceso a la API
 

@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Configuración local / datos sensibles
+.env
+
+# Imágenes generadas por el backend en tiempo de ejecución
+back/motori_magenes/imagenes/
+
+# Editores / sistema
+.vscode/
+.idea/
+.DS_Store

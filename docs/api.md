@@ -23,7 +23,7 @@ archivo **en el mismo PR** que el código.
 | Parámetro     | Tipo | Por defecto | Valores | Efecto |
 |---------------|------|-------------|---------|--------|
 | `perspectiva` | bool | `true` | `true` / `false` | Detecta el pizarrón y endereza la foto. |
-| `ruido`       | texto | `bilateral` | `ninguno`, `mediana`, `gaussiano`, `bilateral` | Filtro para eliminar ruido. |
+| `ruido`       | texto | `combinado` | `ninguno`, `mediana`, `gaussiano`, `bilateral`, `combinado` | Filtro para eliminar ruido. `combinado` = mediana + bilateral (ver BACK-06). |
 | `mejorar`     | bool | `true` | `true` / `false` | Ajusta el contraste local (CLAHE) y aplica un enfoque moderado. |
 | `grises`      | bool | `false` | `true` / `false` | Devuelve el resultado en escala de grises. |
 

@@ -151,6 +151,37 @@ Comparación con `python -m herramientas.evaluar_mejora`. Contraste = diferencia
 - Se probaron CLAHE con clipLimit 4 y enfoque de 1.5: ganan unos pocos puntos de contraste, pero duplican los píxeles saturados y crean halos. Se descartaron por sobreprocesamiento.
 - En la foto real, que no se rectifica (ver BACK-04), solo se aplican CLAHE y enfoque: la mejora es moderada.
 
+## Eliminación de ruido (BACK-06)
+
+`app/services/ruido.py` se aplica **antes** de la mejora, para que el enfoque no amplifique el ruido. Se elige con `?ruido=`:
+
+| Valor | Filtro |
+|-------|--------|
+| `combinado` (por defecto) | Mediana 3×3 + bilateral (d=7, sigmaColor=40, sigmaSpace=7) |
+| `mediana` | `medianBlur` 3×3 |
+| `gaussiano` | `GaussianBlur` 3×3 |
+| `bilateral` | `bilateralFilter` (d=7, 40, 7) |
+| `ninguno` | Sin filtrar |
+
+Comparación con `python -m herramientas.evaluar_ruido`, sobre un pizarrón de 1600×1066 con ruido gaussiano σ=18 y un 1 % de sal y pimienta. La nitidez es la varianza del laplaciano en la zona del texto, relativa a la imagen limpia; el ruido la infla por encima del 100 %.
+
+| Filtro | PSNR (dB) | Contraste texto | Nitidez bordes | Tiempo (ms) |
+|---|---|---|---|---|
+| (limpia) | ∞ | 174.2 | 100 % | — |
+| (sin filtro) | 21.1 | 168.1 | 209 % | 0 |
+| mediana | 30.7 | 169.2 | 78 % | 1 |
+| gaussiano | 27.7 | 159.1 | 17 % | 1 |
+| bilateral | 23.0 | 170.3 | 194 % | 79 |
+| **combinado** | **36.2** | **170.3** | **100 %** | 26 |
+| *NL-means h=7 (descartado)* | 23.0 | — | — | 902 |
+
+![Recorte: con ruido, mediana, gaussiano, bilateral, combinado](../../docs/evidencias/back-06-ruido.jpg)
+
+- El **gaussiano** borra escritura: el contraste del texto cae a 159 y la nitidez al 17 %.
+- El **bilateral** solo no elimina la sal y pimienta, porque trata esos puntos como bordes.
+- La **mediana** quita los puntos, pero deja grano.
+- La **combinación** recupera la nitidez original sin perder contraste. Es la opción por defecto; el contrato (`docs/api.md`) se actualizó con este valor.
+
 ## Manejo de errores (BACK-07)
 
 `app/core/errores.py` registra un manejador para cada tipo de fallo, y todos responden `{"error": {"codigo", "mensaje"}}`:

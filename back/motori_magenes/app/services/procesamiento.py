@@ -8,9 +8,10 @@ Orden de las etapas (cada una se puede desactivar con OpcionesProcesamiento):
 
     1. copia        -> el original nunca se modifica
     2. perspectiva  -> detecta el pizarrón y lo endereza (BACK-04)
-    3. mejora       -> brillo, iluminación, contraste local y nitidez (BACK-05)
-    4. grises       -> conversión de espacio de color (opcional)
-    5. codificación -> PNG sin pérdida (codificar_png)
+    3. ruido        -> elimina ruido antes de enfocar, para no amplificarlo (BACK-06)
+    4. mejora       -> brillo, iluminación, contraste local y nitidez (BACK-05)
+    5. grises       -> conversión de espacio de color (opcional)
+    6. codificación -> PNG sin pérdida (codificar_png)
 """
 
 import io
@@ -26,6 +27,8 @@ from PIL import Image, ImageDraw
 from app.core.errores import ProcesamientoError
 from app.services.mejora import mejorar
 from app.services.perspectiva import corregir_perspectiva
+from app.services.ruido import POR_DEFECTO as RUIDO_POR_DEFECTO
+from app.services.ruido import eliminar_ruido
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +36,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class OpcionesProcesamiento:
     perspectiva: bool = True
+    ruido: str = RUIDO_POR_DEFECTO  # ninguno | mediana | gaussiano | bilateral | combinado
     mejorar: bool = True
     grises: bool = False
 
@@ -78,6 +82,10 @@ def _etapa_perspectiva(img, _opciones, res):
     return img
 
 
+def _etapa_ruido(img, opciones, _res):
+    return eliminar_ruido(img, opciones.ruido)
+
+
 def _etapa_mejora(img, _opciones, res):
     # La normalización de iluminación solo es segura si la imagen es el pizarrón.
     return mejorar(img, normalizar_iluminacion_fondo=res.perspectiva == "corregida")
@@ -92,6 +100,8 @@ def construir_etapas(opciones: OpcionesProcesamiento) -> list[tuple[str, Etapa]]
     etapas: list[tuple[str, Etapa]] = []
     if opciones.perspectiva:
         etapas.append(("perspectiva", _etapa_perspectiva))
+    if opciones.ruido != "ninguno":
+        etapas.append(("ruido", _etapa_ruido))
     if opciones.mejorar:
         etapas.append(("mejora", _etapa_mejora))
     if opciones.grises:

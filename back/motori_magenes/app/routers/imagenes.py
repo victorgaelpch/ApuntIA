@@ -7,6 +7,7 @@ services/validacion.py y el procesamiento en services/procesamiento.py.
 import logging
 import time
 from pathlib import Path
+from typing import Literal
 from urllib.parse import quote
 
 from fastapi import APIRouter, File, Query, UploadFile
@@ -33,6 +34,8 @@ router = APIRouter(tags=["imagenes"])
 def motori_magenes(
     file: UploadFile | None = File(None, description="Foto del pizarrón (JPEG, PNG o WEBP)"),
     perspectiva: bool = Query(True, description="Detectar el pizarrón y corregir la perspectiva"),
+    ruido: Literal["ninguno", "mediana", "gaussiano", "bilateral", "combinado"] = Query(
+        "combinado", description="Filtro de eliminación de ruido"),
     mejorar: bool = Query(True, description="Mejorar brillo, contraste y nitidez"),
     grises: bool = Query(False, description="Devolver el resultado en escala de grises"),
 ):
@@ -40,7 +43,7 @@ def motori_magenes(
     inicio = time.perf_counter()
     recibida = validar_imagen(file)
 
-    opciones = OpcionesProcesamiento(perspectiva=perspectiva, mejorar=mejorar, grises=grises)
+    opciones = OpcionesProcesamiento(perspectiva=perspectiva, ruido=ruido, mejorar=mejorar, grises=grises)
     resultado = procesar(recibida.imagen, opciones)
     png = codificar_png(resultado.imagen)
 

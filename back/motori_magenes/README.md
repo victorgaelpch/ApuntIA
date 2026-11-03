@@ -1,258 +1,264 @@
-# Backend – Motor de imágenes (FastAPI)
+# Backend de ApuntIA: motor de imágenes (FastAPI + OpenCV)
 
-## Estructura
+API que recibe la foto de un pizarrón y la devuelve enderezada, sin ruido y más legible.
 
-```
-back/motori_magenes/
-├── main.py                 # Punto de entrada: uvicorn main:app --reload
-├── index.py                # Compatibilidad con el antiguo "uvicorn index:app"
-├── requirements.txt        # Dependencias del backend
-├── .env.example            # Plantilla de variables de entorno (copiar a .env)
-└── app/
-    ├── main.py             # create_app(): instancia FastAPI, CORS y routers
-    ├── core/
-    │   └── config.py       # Configuración leída de variables de entorno / .env
-    ├── routers/            # Rutas HTTP (solo reciben y responden)
-    │   ├── general.py      # GET  /
-    │   └── imagenes.py     # POST /analisis, POST /imagen-memoria
-    ├── core/errores.py     # ApiError y respuesta JSON de error común
-    └── services/           # Lógica reutilizable, sin dependencias de rutas
-        ├── validacion.py       # Validación de la imagen recibida (BACK-02)
-        └── procesamiento.py    # Pipeline de OpenCV (BACK-03 en adelante)
-```
+- **Contrato de la API** (rutas, campos, códigos de error): [`docs/api.md`](../../docs/api.md)
+- **Detalles técnicos** del procesamiento (parámetros, mediciones, decisiones): [`PROCESAMIENTO.md`](PROCESAMIENTO.md)
 
-## Rutas disponibles
+---
 
-| Método | Ruta              | Descripción                                                     |
-|--------|-------------------|-----------------------------------------------------------------|
-| GET    | `/`               | Comprobación de estado. Responde `{"message": "Hola Mundo"}`.   |
-| GET    | `/salud`          | Estado del servicio, versión y límites vigentes.                |
-| POST   | `/analisis`       | Recibe `file` (multipart), lo valida y lo devuelve procesado.   |
-| POST   | `/imagen-memoria` | Devuelve una imagen PNG de ejemplo generada en memoria.         |
+## 1. Requisitos
 
-Las rutas y sus respuestas no cambiaron, por lo que `front/js/fastapi.js`
-sigue funcionando contra `http://localhost:8000/analisis`.
+| Herramienta | Versión | Comprobar con |
+|-------------|---------|---------------|
+| Python | **3.10 o superior** (probado con 3.13) | `python --version` |
+| pip | El incluido con Python | `python -m pip --version` |
+| Git | Cualquiera reciente | `git --version` |
 
-## Variables de entorno
+> En Windows, al instalar Python marca la casilla **«Add python.exe to PATH»**. En macOS y Linux,
+> puede que el comando se llame `python3` en lugar de `python`.
 
-| Variable       | Por defecto                    | Uso                                                  |
-|----------------|--------------------------------|------------------------------------------------------|
-| `MAX_UPLOAD_MB` | `10`                          | Tamaño máximo del archivo recibido.                  |
-| `MAX_MEGAPIXELES` | `50`                        | Resolución máxima de la imagen recibida.             |
-| `MAX_LADO_PROCESAMIENTO` | `2000`               | Lado mayor con el que se procesa (0 = sin límite).   |
-| `CORS_ORIGINS` | `*`                            | Orígenes permitidos, separados por comas.            |
-| `APP_NAME`     | `ApuntIA - Motor de imágenes`  | Título mostrado en `/docs`.                          |
+## 2. Instalación paso a paso
+
+### 2.1 Clonar el repositorio y entrar en la carpeta del backend
 
 ```bash
-cp .env.example .env
+git clone https://github.com/victorgaelpch/ApuntIA.git
 ```
 
-## Ejecución
+```bash
+cd ApuntIA/back/motori_magenes
+```
+
+Todos los comandos siguientes se ejecutan **desde `back/motori_magenes`**.
+
+### 2.2 Crear el entorno virtual
+
+```bash
+python -m venv .venv
+```
+
+### 2.3 Activar el entorno virtual
+
+Windows (PowerShell):
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Windows (CMD):
+
+```bat
+.venv\Scripts\activate.bat
+```
+
+macOS y Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Cuando está activo, el indicador de la terminal empieza por `(.venv)`. Para salir, escribe `deactivate`.
+
+### 2.4 Instalar las dependencias
+
+```bash
+python -m pip install --upgrade pip
+```
 
 ```bash
 pip install -r requirements.txt
 ```
 
-```bash
-uvicorn main:app --reload
-```
+| Paquete | Para qué se usa |
+|---------|-----------------|
+| `fastapi` | Framework de la API |
+| `uvicorn[standard]` | Servidor ASGI |
+| `python-multipart` | Recibir archivos con `multipart/form-data` (sin él, `/analisis` no arranca) |
+| `opencv-python` | Procesamiento de imágenes |
+| `numpy` | Matrices de las imágenes |
+| `pillow` | Leer las dimensiones antes de decodificar e imagen de ejemplo |
 
-## Pruebas automáticas (BACK-08)
+Para desarrollar y ejecutar las pruebas, instala también `requirements-dev.txt` (añade `pytest` y `httpx`):
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
+### 2.5 Configurar las variables de entorno (opcional)
+
+Los valores por defecto sirven para desarrollo. Para cambiarlos, copia la plantilla:
+
+```bash
+cp .env.example .env
+```
+
+(En Windows: `copy .env.example .env`.) El archivo `.env` está en `.gitignore`: **no lo subas al repositorio**.
+
+| Variable | Por defecto | Uso |
+|----------|-------------|-----|
+| `MAX_UPLOAD_MB` | `10` | Tamaño máximo del archivo recibido |
+| `MAX_MEGAPIXELES` | `50` | Resolución máxima de la imagen recibida |
+| `MAX_LADO_PROCESAMIENTO` | `2000` | Lado mayor con el que se procesa; `0` = sin límite |
+| `CORS_ORIGINS` | `*` | Orígenes permitidos, separados por comas (p. ej. `http://localhost:5500`) |
+| `APP_NAME` | `ApuntIA - Motor de imágenes` | Título que aparece en `/docs` |
+
+Las variables definidas en el sistema tienen prioridad sobre las del `.env`.
+
+## 3. Ejecutar el servidor
+
+```bash
+uvicorn main:app --reload
+```
+
+- `main:app` es la instancia `app` del archivo `main.py`. `uvicorn index:app` también funciona, por compatibilidad.
+- `--reload` reinicia el servidor al guardar cambios; quítalo en producción.
+- Para otro puerto o para aceptar conexiones de otros dispositivos de la red (por ejemplo, probar desde el celular):
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Al arrancar verás `Uvicorn running on http://127.0.0.1:8000`. Para detenerlo: `Ctrl + C`.
+
+| Dirección | Contenido |
+|-----------|-----------|
+| http://127.0.0.1:8000/salud | Estado y límites del servicio |
+| http://127.0.0.1:8000/docs | Documentación interactiva (Swagger): permite probar `/analisis` desde el navegador |
+| http://127.0.0.1:8000/redoc | Documentación alternativa |
+
+## 4. Rutas
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/` | Comprobación rápida: `{"message": "Hola Mundo"}` |
+| `GET` | `/salud` | Estado, versión, formatos y límites |
+| `POST` | `/analisis` | Procesa la foto enviada en el campo `file` y devuelve un PNG |
+| `POST` | `/imagen-memoria` | PNG de ejemplo generado en memoria |
+
+Parámetros opcionales de `/analisis`: `perspectiva` (bool), `ruido` (`ninguno`, `mediana`, `gaussiano`, `bilateral` o `combinado`), `mejorar` (bool) y `grises` (bool). El detalle está en [`docs/api.md`](../../docs/api.md).
+
+## 5. Ejemplos de solicitud
+
+Con la foto de ejemplo del repositorio (`back/bd/img/image.png`):
+
+**curl** (Linux, macOS, Git Bash; en PowerShell usa `curl.exe`):
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analisis" -F "file=@../bd/img/image.png" -o resultado.png -D -
+```
+
+Respuesta correcta (las cabeceras se muestran gracias a `-D -`):
+
+```http
+HTTP/1.1 200 OK
+content-type: image/png
+content-disposition: inline; filename*=UTF-8''image_apuntia.png
+x-apuntia-archivo: image.png
+x-apuntia-perspectiva: no_detectada
+x-apuntia-dimensiones: 516x387
+x-apuntia-tiempo-ms: 40
+```
+
+Con parámetros:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analisis?ruido=mediana&grises=true" -F "file=@../bd/img/image.png" -o resultado.png
+```
+
+**Python** (con `httpx`, incluido en `requirements-dev.txt`):
+
+```python
+import httpx
+
+with open("../bd/img/image.png", "rb") as f:
+    r = httpx.post("http://127.0.0.1:8000/analisis", files={"file": ("image.png", f, "image/png")})
+
+if r.status_code == 200:
+    open("resultado.png", "wb").write(r.content)
+    print("Perspectiva:", r.headers["x-apuntia-perspectiva"])
+else:
+    print(r.status_code, r.json()["error"])
+```
+
+**Error** (archivo que no es una imagen):
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analisis" -F "file=@README.md"
+```
+
+```json
+{"error":{"codigo":"TIPO_NO_PERMITIDO","mensaje":"Formato no admitido. Usa una imagen JPEG, PNG o WEBP."}}
+```
+
+## 6. Pruebas
+
 ```bash
 python -m pytest
 ```
 
-Hay 70 pruebas con `pytest` y el `TestClient` de FastAPI:
+Resultado esperado: `70 passed`. Las pruebas cubren todas las rutas, todos los errores del contrato y el pipeline (ver [`PROCESAMIENTO.md`](PROCESAMIENTO.md)).
 
-| Archivo | Qué cubre |
-|---------|-----------|
-| `tests/test_api.py` | `/`, `/salud`, `/imagen-memoria` y `/docs`. Carga correcta de JPEG, PNG y WEBP, cabeceras `X-ApuntIA-*`, perspectiva corregida con la proporción conservada, parámetros (`perspectiva`, `ruido`, `mejorar`, `grises`) y redimensionamiento. **Todos los errores del contrato**: 400 ×3, 413 ×2, 415, 422, 404, 405 y 500 ×2, comprobando la estructura JSON y que no se filtran trazas ni datos internos. |
-| `tests/test_procesamiento.py` | Pipeline sin HTTP: el original no se modifica, varias dimensiones y canales, redimensionado, orden de esquinas, precisión de la detección (< 10 px), ausencia de falsos positivos, PSNR del filtro de ruido, contraste de la mejora, firma de formatos y saneado de nombres. |
-
-**Hallazgos durante las pruebas:** el cliente HTTP, como los navegadores, ya escapa `"` y los saltos de línea del nombre de archivo como `%22` y `%0D%0A` antes de enviarlo. La prueba de nombre malicioso comprueba, por tanto, que no llegan rutas, comillas ni saltos de línea a las cabeceras. No se encontraron fallos en el código.
-
-## Cómo comprobarlo
+Herramientas de medición (desde `back/motori_magenes`):
 
 ```bash
-curl http://127.0.0.1:8000/
+python -m herramientas.benchmark
 ```
 
 ```bash
-curl -X POST -F "file=@../bd/img/image.png" http://127.0.0.1:8000/analisis -o resultado.png
+python -m herramientas.evaluar_mejora
 ```
 
-También puede probarse desde `http://127.0.0.1:8000/docs`.
-
-## Validación de imágenes (BACK-02)
-
-El contrato completo está en [`docs/api.md`](../../docs/api.md). `POST /analisis` comprueba, en este orden:
-
-1. Que exista el campo `file` → si no, `400 ARCHIVO_AUSENTE`.
-2. Que no esté vacío → si lo está, `400 ARCHIVO_VACIO`.
-3. Que no supere `MAX_UPLOAD_MB` → si lo supera, `413 ARCHIVO_DEMASIADO_GRANDE`. Se leen como máximo `límite + 1` bytes.
-4. Que su **firma binaria** sea JPEG, PNG o WEBP; la extensión y el `Content-Type` no bastan → si no, `415 TIPO_NO_PERMITIDO`.
-5. Que no supere `MAX_MEGAPIXELES`, leyendo solo la cabecera → si la supera, `413 IMAGEN_DEMASIADO_GRANDE`.
-6. Que OpenCV pueda decodificarla → si no puede, `400 IMAGEN_CORRUPTA`.
-
-Todo ocurre en memoria: ya no se escriben archivos en disco, por lo que desaparece la variable `IMAGES_DIR`. El nombre recibido se limpia antes de usarlo en las cabeceras de la respuesta.
-
-## Pipeline de procesamiento (BACK-03)
-
-`app/services/procesamiento.py` no depende de FastAPI: trabaja con matrices NumPy en BGR `uint8`.
-
-```python
-from app.services.procesamiento import procesar, codificar_png, OpcionesProcesamiento
-
-resultado = procesar(imagen_bgr, OpcionesProcesamiento(grises=True))
-png = codificar_png(resultado.imagen)
-resultado.tiempos_ms        # {"copia": 0.4, "grises": 1.2, ...}
-resultado.perspectiva       # "corregida" | "no_detectada" | "desactivada"
+```bash
+python -m herramientas.evaluar_ruido
 ```
 
-- **Decodificación:** `cv2.imdecode`, dentro de la validación (BACK-02). Las imágenes en gris o con canal alfa se normalizan a BGR.
-- **Orden fijo de etapas:** `construir_etapas()` devuelve las etapas activas en orden. Cada una mide su tiempo y, si OpenCV falla, se convierte en `ProcesamientoError` (500).
-- **El original no se modifica:** el pipeline trabaja sobre una copia.
-- **Salida:** PNG sin pérdida, devuelto directamente en la respuesta con las cabeceras `X-ApuntIA-*` del contrato.
+```bash
+python -m herramientas.muestras ../bd/muestras
+```
 
-## Corrección de perspectiva (BACK-04)
+El último comando guarda en `back/bd/muestras` las fotos sintéticas de prueba (inclinada, oscura, con sombra y con ruido).
 
-`app/services/perspectiva.py`, activada por defecto (`?perspectiva=false` la desactiva):
+## 7. Estructura
 
-1. La detección se hace sobre una copia reducida (lado mayor ≤ 800 px); las esquinas se reescalan al original.
-2. Se buscan cuadriláteros con dos métodos: **bordes de Canny** dilatados y **umbral de Otsu**, este último para pizarrones claros sobre pared oscura o fotos con poca luz.
-3. Un candidato solo se acepta si es **fiable**: 4 vértices, convexo, entre el 10 % y el 98 % del área, ángulos interiores de 45° a 135°, proporción de lados ≤ 6 y como mucho una esquina pegada al borde de la foto.
-4. Las esquinas se ordenan (sup-izq, sup-der, inf-der, inf-izq) y se aplica `warpPerspective`. El tamaño de salida es la media de los lados opuestos, así se conservan las proporciones.
-5. Si no hay un candidato fiable, se devuelve la imagen sin cambios con `X-ApuntIA-Perspectiva: no_detectada`. **No es un error.**
+```
+back/motori_magenes/
+├── main.py                  # Punto de entrada: uvicorn main:app
+├── index.py                 # Alias por compatibilidad (uvicorn index:app)
+├── requirements.txt         # Dependencias de ejecución
+├── requirements-dev.txt     # + pytest y httpx
+├── .env.example             # Plantilla de variables de entorno
+├── PROCESAMIENTO.md         # Detalles técnicos y mediciones
+├── app/
+│   ├── main.py              # create_app(): FastAPI, CORS, manejadores de error y routers
+│   ├── core/
+│   │   ├── config.py        # Configuración desde el entorno o .env
+│   │   └── errores.py       # ApiError, ProcesamientoError y respuestas JSON de error
+│   ├── routers/
+│   │   ├── general.py       # GET /, GET /salud
+│   │   └── imagenes.py      # POST /analisis, POST /imagen-memoria
+│   └── services/            # Lógica sin dependencias de HTTP
+│       ├── validacion.py    # Tamaño, formato real y decodificación
+│       ├── procesamiento.py # Orquesta el pipeline y codifica el PNG
+│       ├── perspectiva.py   # Detección y rectificación del pizarrón
+│       ├── ruido.py         # Filtros de ruido
+│       └── mejora.py        # Brillo, iluminación, CLAHE y enfoque
+├── herramientas/            # Muestras sintéticas, benchmark y evaluaciones
+└── tests/                   # Pruebas con pytest
+```
 
-Resultados con las muestras de `herramientas/muestras.py` (`python -m herramientas.muestras ../bd/muestras`):
+## 8. Errores comunes
 
-| Muestra | Resultado | Error máx. de esquinas |
-|---------|-----------|------------------------|
-| Inclinada / con sombra / con ruido | `corregida` (bordes) | 4 px en 1600×1200 |
-| Oscura | `corregida` (umbral) | — |
-| Pizarrón pequeño (~16 % de la foto) | `corregida` | 6 px |
-| Frontal (el pizarrón ocupa toda la foto) | `no_detectada`: no hace falta corregir | — |
-| Sin pizarrón / 20 fondos de ruido | `no_detectada`, 0 falsos positivos | — |
-| Foto real `bd/img/image.png` | `no_detectada` | — |
-
-![Antes y después](../../docs/evidencias/back-04-perspectiva.jpg)
-
-**Limitación conocida:** en la foto real `bd/img/image.png` el pizarrón **se sale del encuadre** por arriba y por abajo, y es blanco sobre pared blanca, así que no hay cuatro esquinas visibles. Se devuelve sin rectificar en lugar de deformarla con un cuadrilátero falso. Para estos casos, una mejora futura sería intersecar las rectas del marco (Hough).
-
-## Calidad y nitidez (BACK-05)
-
-`app/services/mejora.py`, activada por defecto (`?mejorar=false` la desactiva). Trabaja solo sobre el canal **L de LAB**, así que los colores de los marcadores se conservan.
-
-| Paso | Cuándo | Parámetros |
-|------|--------|------------|
-| Gamma automática | L medio < 105 (foto oscura) | Lleva la luminancia media al 50 %, con gamma entre 0.4 y 1 |
-| Normalización de iluminación | Solo si la perspectiva se **corrigió** | Fondo = cierre morfológico de tamaño lado/40 + desenfoque; L = L / fondo × 235 |
-| CLAHE | Si **no** se normalizó la iluminación | clipLimit 2.0, rejilla 8×8 |
-| Máscara de enfoque | Siempre | cantidad 0.6, sigma = max(0.8, lado/1500) |
-
-Comparación con `python -m herramientas.evaluar_mejora`. Contraste = diferencia media de L entre el fondo y el texto; más alto es más legible. «En sombra» es la franja del 45 % al 75 % del ancho. «Saturados» es el % de píxeles a 0 o 255:
-
-| Variante | clara | oscura | sombra |
-|---|---|---|---|
-| sin mejora | 168.9 / 195.0 / 0.0 | 69.2 / 77.6 / 0.0 | 100.6 / 117.9 / 0.0 |
-| CLAHE + enfoque (foto con pared) | 177.4 / 201.5 / 1.1 | 87.6 / 98.4 / 0.0 | 111.8 / 125.2 / 0.2 |
-| Iluminación + enfoque (pizarrón rectificado) | 169.7 / 194.2 / 0.3 | **156.3 / 179.9** / 0.1 | **172.0 / 198.6** / 0.4 |
-
-![Antes y después: foto real, oscura y con sombra](../../docs/evidencias/back-05-mejora.jpg)
-
-**Decisiones y limitaciones:**
-- La normalización de iluminación duplica el contraste en fotos oscuras o con sombra. Pero, aplicada a una foto con pared o muebles, aclara las zonas oscuras y hace visibles los bloques del JPEG. Por eso solo se usa cuando la imagen ya es el pizarrón rectificado.
-- Tras normalizar, el CLAHE no añadía contraste y creaba bandas en los degradados, así que se omite.
-- Se probaron CLAHE con clipLimit 4 y enfoque de 1.5: ganan unos pocos puntos de contraste, pero duplican los píxeles saturados y crean halos. Se descartaron por sobreprocesamiento.
-- En la foto real, que no se rectifica (ver BACK-04), solo se aplican CLAHE y enfoque: la mejora es moderada.
-
-## Eliminación de ruido (BACK-06)
-
-`app/services/ruido.py` se aplica **antes** de la mejora, para que el enfoque no amplifique el ruido. Se elige con `?ruido=`:
-
-| Valor | Filtro |
-|-------|--------|
-| `combinado` (por defecto) | Mediana 3×3 + bilateral (d=7, sigmaColor=40, sigmaSpace=7) |
-| `mediana` | `medianBlur` 3×3 |
-| `gaussiano` | `GaussianBlur` 3×3 |
-| `bilateral` | `bilateralFilter` (d=7, 40, 7) |
-| `ninguno` | Sin filtrar |
-
-Comparación con `python -m herramientas.evaluar_ruido`, sobre un pizarrón de 1600×1066 con ruido gaussiano σ=18 y un 1 % de sal y pimienta. La nitidez es la varianza del laplaciano en la zona del texto, relativa a la imagen limpia; el ruido la infla por encima del 100 %.
-
-| Filtro | PSNR (dB) | Contraste texto | Nitidez bordes | Tiempo (ms) |
-|---|---|---|---|---|
-| (limpia) | ∞ | 174.2 | 100 % | — |
-| (sin filtro) | 21.1 | 168.1 | 209 % | 0 |
-| mediana | 30.7 | 169.2 | 78 % | 1 |
-| gaussiano | 27.7 | 159.1 | 17 % | 1 |
-| bilateral | 23.0 | 170.3 | 194 % | 79 |
-| **combinado** | **36.2** | **170.3** | **100 %** | 26 |
-| *NL-means h=7 (descartado)* | 23.0 | — | — | 902 |
-
-![Recorte: con ruido, mediana, gaussiano, bilateral, combinado](../../docs/evidencias/back-06-ruido.jpg)
-
-- El **gaussiano** borra escritura: el contraste del texto cae a 159 y la nitidez al 17 %.
-- El **bilateral** solo no elimina la sal y pimienta, porque trata esos puntos como bordes.
-- La **mediana** quita los puntos, pero deja grano.
-- La **combinación** recupera la nitidez original sin perder contraste. Es la opción por defecto; el contrato (`docs/api.md`) se actualizó con este valor.
-
-## Optimización del tiempo (BACK-09)
-
-`python -m herramientas.benchmark` mide cada etapa (mediana de 3 repeticiones, en una máquina de 4 núcleos), incluidos la decodificación del JPEG y la codificación del PNG, igual que en la API.
-
-**Cuellos de botella encontrados** en una foto de celular de 12 MP (4032×3024):
-1. `mejora`, 490 ms: el cierre morfológico con un núcleo de unos 75 px a resolución completa.
-2. `codificar_png`, 122–603 ms: proporcional al número de píxeles y al ruido.
-3. `ruido`, 108 ms, y una copia inicial redundante, 10 ms.
-
-**Cambios:**
-- **Redimensionamiento controlado** al empezar: lado mayor ≤ `MAX_LADO_PROCESAMIENTO`, por defecto 2000 px, con `INTER_AREA`, que nunca amplía. 2000 px bastan para leer un pizarrón y reducen todas las etapas siguientes.
-- **Fondo de iluminación a ¼ de resolución:** el fondo es una superficie suave. Frente al cálculo a resolución completa da 54.4 dB de PSNR, visualmente idéntico, y la etapa pasa de 490 a unos 20 ms.
-- **Sin copia inicial:** ninguna etapa modifica su entrada. Solo se copia al final si ninguna etapa actuó.
-- Se evaluó bajar la compresión PNG de 3 a 1: el tiempo es el mismo (54 ms frente a 54 ms en 2000×1500), así que se mantiene en 3.
-
-**Antes y después**, mismas condiciones, tiempo total en ms:
-
-| Imagen de referencia | Antes | Después | Mejora | Salida antes → después |
-|---|---|---|---|---|
-| Foto real 516×387 | 37 | 36 | = | 516×387 (no cambia) |
-| Inclinada 1600×1200 | 106 | 72 | 1.5× | 1191×811 (no cambia) |
-| Celular 12 MP | 862 | **149** | **5.8×** | 3001×2042, 521 KB → 1489×1013, 165 KB |
-| Celular 12 MP con ruido | 1437 | **410** | **3.5×** | 7.3 MB → 1.5 MB |
-
-Solo con el fondo a ¼, sin redimensionar, la foto de 12 MP pasa de 862 a 354 ms; con ambos cambios, el pipeline sin E/S tarda 86 ms.
-
-**Calidad conservada:** las métricas de contraste de BACK-05 no cambian (oscura 156.3, sombra 172.0). Además, la respuesta pesa 3–5 veces menos, lo que también acorta la transferencia al navegador.
-
-## Manejo de errores (BACK-07)
-
-`app/core/errores.py` registra un manejador para cada tipo de fallo, y todos responden `{"error": {"codigo", "mensaje"}}`:
-
-| Origen | HTTP | `codigo` |
-|--------|------|----------|
-| `ApiError`: validaciones previstas | 400 / 413 / 415 | Según el caso (ver BACK-02) |
-| Parámetro de consulta no válido (`RequestValidationError`) | 422 | `PARAMETRO_INVALIDO` |
-| Ruta inexistente o método incorrecto | 404 / 405 | `RUTA_NO_ENCONTRADA` / `METODO_NO_PERMITIDO` |
-| `ProcesamientoError`: fallo de OpenCV | 500 | `ERROR_PROCESAMIENTO` |
-| Cualquier otra excepción | 500 | `ERROR_INTERNO` |
-
-- **Cliente frente a servidor:** los 4xx explican qué corregir; los 5xx dan un mensaje genérico.
-- **Sin información sensible:** las trazas, rutas y mensajes de excepción solo se escriben en el log (`apuntia.errores`). El cliente recibe `X-ApuntIA-Error-Id`, que coincide con la línea del log.
-- **Archivos temporales:** no hay; la imagen se procesa en memoria y FastAPI cierra el `UploadFile` al terminar la petición.
-
-## Cambios realizados (BACK-01)
-
-- El código de `index.py` se separó en `core` (configuración), `routers` (rutas) y `services` (lógica).
-- La ruta fija `/home/yane/imagenes` se reemplazó por la variable `IMAGES_DIR`; la carpeta se crea automáticamente.
-- Los orígenes de CORS ahora son configurables con `CORS_ORIGINS`.
-- El nombre del archivo subido se limpia para impedir escribir fuera de la carpeta de imágenes (`../../archivo`).
-- Se eliminó la relectura/reescritura redundante con OpenCV (no modificaba la imagen); OpenCV sigue en las dependencias para las siguientes tareas.
-- `print` se sustituyó por `logging`.
-- Se completó `requirements.txt` (antes vacío) e incluye `python-multipart`, necesario para recibir archivos.
-- Se añadió `.gitignore` para no subir `__pycache__`, entornos virtuales, `.env` ni las imágenes generadas, y se quitó el `.pyc` que estaba versionado.
+| Síntoma | Causa | Solución |
+|---------|-------|----------|
+| `'python' no se reconoce como un comando` | Python no está en el PATH | Reinstala Python marcando «Add to PATH», o usa `py` (Windows) o `python3` (macOS/Linux). |
+| `Activate.ps1 no se puede cargar porque la ejecución de scripts está deshabilitada` | Política de PowerShell | `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` o usa CMD. |
+| `ModuleNotFoundError: No module named 'fastapi'` (o `cv2`) | El entorno virtual no está activo o faltan dependencias | Activa `.venv` y ejecuta `pip install -r requirements.txt`. |
+| `Form data requires "python-multipart" to be installed` | Falta `python-multipart` | `pip install -r requirements.txt`. |
+| `Error loading ASGI app. Could not import module "main"` | Uvicorn se ejecutó desde otra carpeta | Ejecútalo desde `back/motori_magenes`. |
+| `[Errno 98] / [WinError 10048] address already in use` | El puerto 8000 está ocupado | Cierra el otro servidor o usa `--port 8001`; en ese caso, cambia también la URL de la API en el frontend. |
+| `ImportError: libGL.so.1` (Linux sin entorno gráfico) | `opencv-python` necesita librerías gráficas | `pip uninstall opencv-python` y `pip install opencv-python-headless`. |
+| El navegador muestra un error de CORS | El origen del frontend no está permitido | Añádelo a `CORS_ORIGINS` (o deja `*` en desarrollo) y reinicia uvicorn. |
+| `413 ARCHIVO_DEMASIADO_GRANDE` | La foto pesa más de `MAX_UPLOAD_MB` | Usa una foto más ligera o sube el límite en `.env`. |
+| `415 TIPO_NO_PERMITIDO` con fotos de iPhone | Formato HEIC | En el iPhone: Ajustes → Cámara → Formatos → «Más compatible» (JPEG), o exporta la foto como JPEG. |
+| `X-ApuntIA-Perspectiva: no_detectada` | El pizarrón no tiene sus 4 esquinas visibles o se confunde con la pared | Encuadra el pizarrón completo con algo de margen. La imagen se mejora igualmente. |

@@ -23,11 +23,15 @@ async function esperar(url, ms = 20000) {
     throw new Error(`No respondió: ${url}`);
 }
 
-async function iniciarBackend(env = {}) {
+// fallo: "" | "procesamiento" | "inesperado" | "lento" (ver app_con_fallos.py)
+async function iniciarBackend(env = {}, { fallo = "" } = {}) {
     const puerto = await puertoLibre();
     const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
-    const proceso = spawn(python, ["-m", "uvicorn", "main:app", "--port", String(puerto)], {
-        cwd: BACKEND, env: { ...process.env, ...env }, stdio: ["ignore", "pipe", "pipe"],
+    const args = fallo
+        ? ["-m", "uvicorn", "app_con_fallos:app", "--app-dir", __dirname, "--port", String(puerto)]
+        : ["-m", "uvicorn", "main:app", "--port", String(puerto)];
+    const proceso = spawn(python, args, {
+        cwd: BACKEND, env: { ...process.env, ...env, APUNTIA_FALLO: fallo }, stdio: ["ignore", "pipe", "pipe"],
     });
     const log = [];
     proceso.stdout.on("data", (d) => log.push(String(d)));

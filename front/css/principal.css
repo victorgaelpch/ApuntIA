@@ -125,6 +125,25 @@ section[id] { scroll-margin-top: 84px; }
 /* ---------- Pie ---------- */
 .site-footer { padding: 24px 16px 32px; text-align: center; color: var(--ink-2); font-size: .85rem; }
 
+/* ---------- Adaptación a dispositivos (FRONT-09) ---------- */
+/* Pantallas táctiles: áreas de al menos 44x44 px. */
+@media (pointer: coarse) {
+  .btn.sm, .pane__acciones .btn, .status__acciones .btn { min-height: 44px; padding-inline: 14px; }
+  .site-header .brand { min-height: 44px; }
+}
+.skip { padding: 12px 16px; }
+/* Pantallas bajas (móvil en horizontal): el encabezado deja de ser fijo para no tapar contenido. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .site-header { position: static; }
+  section[id] { scroll-margin-top: 8px; }
+  .pane__frame img { max-height: 75vh; }
+}
+/* Pantallas muy estrechas (≤ 360 px). */
+@media (max-width: 360px) {
+  .site-nav a { font-size: .8rem; padding-inline: 4px; }
+  .pane { padding: 10px; }
+}
+
 /* ---------- Móvil ---------- */
 @media (max-width: 760px) {
   .site-header__in { flex-direction: column; align-items: stretch; gap: 6px; padding-top: 8px; padding-bottom: 6px; }

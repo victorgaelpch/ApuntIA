@@ -118,6 +118,23 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - El detalle técnico (`console.error`) solo va a la consola.
 - Si hubo respuesta HTTP, se ofrece un desplegable «Detalles técnicos» con el código, el estado HTTP y la referencia `X-ApuntIA-Error-Id`, útil para buscar el fallo en el log del servidor. **Nunca** se muestran trazas.
 
+## Diseño adaptable (FRONT-09)
+
+Auditoría automática con Playwright y la imagen procesada en pantalla, buscando elementos fuera del ancho visible, controles de menos de 44×44 px y texto de menos de 12 px:
+
+| Pantalla | Desbordamientos | Controles < 44 px | Texto < 12 px |
+|----------|-----------------|-------------------|---------------|
+| 320×640, 375×667, 414×896 (móvil, táctil) | 0 | 0 | 0 |
+| 844×390 (móvil horizontal, táctil) | 0 | 0 | 0 |
+| 768×1024 (tableta, táctil) | 0 | 0 | 0 |
+| 1024×768, 1440×900, 1920×1080 (ratón) | 0 | Botones `sm` de 38 px, adecuados para puntero fino | 0 |
+
+**Correcciones de este issue:**
+- **Táctil (`pointer: coarse`):** los botones pequeños (Cambiar, Quitar, Ver original, Tamaño real, Descargar y las acciones de los mensajes) pasan a medir 44 px.
+- **Móvil en horizontal** (alto ≤ 500 px): el encabezado deja de ser fijo para no tapar la mitad de la pantalla, y las imágenes pueden ocupar hasta el 75 % del alto.
+- **Pantallas ≤ 360 px:** navegación y paneles más compactos.
+- **Teclado:** el orden de tabulación ahora coincide con el visual (Saltar al contenido → marca → navegación → Cargar imagen → Tomar foto → Procesar → acciones de los paneles). Antes, «Tomar foto» iba antes que «Cargar imagen». Todos los controles muestran el foco, y el diálogo de cámara retiene el foco y se cierra con Esc.
+
 ## Cliente de la API (FRONT-05)
 
 `front/js/api.js` expone `window.ApuntIA.api`:

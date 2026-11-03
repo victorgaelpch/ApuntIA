@@ -352,11 +352,22 @@
             reloj.textContent = `${segundos} s`;
         }, 1000);
 
+        // Flujo completo (FULL-05): el resultado anterior se retira al empezar, así
+        // nunca se muestra un resultado viejo junto a un error o mientras se procesa.
+        limpiarResultado();
+        const archivoEnviado = estado.archivo;
+
         try {
-            const resultado = await api.procesarImagen(estado.archivo, {}, { signal: estado.controlador.signal });
+            const resultado = await api.procesarImagen(archivoEnviado, {}, { signal: estado.controlador.signal });
+            // El resultado debe corresponder a la imagen seleccionada ahora mismo.
+            if (estado.archivo !== archivoEnviado) return;
+            if (resultado.archivoRecibido && resultado.archivoRecibido !== archivoEnviado.name) {
+                // El servidor sanea el nombre (rutas, comillas); no es un error, solo se registra.
+                console.info("[ApuntIA] El servidor recibió el archivo como", resultado.archivoRecibido);
+            }
             el.estado.querySelector(".status__texto").textContent = "Recibiendo el resultado…";
             await mostrarResultado(resultado);
-            mostrarEstado("hecho", "Listo. Compara la imagen original con la procesada o descárgala.");
+            mostrarEstado("hecho", `Listo: resultado de «${archivoEnviado.name}». Compara con la original o descárgala.`);
         } catch (error) {
             // Los mensajes públicos salen del catálogo; el mensaje del servidor y
             // la causa solo se registran en la consola.

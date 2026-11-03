@@ -57,6 +57,35 @@ sequenceDiagram
 | Pizarrón no detectado | Motor | No es un error: se devuelve la imagen mejorada sin corregir la perspectiva y la interfaz lo indica |
 | Fallo inesperado del procesamiento | API (`500`) | Mensaje genérico sin trazas técnicas; el detalle queda en el log del servidor |
 
+## Reintentos y resultados anteriores (FULL-05)
+
+| Situación | Comportamiento |
+|-----------|----------------|
+| Se elige otra imagen (archivo, cámara o arrastre) | Se retiran el resultado y la URL temporal anteriores |
+| Se pulsa «Procesar» de nuevo, o «Reintentar» | El resultado anterior se retira **al empezar**: nunca se ve un resultado viejo junto a un error ni durante la espera |
+| Falla el procesamiento | Se conserva la imagen elegida y se ofrece «Reintentar» (misma imagen) o «Elegir otra» |
+| Se cancela | Se conserva la imagen elegida; el resultado ya se había retirado |
+| Durante el procesamiento | No se puede cambiar la imagen (controles bloqueados) |
+
+**El resultado corresponde a la imagen enviada:**
+- El controlador guarda el `File` enviado y, al llegar la respuesta, comprueba que siga siendo la imagen seleccionada; si no, descarta la respuesta.
+- El mensaje final nombra el archivo («Listo: resultado de «x.jpg»»).
+- El servidor confirma el nombre recibido en `X-ApuntIA-Archivo`.
+
+Recorrido verificado con el backend real (Chromium, página en :5500, API en :8000):
+
+| Foto | Tiempo total en la UI | Resultado |
+|------|-----------------------|-----------|
+| `bd/img/image.png` (real, 516×387) | 1.1 s (primera petición) | No detectado, mejorada · 516×387 |
+| Frontal 1200×800 | 0.6 s | No detectado (ya está de frente) · 1200×800 |
+| Inclinada 1600×1200 | 0.2 s | ✓ Enderezada · 1191×811 |
+| Oscura / con sombra / con ruido | 0.1–0.3 s | ✓ Enderezada · ~1190×810 |
+| Sin pizarrón | 0.3 s | No detectado · 1200×900 |
+| Celular 12 MP (4032×3024) | 0.8 s | ✓ Enderezada · 1489×1013 |
+| Servidor caído → levantarlo → «Reintentar» | — | Error de conexión sin resultado viejo → ✓ resultado |
+
+![Flujo completo con la muestra con sombra](evidencias/full-05-flujo.jpg)
+
 ## Alcance de la primera versión
 
 **Incluye:**

@@ -12,7 +12,8 @@ Referencias: [flujo](flujo.md) · [contrato de la API](api.md) · [pruebas del f
 | Back | BACK-01 a BACK-10 | ✅ Implementados, 70 pruebas en verde | `back/motori_magenes` |
 | Front | FRONT-01 a FRONT-10 | ✅ Implementados, 20 pruebas en verde (Chromium) | `index.html`, `front/` |
 | Full | FULL-04 a FULL-08 | ✅ Integración, flujo, compatibilidad, pruebas e incidencias | `docs/ejecutar.md`, `docs/compatibilidad.md`, `docs/pruebas-integracion.md`, `docs/incidencias.md` |
-| Full | FULL-09, FULL-10 | 🔄 Validación de experiencia y arquitectura | — |
+| Full | FULL-09 Validación de UX | ✅ En dispositivos emulados · ⏳ celulares reales | `docs/validacion-ux.md` |
+| Full | FULL-10 Arquitectura | ✅ | `docs/arquitectura.md`, `README.md` |
 
 ## 2. Ramas y entregas
 

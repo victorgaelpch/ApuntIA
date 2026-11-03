@@ -11,3 +11,6 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# Muestras sintéticas regenerables (python -m herramientas.muestras ../bd/muestras)
+back/bd/muestras/

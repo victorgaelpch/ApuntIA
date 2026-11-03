@@ -32,13 +32,14 @@ router = APIRouter(tags=["imagenes"])
 )
 def motori_magenes(
     file: UploadFile | None = File(None, description="Foto del pizarrón (JPEG, PNG o WEBP)"),
+    perspectiva: bool = Query(True, description="Detectar el pizarrón y corregir la perspectiva"),
     grises: bool = Query(False, description="Devolver el resultado en escala de grises"),
 ):
     """Recibe una foto del pizarrón (campo «file»), la valida y la devuelve procesada."""
     inicio = time.perf_counter()
     recibida = validar_imagen(file)
 
-    opciones = OpcionesProcesamiento(grises=grises)
+    opciones = OpcionesProcesamiento(perspectiva=perspectiva, grises=grises)
     resultado = procesar(recibida.imagen, opciones)
     png = codificar_png(resultado.imagen)
 

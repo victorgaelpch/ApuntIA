@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.errores import ApiError, manejar_api_error
 from app.routers import general, imagenes
 
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +14,8 @@ logging.basicConfig(level=logging.INFO)
 
 def create_app() -> FastAPI:
     """Construye la aplicación, registra middleware y rutas."""
-    app = FastAPI(title=settings.app_name)
+    app = FastAPI(title=settings.app_name, version=settings.version)
+    app.add_exception_handler(ApiError, manejar_api_error)
 
     app.add_middleware(
         CORSMiddleware,

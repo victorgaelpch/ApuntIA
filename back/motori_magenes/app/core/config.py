@@ -35,12 +35,11 @@ class Settings:
 
     app_name: str = os.getenv("APP_NAME", "ApuntIA - Motor de imágenes")
 
-    # Carpeta donde se guardan las imágenes recibidas y procesadas.
-    # Antes estaba fija en "/home/yane/imagenes"; ahora es configurable.
-    # Las rutas relativas se resuelven respecto a back/motori_magenes.
-    images_dir: Path = (
-        BASE_DIR / Path(os.getenv("IMAGES_DIR", "imagenes")).expanduser()
-    ).resolve()
+    version: str = "1.0.0"
+
+    # Límites de las imágenes recibidas (ver docs/api.md).
+    max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
+    max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [

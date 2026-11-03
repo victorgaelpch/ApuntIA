@@ -9,6 +9,7 @@
 | `css/principal.css`  | Componentes propios de la pantalla principal: encabezado, zona de resultados, estados. |
 | `js/config.js`       | Configuración: URL de la API, tiempo máximo y límites de los archivos.                |
 | `js/api.js`          | Cliente de la API (FRONT-05): peticiones, cabeceras y errores, según `docs/api.md`.   |
+| `js/validacion.js`   | Validación en el navegador (FRONT-02): firma binaria, tamaño y archivo vacío.       |
 | `js/api-mock.js`     | Respuestas simuladas para trabajar sin backend (`?mock=...`).                         |
 | `js/app.js`          | Controlador de la pantalla principal: estados, vista previa y resultado.             |
 | `maqueta.html` + `js/index.js` | Prototipo de UX con IA simulada, usado como referencia de diseño.            |
@@ -37,6 +38,15 @@ Accesibilidad básica: enlace «Saltar al contenido», contraste del sistema vis
 En móvil (≤ 760 px), las acciones y los paneles se apilan en una sola columna y la navegación ocupa todo el ancho.
 
 Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadores de carga (FRONT-07), mensajes de error (FRONT-08) y diseño adaptable fino (FRONT-09).
+
+## Carga de imágenes desde el dispositivo (FRONT-02)
+
+- **Control accesible:** «Cargar imagen» es un `<label>` del `<input type="file">`, con `aria-describedby` apuntando al texto de formatos admitidos. También se puede **arrastrar y soltar** una imagen sobre el pizarrón.
+- **Tipos limitados sin confiar solo en ello:** `accept="image/jpeg,image/png,image/webp"` filtra el selector, pero `validacion.js` comprueba además la **firma binaria** de los primeros bytes. Así se rechaza, por ejemplo, un PDF o un HEIC renombrado como `.jpg`, igual que hace el backend.
+- **Errores útiles:** archivo vacío, de más de 10 MB o de formato no admitido muestran un mensaje y **conservan la imagen anterior**, si había una.
+- **Cancelación:** el evento `cancel` del selector, o un `change` sin archivo en navegadores antiguos, informa «No elegiste otra imagen. Se mantiene «x»» o, si no había ninguna, cómo empezar.
+- **Estado:** `estado.archivo` guarda el `File` listo para `api.procesarImagen`, junto con su origen (`archivo`, `camara` o `arrastre`).
+- **Sin envíos duplicados:** mientras se procesa, `estado.enviando` bloquea el botón y se ignoran nuevas selecciones; tres clics seguidos producen una sola petición.
 
 ## Cliente de la API (FRONT-05)
 

@@ -53,11 +53,13 @@
           <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
         </label>
       </div>
-      <input class="sr-only" type="file" id="inpImagen" accept="image/*">
+      <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
       <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment">
 
       <p class="tagline">Convierte tus apuntes del pizarrón en contenido digital organizado.</p>
+      <p class="alt" id="formatos">JPEG, PNG o WEBP de hasta 10 MB · también puedes arrastrar la imagen aquí</p>
     </div>
+    <div class="drop-hint" aria-hidden="true">Suelta tu imagen aquí</div>
   </section>
   <div class="tray" aria-hidden="true"></div>
 
@@ -110,6 +112,7 @@
 
 <script src="front/js/config.js"></script>
 <script src="front/js/api.js"></script>
+<script src="front/js/validacion.js"></script>
 <script src="front/js/api-mock.js"></script>
 <script src="front/js/app.js"></script>
 </body>

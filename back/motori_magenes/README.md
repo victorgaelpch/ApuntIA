@@ -81,6 +81,22 @@ El contrato completo está en [`docs/api.md`](../../docs/api.md). `POST /analisi
 
 Todo ocurre en memoria: ya no se escriben archivos en disco, por lo que desaparece la variable `IMAGES_DIR`. El nombre recibido se limpia antes de usarlo en las cabeceras de la respuesta.
 
+## Manejo de errores (BACK-07)
+
+`app/core/errores.py` registra un manejador para cada tipo de fallo, y todos responden `{"error": {"codigo", "mensaje"}}`:
+
+| Origen | HTTP | `codigo` |
+|--------|------|----------|
+| `ApiError`: validaciones previstas | 400 / 413 / 415 | Según el caso (ver BACK-02) |
+| Parámetro de consulta no válido (`RequestValidationError`) | 422 | `PARAMETRO_INVALIDO` |
+| Ruta inexistente o método incorrecto | 404 / 405 | `RUTA_NO_ENCONTRADA` / `METODO_NO_PERMITIDO` |
+| `ProcesamientoError`: fallo de OpenCV | 500 | `ERROR_PROCESAMIENTO` |
+| Cualquier otra excepción | 500 | `ERROR_INTERNO` |
+
+- **Cliente frente a servidor:** los 4xx explican qué corregir; los 5xx dan un mensaje genérico.
+- **Sin información sensible:** las trazas, rutas y mensajes de excepción solo se escriben en el log (`apuntia.errores`). El cliente recibe `X-ApuntIA-Error-Id`, que coincide con la línea del log.
+- **Archivos temporales:** no hay; la imagen se procesa en memoria y FastAPI cierra el `UploadFile` al terminar la petición.
+
 ## Cambios realizados (BACK-01)
 
 - El código de `index.py` se separó en `core` (configuración), `routers` (rutas) y `services` (lógica).

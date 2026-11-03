@@ -1,0 +1,31 @@
+# Mantenimiento de dependencias (rúbrica punto 8): Dependabot abre un PR cada
+# semana con las actualizaciones disponibles; la CI comprueba que no rompan nada.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /back/motori_magenes
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      include: scope
+    labels: [dependencias, backend]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "build"
+      include: scope
+    labels: [dependencias, pruebas]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"
+    labels: [dependencias, ci]

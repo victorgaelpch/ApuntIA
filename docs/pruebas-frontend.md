@@ -2,7 +2,7 @@
 
 ## Cómo ejecutarlas
 
-Desde la raíz del repositorio (requiere Node.js 18 o superior):
+Desde la raíz del repositorio (requiere Node.js 22 o superior: `node --test` con patrones necesita Node 21+):
 
 ```bash
 npm install

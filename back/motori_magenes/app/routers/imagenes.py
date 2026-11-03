@@ -68,7 +68,12 @@ def motori_magenes(
     )
 
 
-@router.post("/imagen-memoria")
+@router.post("/imagen-memoria", deprecated=True)
 def obtener_imagen_memoria():
-    """Devuelve una imagen de ejemplo generada en memoria."""
+    """Ejemplo heredado: devuelve una imagen generada en memoria.
+
+    No forma parte del alcance v1 (docs/alcance.md). Se conserva solo porque
+    BACK-01 exige que las rutas existentes sigan respondiendo; marcada como
+    obsoleta para retirarla cuando el equipo lo apruebe.
+    """
     return StreamingResponse(generar_imagen_ejemplo(), media_type="image/png")

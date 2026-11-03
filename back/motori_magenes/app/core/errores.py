@@ -89,6 +89,42 @@ async def manejar_inesperado(request: Request, exc: Exception) -> JSONResponse:
                            "Ocurrió un error inesperado en el servidor. Inténtalo más tarde.")
 
 
+class CapturarErroresInesperados:
+    """Middleware ASGI que convierte las excepciones no previstas en un 500 JSON.
+
+    Corrige el defecto D1 (FULL-08): Starlette ejecuta el manejador de
+    `Exception` en ServerErrorMiddleware, que está FUERA de CORSMiddleware. Así,
+    el 500 salía sin Access-Control-Allow-Origin, el navegador lo bloqueaba y la
+    interfaz mostraba «sin conexión». Este middleware se registra antes que
+    CORS (y por tanto queda dentro de él), de modo que el 500 sí lleva las
+    cabeceras CORS.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        respuesta_iniciada = False
+
+        async def enviar(mensaje):
+            nonlocal respuesta_iniciada
+            if mensaje["type"] == "http.response.start":
+                respuesta_iniciada = True
+            await send(mensaje)
+
+        try:
+            await self.app(scope, receive, enviar)
+        except Exception as exc:  # noqa: BLE001 — es precisamente el último recurso
+            if respuesta_iniciada:
+                raise  # ya no se puede cambiar la respuesta
+            respuesta = _error_servidor(Request(scope), exc, "ERROR_INTERNO",
+                                        "Ocurrió un error inesperado en el servidor. Inténtalo más tarde.")
+            await respuesta(scope, receive, send)
+
+
 def registrar_manejadores(app: FastAPI) -> None:
     app.add_exception_handler(ApiError, manejar_api_error)
     app.add_exception_handler(RequestValidationError, manejar_validacion)

@@ -180,7 +180,7 @@ describe("Integración de extremo a extremo con FastAPI real", () => {
         await contexto.close();
     });
 
-    test("I08 error inesperado del servidor → 500 ERROR_INTERNO legible (no «sin conexión»)", { todo: "Defecto D1 (docs/pruebas-integracion.md): el 500 genérico sale sin cabeceras CORS. Se corrige en FULL-08." }, async () => {
+    test("I08 error inesperado del servidor → 500 ERROR_INTERNO legible (no «sin conexión»)", async () => {
         const conFallo = await iniciarBackend({}, { fallo: "inesperado" });
         const { contexto, pagina } = await prepararPagina(navegador, estatico, conFallo.url);
         const ms = await procesar(pagina, FOTO_REAL);

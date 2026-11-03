@@ -216,3 +216,24 @@ def test_cors_preflight(client):
                                              "Access-Control-Request-Method": "POST"})
     assert r.status_code == 200
     assert "POST" in r.headers["access-control-allow-methods"]
+
+
+# ---------------------------------------------------------------- defecto D1 (FULL-08)
+
+@pytest.mark.parametrize("modulo,funcion,exc", [
+    ("app.routers.imagenes", "codificar_png", RuntimeError("inesperado")),
+    ("app.services.procesamiento", "eliminar_ruido", __import__("cv2").error("cv2")),
+])
+def test_errores_500_llevan_cabeceras_cors(client, monkeypatch, modulo, funcion, exc):
+    import importlib
+
+    def falla(*_a, **_k):
+        raise exc
+
+    monkeypatch.setattr(importlib.import_module(modulo), funcion, falla)
+    r = client.post("/analisis", files={"file": ("a.png", imagen_pil("PNG"), "image/png")},
+                    headers={"Origin": "http://localhost:5500"})
+    assert r.status_code == 500
+    assert r.headers["access-control-allow-origin"] == "*"
+    assert "x-apuntia-error-id" in r.headers["access-control-expose-headers"].lower()
+    assert r.json()["error"]["codigo"] in {"ERROR_INTERNO", "ERROR_PROCESAMIENTO"}

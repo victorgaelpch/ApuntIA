@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>APUNTIA — Apuntes Inteligentes</title>
-<meta name="description" content="ApuntIA: convierte la foto de un pizarrón en apuntes digitales.">
+<meta name="description" content="ApuntIA: convierte la foto de un pizarrón en una imagen enderezada, nítida y fácil de leer.">
 <meta name="theme-color" content="#0f332d">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%230a7d62'/%3E%3Cpath d='M14 35 24 12l10 23M18.5 28h11' stroke='%23fff' stroke-width='3.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='12' r='3' fill='%23ffd666'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,26 +38,30 @@
   <!-- ===== Acciones principales ===== -->
   <section id="inicio" class="hero" aria-labelledby="titulo">
     <div class="hero-in">
-      <span class="pill">✨ Visión por Computadora + Inteligencia Artificial</span>
+      <span class="pill">✨ Visión por computadora</span>
       <h1 id="titulo" class="wordmark">APUNTIA</h1>
       <p class="subtitle">Apuntes Inteligentes</p>
 
       <div class="cta" role="group" aria-label="Elige cómo agregar la imagen del pizarrón">
-        <!-- Cada acción es un <label> asociado a un input de archivo: funciona con teclado y lector de pantalla -->
+        <!-- «Cargar imagen» es un <label> de un input de archivo (enfocable con teclado). El input va
+             justo antes para que el orden de tabulación coincida con el visual (FRONT-09). -->
+        <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
         <label class="cta-btn cta-load" for="inpImagen">
           <span class="cta-ic" aria-hidden="true">📁</span>
           <span class="cta-tx"><b>Cargar imagen</b><small>Elige una foto de tu dispositivo</small></span>
         </label>
-        <label class="cta-btn cta-photo" for="inpCamara">
+        <button type="button" class="cta-btn cta-photo" id="btCamara">
           <span class="cta-ic" aria-hidden="true">📷</span>
           <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
-        </label>
+        </button>
       </div>
-      <input class="sr-only" type="file" id="inpImagen" accept="image/*">
-      <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment">
+      <!-- Alternativa cuando no hay cámara en vivo (getUserMedia): abre la app de cámara del móvil -->
+      <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
 
-      <p class="tagline">Convierte tus apuntes del pizarrón en contenido digital organizado.</p>
+      <p class="tagline">Convierte la foto del pizarrón en una imagen enderezada, nítida y fácil de leer.</p>
+      <p class="alt" id="formatos">JPEG, PNG o WEBP de hasta 10 MB · también puedes arrastrar la imagen aquí</p>
     </div>
+    <div class="drop-hint" aria-hidden="true">Suelta tu imagen aquí</div>
   </section>
   <div class="tray" aria-hidden="true"></div>
 
@@ -87,27 +91,69 @@
 
     <div class="panes">
       <figure class="pane" data-pane="original">
-        <figcaption>Original</figcaption>
+        <div class="pane__head">
+          <figcaption>Original</figcaption>
+          <div class="pane__acciones" id="accionesPreview" hidden>
+            <button type="button" class="btn sm" id="btCambiar">Cambiar</button>
+            <button type="button" class="btn sm" id="btQuitar">Quitar</button>
+          </div>
+        </div>
         <div class="pane__frame">
-          <img id="imagenEnviada" alt="Imagen seleccionada" hidden>
+          <img id="imagenEnviada" alt="Vista previa de la imagen seleccionada" hidden>
           <p class="pane__empty">Usa «Cargar imagen» o «Tomar foto» para comenzar.</p>
         </div>
+        <p class="pane__info" id="infoPreview" hidden></p>
       </figure>
       <figure class="pane" data-pane="resultado">
-        <figcaption>Procesada</figcaption>
+        <div class="pane__head">
+          <figcaption>Procesada</figcaption>
+          <div class="pane__acciones" id="accionesResultado" hidden>
+            <button type="button" class="btn sm" id="btComparar" aria-pressed="false"
+                    title="Mantén pulsado para ver la original en este panel">Ver original</button>
+            <a class="btn sm" id="btVerCompleta" target="_blank" rel="noopener">Tamaño real</a>
+            <a class="btn sm primary" id="btDescargar" download>Descargar</a>
+          </div>
+        </div>
         <div class="pane__frame">
           <img id="imagenResultado" alt="Imagen procesada por ApuntIA" hidden>
           <p class="pane__empty">Aquí aparecerá el resultado.</p>
+          <span class="pane__sello" id="selloComparar" hidden>Original</span>
         </div>
+        <p class="pane__info" id="infoResultado" hidden></p>
       </figure>
     </div>
   </section>
 </main>
 
+<!-- Cámara en vivo (FRONT-03) -->
+<dialog id="dlgCamara" aria-labelledby="camTitulo">
+  <div class="cam-head">
+    <h2 id="camTitulo">Tomar foto</h2>
+    <button type="button" class="icon-btn sm" id="btCerrarCamara" aria-label="Cerrar cámara">✕</button>
+  </div>
+  <div class="viewfinder">
+    <video id="camVideo" playsinline muted></video>
+    <div class="guides"></div><i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+    <div class="cam-msg" id="camMensaje" role="status">Solicitando permiso para usar la cámara...</div>
+    <div class="flash" id="camFlash"></div>
+  </div>
+  <div class="cam-foot">
+    <button type="button" class="btn" id="btCamaraArchivo">Elegir archivo</button>
+    <button type="button" class="shutter" id="btCapturar" aria-label="Capturar fotografía" disabled></button>
+    <span class="cam-foot__espacio" aria-hidden="true"></span>
+  </div>
+</dialog>
+
 <footer class="site-footer">
   <p>ApuntIA · Proyecto académico</p>
 </footer>
 
-<script src="front/js/fastapi.js"></script>
+<script src="front/js/config.js"></script>
+<script src="front/js/api.js"></script>
+<script src="front/js/mensajes.js"></script>
+<script src="front/js/validacion.js"></script>
+<script src="front/js/camara.js"></script>
+<script src="front/js/api-mock.js"></script>
+<script src="front/js/app.js"></script>
 </body>
 </html>

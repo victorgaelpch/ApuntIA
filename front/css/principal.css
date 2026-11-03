@@ -17,7 +17,7 @@
 }
 
 html { scroll-behavior: smooth; }
-section[id] { scroll-margin-top: 84px; }
+section[id], .pane { scroll-margin-top: 84px; }
 
 /* ---------- Encabezado ---------- */
 .site-header {
@@ -135,7 +135,7 @@ section[id] { scroll-margin-top: 84px; }
 /* Pantallas bajas (móvil en horizontal): el encabezado deja de ser fijo para no tapar contenido. */
 @media (max-height: 500px) and (orientation: landscape) {
   .site-header { position: static; }
-  section[id] { scroll-margin-top: 8px; }
+  section[id], .pane { scroll-margin-top: 8px; }
   .pane__frame img { max-height: 75vh; }
 }
 /* Pantallas muy estrechas (≤ 360 px). */
@@ -150,7 +150,7 @@ section[id] { scroll-margin-top: 84px; }
   .site-header .brand small { display: none; }
   .site-nav { justify-content: space-between; }
   .site-nav a { flex: 1; justify-content: center; padding: 6px 8px; font-size: .88rem; white-space: nowrap; }
-  section[id] { scroll-margin-top: 120px; }
+  section[id], .pane { scroll-margin-top: 128px; }
   .main { padding-top: 16px; }
   .panes { grid-template-columns: 1fr; }
   .pane__frame { min-height: 180px; }

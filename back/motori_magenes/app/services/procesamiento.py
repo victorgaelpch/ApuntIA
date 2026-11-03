@@ -7,8 +7,9 @@ pruebas o un futuro procesamiento por lotes.
 Orden de las etapas (cada una se puede desactivar con OpcionesProcesamiento):
 
     1. copia        -> el original nunca se modifica
-    2. grises       -> conversión de espacio de color (opcional)
-    3. codificación -> PNG sin pérdida (codificar_png)
+    2. perspectiva  -> detecta el pizarrón y lo endereza (BACK-04)
+    3. grises       -> conversión de espacio de color (opcional)
+    4. codificación -> PNG sin pérdida (codificar_png)
 """
 
 import io
@@ -22,12 +23,14 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from app.core.errores import ProcesamientoError
+from app.services.perspectiva import corregir_perspectiva
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
 class OpcionesProcesamiento:
+    perspectiva: bool = True
     grises: bool = False
 
 
@@ -67,6 +70,11 @@ def a_grises(imagen: np.ndarray) -> np.ndarray:
 Etapa = Callable[[np.ndarray, OpcionesProcesamiento, ResultadoProcesamiento], np.ndarray]
 
 
+def _etapa_perspectiva(img, _opciones, res):
+    img, res.perspectiva = corregir_perspectiva(img)
+    return img
+
+
 def _etapa_grises(img, opciones, _res):
     return a_grises(img) if opciones.grises else img
 
@@ -74,6 +82,8 @@ def _etapa_grises(img, opciones, _res):
 def construir_etapas(opciones: OpcionesProcesamiento) -> list[tuple[str, Etapa]]:
     """Devuelve las etapas activas, en el orden en que se aplican."""
     etapas: list[tuple[str, Etapa]] = []
+    if opciones.perspectiva:
+        etapas.append(("perspectiva", _etapa_perspectiva))
     if opciones.grises:
         etapas.append(("grises", _etapa_grises))
     return etapas

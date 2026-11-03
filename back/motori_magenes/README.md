@@ -99,6 +99,31 @@ resultado.perspectiva       # "corregida" | "no_detectada" | "desactivada"
 - **El original no se modifica:** el pipeline trabaja sobre una copia.
 - **Salida:** PNG sin pérdida, devuelto directamente en la respuesta con las cabeceras `X-ApuntIA-*` del contrato.
 
+## Corrección de perspectiva (BACK-04)
+
+`app/services/perspectiva.py`, activada por defecto (`?perspectiva=false` la desactiva):
+
+1. La detección se hace sobre una copia reducida (lado mayor ≤ 800 px); las esquinas se reescalan al original.
+2. Se buscan cuadriláteros con dos métodos: **bordes de Canny** dilatados y **umbral de Otsu**, este último para pizarrones claros sobre pared oscura o fotos con poca luz.
+3. Un candidato solo se acepta si es **fiable**: 4 vértices, convexo, entre el 10 % y el 98 % del área, ángulos interiores de 45° a 135°, proporción de lados ≤ 6 y como mucho una esquina pegada al borde de la foto.
+4. Las esquinas se ordenan (sup-izq, sup-der, inf-der, inf-izq) y se aplica `warpPerspective`. El tamaño de salida es la media de los lados opuestos, así se conservan las proporciones.
+5. Si no hay un candidato fiable, se devuelve la imagen sin cambios con `X-ApuntIA-Perspectiva: no_detectada`. **No es un error.**
+
+Resultados con las muestras de `herramientas/muestras.py` (`python -m herramientas.muestras ../bd/muestras`):
+
+| Muestra | Resultado | Error máx. de esquinas |
+|---------|-----------|------------------------|
+| Inclinada / con sombra / con ruido | `corregida` (bordes) | 4 px en 1600×1200 |
+| Oscura | `corregida` (umbral) | — |
+| Pizarrón pequeño (~16 % de la foto) | `corregida` | 6 px |
+| Frontal (el pizarrón ocupa toda la foto) | `no_detectada`: no hace falta corregir | — |
+| Sin pizarrón / 20 fondos de ruido | `no_detectada`, 0 falsos positivos | — |
+| Foto real `bd/img/image.png` | `no_detectada` | — |
+
+![Antes y después](../../docs/evidencias/back-04-perspectiva.jpg)
+
+**Limitación conocida:** en la foto real `bd/img/image.png` el pizarrón **se sale del encuadre** por arriba y por abajo, y es blanco sobre pared blanca, así que no hay cuatro esquinas visibles. Se devuelve sin rectificar en lugar de deformarla con un cuadrilátero falso. Para estos casos, una mejora futura sería intersecar las rectas del marco (Hough).
+
 ## Manejo de errores (BACK-07)
 
 `app/core/errores.py` registra un manejador para cada tipo de fallo, y todos responden `{"error": {"codigo", "mensaje"}}`:

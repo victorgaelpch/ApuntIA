@@ -54,6 +54,12 @@ describe("FRONT-20 errores y seguridad de interfaz", () => {
         await contexto.close();
     });
 
+    test("500 con referencia: se muestra para correlacionar con el registro del servidor", async () => {
+        const { contexto, pagina } = await lista((r) => r.fulfill({ ...error(500, "ERROR_INTERNO", "x"), headers: { "X-ApuntIA-Error-Id": "ab12cd34ef56" } }));
+        assert.match((await aviso(pagina)).texto, /Referencia: ab12cd34ef56/);
+        await contexto.close();
+    });
+
     test("429 es un aviso (se puede continuar) con el mensaje del servidor", async () => {
         const { contexto, pagina } = await lista((r) => r.fulfill(error(429, "DEMASIADAS_PETICIONES", "Has hecho demasiadas peticiones seguidas. Espera un poco.")));
         const a = await aviso(pagina);

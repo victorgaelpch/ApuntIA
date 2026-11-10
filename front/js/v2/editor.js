@@ -199,7 +199,7 @@
         if (!t || t.tipo !== "analisis") return;
         if (t.estado === "fallido" || t.estado === "cancelado") {
             const texto = t.estado === "cancelado" ? "Cancelaste el análisis. Puedes reanudarlo cuando quieras."
-                : NS.v2.textoDeError({ codigo: t.error && t.error.codigo, mensaje: t.error && t.error.mensaje, status: 400 });
+                : NS.v2.textoErrorTrabajo(t.error, "El análisis falló.");
             avisar(aviso(), "error", texto, [{ texto: "Reintentar el análisis", alHacer: async () => {
                 try {
                     const r = await pedir(`/api/v2/trabajos/${t.id}/reintentar`, { method: "POST" });

@@ -153,6 +153,8 @@ class GestorTrabajos:
                         (tid, usuario_id, apunte_id, tipo, json.dumps(parametros or {}), ahora(), ahora()))
         self.iniciar()
         self._despertar.set()
+        # La línea lleva el id de la petición que lo creó: interfaz → API → trabajo (FULL-21).
+        logger.info("trabajo=%s tipo=%s apunte=%s encolado", tid, tipo, apunte_id or "-")
         return self.obtener(usuario_id, tid)
 
     def obtener(self, usuario_id: str, trabajo_id: str) -> dict:
@@ -243,6 +245,9 @@ class GestorTrabajos:
         fila = self.bd.uno("SELECT tipo, apunte_id FROM trabajos WHERE id = ?", (tid,))
         resumen = resultado or {}
         inicio = self._inicio.pop(tid, None)
+        duracion_s = (time.monotonic() - inicio) if inicio else 0
+        if duracion_s > settings.alerta_trabajo_s:
+            logger.warning("ALERTA trabajo=%s tardó %.0f s (límite %s s)", tid, duracion_s, settings.alerta_trabajo_s)
         logger.info("trabajo=%s tipo=%s apunte=%s version=%s exportacion=%s estado=%s codigo=%s error_id=%s ms=%s",
                     tid, fila["tipo"] if fila else "?", fila["apunte_id"] if fila else "?", resumen.get("version", "-"),
                     resumen.get("exportacion_id", "-"), estado, codigo or "-", error_id or "-",

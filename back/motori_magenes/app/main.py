@@ -8,11 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core import contexto
 from app.core.config import settings
+from app.core.diagnostico import IdPeticion, configurar_logs
 from app.core.endurecimiento import CabecerasSeguridad, LimiteCuerpo
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
-from app.routers import frontend, general, imagenes, v2_apuntes, v2_cuentas, v2_exportaciones, v2_formulas, v2_investigacion, v2_trabajos
+from app.routers import frontend, general, v2_diagnostico, imagenes, v2_apuntes, v2_cuentas, v2_exportaciones, v2_formulas, v2_investigacion, v2_trabajos
 
 logging.basicConfig(level=logging.INFO)
+configurar_logs()  # id de petición y datos sensibles enmascarados en cada línea (FULL-21)
 
 CABECERAS_EXPUESTAS = [
     "Content-Disposition",
@@ -22,6 +24,7 @@ CABECERAS_EXPUESTAS = [
     "X-ApuntIA-Tiempo-Ms",
     "X-ApuntIA-Error-Id",
     "X-ApuntIA-Sha256",
+    "X-ApuntIA-Peticion-Id",
 ]
 
 
@@ -45,6 +48,7 @@ def create_app() -> FastAPI:
     # Debe registrarse ANTES que CORS para quedar dentro de él (FULL-08, defecto D1).
     app.add_middleware(CapturarErroresInesperados)
     app.add_middleware(CabecerasSeguridad)  # BACK-24: también en errores y 413
+    app.add_middleware(IdPeticion)  # FULL-21: id de petición en la respuesta y en los logs
 
     # CORS (FULL-04): el frontend se sirve desde otro origen (file://, :5500, la IP
     # del PC...). Hay que exponer las cabeceras del contrato para que el navegador
@@ -66,6 +70,7 @@ def create_app() -> FastAPI:
     app.include_router(v2_formulas.router)
     app.include_router(v2_investigacion.router)
     app.include_router(v2_exportaciones.router)
+    app.include_router(v2_diagnostico.router)
     frontend.registrar(app)
     return app
 

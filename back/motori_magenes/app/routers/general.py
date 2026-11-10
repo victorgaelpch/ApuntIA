@@ -30,4 +30,14 @@ def salud():
         "max_paginas": settings.max_paginas,
         "investigacion": {"proveedor": investigacion.proveedor().nombre,
                           "disponible": investigacion.proveedor().disponible()},
+        "base_datos": {"disponible": _base_datos_disponible()},
     }
+
+
+def _base_datos_disponible() -> bool:
+    from app.core import contexto
+    try:
+        contexto.obtener().bd.uno("SELECT 1")
+        return True
+    except Exception:  # noqa: BLE001
+        return False

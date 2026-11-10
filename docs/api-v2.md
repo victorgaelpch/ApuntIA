@@ -227,9 +227,19 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 
 ## 8. Diagnóstico (FULL-21)
 
-- `GET /salud`: contrato v1 + `ocr: {disponible, motor, idiomas}` y `base_datos: {disponible}`.
-- `GET /api/v2/listo`: `200` si las dependencias obligatorias funcionan; `503` con la lista de las que fallan.
-- Cada respuesta lleva `X-ApuntIA-Peticion-Id`, que aparece también en el log. Los errores de trabajos guardan un `error_id` sin datos privados.
+- `GET /salud` (viva): contrato v1 + `ocr: {disponible, motor, idiomas}`, `max_paginas`,
+  `investigacion: {proveedor, disponible}` y `base_datos: {disponible}`. Siempre 200 si el proceso responde.
+- `GET /api/v2/listo` (lista): `200 {listo: true, dependencias}` si funcionan todas las obligatorias
+  (base de datos con todas las migraciones, almacenamiento escribible con espacio ≥ `MINIMO_DISCO_MB`,
+  despachador de trabajos y OCR si `OCR_MOTOR` no es `ninguno`); si no, `503` con `mensaje` y el detalle
+  de cada una. La investigación se informa pero es opcional.
+- `GET /api/v2/diagnostico`: métricas (peticiones por ruta con p50/p95 y errores, trabajos por tipo con
+  tasa de éxito, duración y códigos de error, pendientes, tamaño de los datos, memoria, límites). **Solo
+  desde el propio equipo** (127.0.0.1/::1); desde fuera responde 404.
+- Cada respuesta lleva `X-ApuntIA-Peticion-Id` (se respeta el que envía el cliente si es válido), que
+  aparece en cada línea del log de esa petición y en la de los trabajos que crea. Los 5xx llevan
+  además `X-ApuntIA-Error-Id`, y los trabajos fallidos, `error.referencia`; la interfaz los muestra como
+  «Referencia: …». Ninguno contiene datos de la persona.
 
 ## 9. Decisiones
 

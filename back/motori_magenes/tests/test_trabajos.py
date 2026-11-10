@@ -169,6 +169,6 @@ def test_log_de_correlacion_sin_datos_privados(entorno, caplog):
     gestor.registrar("eco", lambda t: Resultado("completado", {"version": 7, "texto": "secreto del apunte"}))
     t = gestor.encolar(uid, "eco", parametros={"conceptos": ["privado"]})
     esperar(gestor, uid, t["id"])
-    linea = next(r.getMessage() for r in caplog.records if f"trabajo={t['id']}" in r.getMessage())
+    linea = next(r.getMessage() for r in caplog.records if f"trabajo={t['id']}" in r.getMessage() and "estado=" in r.getMessage())
     assert "tipo=eco" in linea and "version=7" in linea and "estado=completado" in linea and "ms=" in linea
     assert "secreto" not in caplog.text and "privado" not in caplog.text

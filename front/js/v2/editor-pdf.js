@@ -134,7 +134,7 @@
             } else if (t.estado === "cancelado") {
                 avisar(avisoEl, "info", "Generación cancelada.", [{ texto: "Generar de nuevo", alHacer: generar }]);
             } else {
-                const mensaje = (t.error && t.error.mensaje) || "No se pudo generar el PDF.";
+                const mensaje = NS.v2.textoErrorTrabajo(t.error, "No se pudo generar el PDF.");
                 avisar(avisoEl, "error", mensaje, [{ texto: "Reintentar", alHacer: generar }]);
             }
         } catch (err) {

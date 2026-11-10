@@ -162,7 +162,7 @@
         const r = t.resultado || {};
         if (t.estado === "cancelado") { avisar(avisoEl, "info", "Búsqueda cancelada. Tu apunte no cambió."); return; }
         if (t.estado === "fallido") {
-            avisar(avisoEl, "error", `${(t.error && t.error.mensaje) || "La búsqueda falló."} Puedes seguir sin información complementaria.`,
+            avisar(avisoEl, "error", `${NS.v2.textoErrorTrabajo(t.error, "La búsqueda falló.")} Puedes seguir sin información complementaria.`,
                    [{ texto: "Ir al PDF", alHacer: () => ed.mostrarPestana("pdf") }]);
             return;
         }

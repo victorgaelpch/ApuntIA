@@ -87,6 +87,8 @@
         try { error = (await r.json()).error || {}; } catch (_) { /* cuerpo no JSON */ }
         const err = new ErrorV2({ codigo: error.codigo || (r.status >= 500 ? "ERROR_INTERNO" : "ERROR_CLIENTE"),
                                   mensaje: error.mensaje || "", status: r.status, detalles: error.detalles || null });
+        // Referencia no sensible para buscar el fallo en el registro del servidor (FULL-21).
+        err.referencia = r.headers.get("X-ApuntIA-Error-Id") || r.headers.get("X-ApuntIA-Peticion-Id") || null;
         if (r.status === 401 && !sinAvisoSesion) {
             olvidarSesion();
             const evento = new CustomEvent("apuntia:sesion-expirada", { cancelable: true, detail: err });
@@ -158,9 +160,17 @@
     function textoDeError(error) {
         if (error.mensaje && error.status >= 400 && error.status < 500) return error.mensaje;
         const m = NS.mensajes && NS.mensajes.CATALOGO && NS.mensajes.CATALOGO[error.codigo];
-        if (m) return typeof m.texto === "function" ? m.texto(error) : m.texto;
-        if (error.mensaje && error.status < 500) return error.mensaje;
-        return "Algo salió mal. Vuelve a intentarlo.";
+        let texto = m ? (typeof m.texto === "function" ? m.texto(error) : m.texto)
+            : (error.mensaje && error.status < 500 ? error.mensaje : "Algo salió mal. Vuelve a intentarlo.");
+        if (error.status >= 500 && error.referencia) texto += ` (Referencia: ${error.referencia})`;
+        return texto;
+    }
+
+    // Mensaje del error de un trabajo (análisis, investigación, PDF), con su referencia si es interno.
+    function textoErrorTrabajo(error, defecto = "No se pudo completar.") {
+        if (!error) return defecto;
+        const base = error.mensaje || textoDeError({ codigo: error.codigo, status: 500 });
+        return error.referencia ? `${base} (Referencia: ${error.referencia})` : base;
     }
 
     // tipo: info | exito | aviso | error. Las acciones son {texto, alHacer}.
@@ -247,6 +257,6 @@
     }
 
     NS.v2 = { h, $, vaciar, pedir, ErrorV2, sesion, cargarSesion, fijarSesion, requerirSesion, cerrarSesion,
-              irACuenta, cabecera, avisar, avisarError, textoDeError, confirmar, esperarTrabajo, chipEstado,
+              irACuenta, cabecera, avisar, avisarError, textoDeError, textoErrorTrabajo, confirmar, esperarTrabajo, chipEstado,
               textoTrabajo, fecha, ESTADOS, ETAPAS, TERMINALES };
 })(window);

@@ -71,6 +71,11 @@ class Settings:
     # de recuperación de contraseña. Recomendado en producción.
     url_publica: str = os.getenv("URL_PUBLICA", "").strip()
 
+    # Diagnóstico (FULL-21): alertas en el log y espacio mínimo para declararse «listo».
+    alerta_peticion_ms: int = int(os.getenv("ALERTA_PETICION_MS", "10000"))
+    alerta_trabajo_s: int = int(os.getenv("ALERTA_TRABAJO_S", "120"))
+    minimo_disco_mb: int = int(os.getenv("MINIMO_DISCO_MB", "200"))
+
     # Endurecimiento (BACK-24): cuerpo JSON máximo y espacio por usuario.
     max_json_kb: int = int(os.getenv("MAX_JSON_KB", "4096"))
     cuota_mb_usuario: int = int(os.getenv("CUOTA_MB_USUARIO", "500"))

@@ -177,7 +177,12 @@
                 acciones.map((a) => h("button", { type: "button", class: "btn sm", onclick: a.alHacer, text: a.texto }))));
         }
     }
-    const avisarError = (region, error, acciones = []) => avisar(region, "error", textoDeError(error), acciones);
+    const avisarError = (region, error, acciones = []) => {
+        const tipo = NS.mensajes && NS.mensajes.tipoDe ? NS.mensajes.tipoDe(error.codigo) : "error";
+        // A la consola solo los fallos del servidor o de la red (sin datos privados).
+        if (tipo === "error" && (!error.status || error.status >= 500)) console.error("[ApuntIA]", error.codigo, error.status || "");
+        avisar(region, tipo, textoDeError(error), acciones);
+    };
 
     function confirmar({ titulo, texto, aceptar = "Aceptar", peligro = false, escribir = null }) {
         return new Promise((resolver) => {

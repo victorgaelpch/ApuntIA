@@ -19,6 +19,9 @@ from starlette.staticfiles import StaticFiles
 from app.core.config import settings
 
 EXTENSIONES = {".html", ".css", ".js", ".png", ".jpg", ".jpeg", ".svg", ".webp", ".ico"}
+# La maqueta de diseño (FRONT-01) usa estilos en línea que la CSP de la interfaz no permite
+# y datos de ejemplo: no forma parte de la aplicación servida.
+EXCLUIDOS = {"maqueta.html", "js/index.js", "css/index.css.map"}
 
 
 class EstaticosInterfaz(StaticFiles):
@@ -26,7 +29,8 @@ class EstaticosInterfaz(StaticFiles):
 
     async def get_response(self, path, scope):
         partes = Path(path).parts
-        if (partes and partes[0] in ("tests", "node_modules")) or Path(path).suffix.lower() not in EXTENSIONES:
+        if ((partes and partes[0] in ("tests", "node_modules")) or Path(path).suffix.lower() not in EXTENSIONES
+                or Path(path).as_posix() in EXCLUIDOS):
             from starlette.exceptions import HTTPException
             raise HTTPException(status_code=404)
         respuesta = await super().get_response(path, scope)

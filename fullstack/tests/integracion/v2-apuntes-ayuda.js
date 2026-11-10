@@ -17,7 +17,8 @@ async function fotoApunte(pagina, { lineas = LINEAS, ancho = 1600, alto = 1000 }
     return Buffer.from(b64, "base64");
 }
 
-async function esperarTrabajo(contexto, url, id, ms = 60000) {
+// Margen amplio: el OCR real tarda más en equipos lentos o en CI.
+async function esperarTrabajo(contexto, url, id, ms = 180000) {
     const fin = Date.now() + ms;
     for (;;) {
         const t = (await (await contexto.request.get(`${url}/api/v2/trabajos/${id}`)).json()).trabajo;

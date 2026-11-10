@@ -189,3 +189,24 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
   navegadores» y «Cerrar sesión aquí».
 - Borrar la cuenta: contraseña + escribir «BORRAR» en una confirmación; borra apuntes, fotos,
   versiones y PDF y vuelve a la página de cuenta con el aviso.
+
+## Mensajes y seguridad de la interfaz (FRONT-20)
+
+- **Un solo catálogo** (`front/js/mensajes.js`) para la página de inicio y las páginas con cuenta,
+  con todos los códigos de la API v1 y v2 agrupados por etapa (cuenta, apuntes, trabajos, fórmulas,
+  investigación, PDF, red). Cada código tiene texto, acciones y tipo: `error`, `aviso` (se puede
+  continuar, p. ej. 429 o investigación no disponible) o `info`. Una prueba falla si el backend
+  emite un código sin mensaje.
+- Prioridad: el mensaje 4xx de la API v2 (preciso y en español); para 5xx, errores de red y códigos
+  sin mensaje, el catálogo. Nunca se muestran trazas, rutas ni tokens; a la consola solo va el código
+  de los fallos del servidor o de la red.
+- Avisos accesibles: `role="alert"` para errores y `role="status"` para el resto, con botones de
+  «Reintentar» o «Cancelar» cuando tiene sentido. Las peticiones no se reintentan solas en bucle.
+- 401: en páginas privadas se vuelve a iniciar sesión y después a la misma página; en el editor con
+  cambios sin guardar no se sale (los cambios siguen en la pestaña).
+- Contenido no confiable (OCR, títulos, citas, LaTeX, nombres de archivo, respuestas del servidor):
+  siempre `textContent`/`value`. Pruebas automáticas: ningún `innerHTML`/`insertAdjacentHTML`/
+  `document.write`/`eval` en el código de la interfaz, páginas sin scripts ni estilos en línea (CSP),
+  enlaces externos con `rel="noopener"` y nada secreto en `localStorage`/`sessionStorage`.
+- La maqueta de diseño (`front/maqueta.html`) ya no se sirve desde el backend: usa estilos en línea
+  y datos de ejemplo.

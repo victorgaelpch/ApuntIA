@@ -68,7 +68,7 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
   "esquema": "apuntia.documento/1",
   "titulo": "Derivadas",
   "paginas": [
-    {"id": "p1", "orden": 1, "tipo_fuente": "cuaderno", "archivo_original": "a1…", "archivo_procesado": "a2…",
+    {"id": "p1", "orden": 1, "tipo_fuente": "cuaderno", "archivo_original": "a1", "archivo_procesado": "a2",
      "ancho": 1600, "alto": 1200, "advertencias": ["IMAGEN_BORROSA"]}
   ],
   "bloques": [
@@ -78,10 +78,10 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
     {"id": "b2", "pagina": "p1", "orden": 2, "tipo": "formula", "bbox": [120, 300, 800, 380],
      "origen": "ocr", "estado": "incierto", "confianza": 0.61,
      "texto": "f'(x) = lim (f(x+h) - f(x)) / h", "latex": "f'(x) = \\lim \\frac{f(x+h) - f(x)}{h}",
-     "latex_valido": true, "recorte": "a3…", "editado": false},
+     "latex_valido": true, "recorte": "a3", "editado": false},
     {"id": "b3", "pagina": "p1", "orden": 3, "tipo": "manuscrito", "bbox": [120, 420, 900, 520],
      "origen": "ocr", "estado": "no_reconocido", "confianza": 0.22,
-     "texto": "", "recorte": "a4…", "editado": false},
+     "texto": "", "recorte": "a4", "editado": false},
     {"id": "b4", "pagina": "p1", "orden": 4, "tipo": "tabla", "origen": "usuario", "estado": "reconocido",
      "tabla": {"encabezados": ["Función", "Derivada"], "filas": [["x^2", "2x"]]}, "editado": true}
   ],
@@ -103,6 +103,11 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
 | `ampliaciones[].estado` | `propuesta`, `aceptada`, `rechazada` | Solo las `aceptadas` van al PDF, en una sección aparte y citadas |
 
 El esquema se rechaza completo si no valida: no se guarda una versión a medias.
+
+**Reglas de procedencia al guardar una edición** (`app/services/documento.py`, `fusionar`):
+- En un bloque de OCR, el servidor **conserva** `pagina`, `bbox`, `origen`, `confianza`, `texto_original`, `latex_original` y `recorte` de la versión anterior, aunque el cliente envíe otros valores. `editado` se calcula comparando con el original.
+- Un bloque nuevo debe tener `origen: "usuario"`: no se pueden inventar bloques «de la foto».
+- De una ampliación solo se puede cambiar `estado`; su texto y su fuente vienen de la investigación. Quitarla del cuerpo no la borra.
 
 ## 4. Autenticación y cuenta (BACK-23, BACK-24)
 

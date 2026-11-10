@@ -67,8 +67,11 @@ def es_formula(linea: str) -> bool:
     if len(palabras) >= 2 or any(len(p) >= 4 for p in palabras):
         return False
     simbolos = sum(c in _SIMBOLOS_MAT for c in texto)
-    return (simbolos >= 2 and "=" in texto or simbolos >= 3
-            or any(s in texto for s in ("√", "∫", "∑", "Σ", "sqrt(")))
+    # Igualdad corta entre variables («F = ma», «v = d/t»): sin palabras de más de 2 letras.
+    igualdad_corta = ("=" in texto and len(texto.replace(" ", "")) <= 25
+                      and all(len(p) <= 2 for p in palabras) and re.search(r"[A-Za-z0-9]\s*=\s*[A-Za-z0-9(]", texto))
+    return bool(simbolos >= 2 and "=" in texto or simbolos >= 3 or igualdad_corta
+                or any(s in texto for s in ("√", "∫", "∑", "Σ", "sqrt(")))
 
 
 # ------------------------------------------------------------------ normalización del OCR
@@ -328,6 +331,9 @@ def separar_formulas(bloques):
         if not b.texto or b.tipo in ("imagen", "manuscrito") and not b.texto:
             salida.append(b)
             continue
+        if b.tipo == "formula" and getattr(b, "latex", None) is not None:
+            salida.append(b)  # ya la leyó el lector de fórmulas (BACK-28): no se vuelve a convertir
+            continue
         lineas = b.texto.split("\n")
         marcas = [es_formula(l) for l in lineas]
         if not any(marcas):
@@ -353,12 +359,14 @@ def separar_formulas(bloques):
                     segura = valido and min(b.confianza, minima) >= 0.90
                     conf = b.confianza if segura else min(b.confianza, 0.79)
                     nuevo = BloqueOCR(texto, conf, caja, grupo,
-                                      b.altura_linea, "formula", b.dudosas, recortar=True, minima=minima)
+                                      b.altura_linea, "formula", b.dudosas, recortar=True, minima=minima,
+                                      procedencia=dict(b.procedencia), revision=b.revision)
                     nuevo.latex, nuevo.latex_valido = latex, valido
                 else:
                     nuevo = BloqueOCR(texto, b.confianza, caja, grupo, b.altura_linea,
                                       b.tipo if b.tipo != "formula" else "texto", b.dudosas, b.recortar,
-                                      minima=b.minima)
+                                      minima=b.minima, procedencia=dict(b.procedencia), revision=b.revision,
+                                      alternativas=b.alternativas if len(lineas) == len(grupo) else [])
                 salida.append(nuevo)
             if linea is not None:
                 grupo, tipo_grupo, inicio = [linea], es_f, i

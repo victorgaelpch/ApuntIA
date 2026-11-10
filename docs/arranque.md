@@ -54,6 +54,7 @@ repositorio: no hace falta Java».
 | `APUNTIA_PUERTO` | 8000 | Interfaz y API |
 | `DATA_DIR` | `datos` (en `back/motori_magenes`) | Base de datos y archivos privados |
 | `OCR_MOTOR`, `OCR_IDIOMAS` | `tesseract`, `spa+eng` | Reconocimiento de texto |
+| `RECONOCIMIENTO_MODO` | `adaptativo` | `clasico` vuelve al flujo anterior a BACK-28 ([PROCESAMIENTO.md](../back/motori_magenes/PROCESAMIENTO.md#reconocimiento-adaptativo-back-28)) |
 | `COOKIE_SEGURA` | `0` | `1` solo detrás de HTTPS |
 | `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
 

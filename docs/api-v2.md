@@ -102,13 +102,18 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
 | `bloques[].estado` | `reconocido` (confianza ≥ 0.80), `incierto` (0.50–0.80), `no_reconocido` (< 0.50) | Un `no_reconocido` **conserva el recorte** de la imagen y no inventa texto |
 | `bloques[].bbox` | `[x0, y0, x1, y1]` en píxeles de la página procesada | Permite resaltar la región en la foto |
 | `bloques[].editado` | bool | Si es `true`, el PDF usa `texto`/`latex` del usuario; `texto_original` se conserva |
+| `bloques[].revision` | `null`, `lecturas_distintas`, `sin_confirmar`, `formula_sin_confirmar`, `calidad_insuficiente` | Por qué un bloque pide revisión aunque su confianza sea alta (BACK-28). Si no es `null`, el bloque es `incierto` |
+| `bloques[].alternativas` | hasta 3 `{texto, latex?, confianza, variante}` | Otras lecturas **reales** del motor para el mismo fragmento; nunca texto inventado. Usar una es una corrección del usuario |
+| `bloques[].procedencia` | `{motor, version, reconocimiento, variante, psm, lecturas}` o `null` | Motor y versión, versión del reconocimiento (`adaptativo/1`), preprocesado que dio el texto y lecturas comparadas |
+| `paginas[].calidad` | `{nivel, metricas}` o `null` | `nivel`: `buena`, `aceptable` o `insuficiente`; `metricas`: solo números (resolución, nitidez, brillo, contraste, altura de letra, inclinación). Los códigos de aviso van en `advertencias`: `BAJA_RESOLUCION`, `IMAGEN_BORROSA`, `IMAGEN_OSCURA`, `BAJO_CONTRASTE`, `TEXTO_PEQUENO`, `ILUMINACION_DESIGUAL`, `IMAGEN_GIRADA`, `REPETIR_FOTO` |
 | `ampliaciones[].estado` | `propuesta`, `aceptada`, `rechazada` | Solo las `aceptadas` van al PDF, en una sección aparte y citadas |
 | `ampliaciones[].discrepancia` | texto o `null` | La fuente parece contradecir al apunte: se pide revisión, nunca se corrige el apunte |
 
 El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 
 **Reglas de procedencia al guardar una edición** (`app/services/documento.py`, `fusionar`):
-- En un bloque de OCR, el servidor **conserva** `pagina`, `bbox`, `origen`, `confianza`, `texto_original`, `latex_original` y `recorte` de la versión anterior, aunque el cliente envíe otros valores. `editado` se calcula comparando con el original.
+- En un bloque de OCR, el servidor **conserva** `pagina`, `bbox`, `origen`, `confianza`, `texto_original`, `latex_original`, `recorte`, `palabras_dudosas`, `alternativas`, `procedencia` y `revision` de la versión anterior, aunque el cliente envíe otros valores. `editado` se calcula comparando con el original.
+- Los campos de BACK-28 (`revision`, `alternativas`, `procedencia`, `calidad`) son **opcionales**: los apuntes anteriores no los tienen y siguen siendo válidos con el mismo esquema `apuntia.documento/1`.
 - Un bloque nuevo debe tener `origen: "usuario"`: no se pueden inventar bloques «de la foto».
 - De una ampliación solo se puede cambiar `estado`; su texto y su fuente vienen de la investigación. Quitarla del cuerpo no la borra.
 

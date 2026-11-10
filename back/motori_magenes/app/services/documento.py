@@ -29,6 +29,25 @@ class Base(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+NivelCalidad = Literal["buena", "aceptable", "insuficiente"]
+
+
+class MetricasCalidad(Base):
+    """Solo números (BACK-28): nunca contenido de la foto."""
+    lado_menor: int | None = Field(default=None, ge=0, le=100000)
+    nitidez: float | None = Field(default=None, ge=0, le=1e7)
+    brillo: float | None = Field(default=None, ge=0, le=255)
+    contraste: float | None = Field(default=None, ge=0, le=255)
+    altura_texto: float | None = Field(default=None, ge=0, le=10000)
+    inclinacion: float | None = Field(default=None, ge=-90, le=90)
+    iluminacion_desigual: bool | None = None
+
+
+class CalidadPagina(Base):
+    nivel: NivelCalidad
+    metricas: MetricasCalidad = Field(default_factory=MetricasCalidad)
+
+
 class Pagina(Base):
     id: str = Field(pattern=ID)
     orden: int = Field(ge=1, le=500)
@@ -39,6 +58,7 @@ class Pagina(Base):
     alto: int = Field(ge=0, le=20000)
     advertencias: list[str] = Field(default_factory=list, max_length=20)
     error: str | None = Field(default=None, max_length=300)
+    calidad: CalidadPagina | None = None   # diagnóstico de la foto (BACK-28); None en apuntes anteriores
 
 
 class Tabla(Base):
@@ -53,6 +73,27 @@ class Tabla(Base):
             if any(len(celda) > 2000 for celda in fila):
                 raise ValueError("una celda supera los 2000 caracteres")
         return self
+
+
+class Alternativa(Base):
+    """Otra lectura REAL del motor para el mismo fragmento (BACK-28). Nunca texto inventado."""
+    texto: str = Field(max_length=20000)
+    latex: str | None = Field(default=None, max_length=2000)
+    confianza: float | None = Field(default=None, ge=0, le=1)
+    variante: str = Field(default="", max_length=60)
+
+
+class Procedencia(Base):
+    """De dónde sale el resultado de un bloque de OCR (BACK-28)."""
+    motor: str = Field(max_length=40)
+    version: str = Field(default="", max_length=40)
+    reconocimiento: str = Field(default="", max_length=40)   # p. ej. «adaptativo/1»
+    variante: str = Field(default="", max_length=60)         # preprocesado que dio el texto elegido
+    psm: int | None = Field(default=None, ge=0, le=13)
+    lecturas: int = Field(default=1, ge=0, le=100)           # lecturas comparadas
+
+
+MotivoRevision = Literal["lecturas_distintas", "sin_confirmar", "formula_sin_confirmar", "calidad_insuficiente"]
 
 
 class Bloque(Base):
@@ -74,6 +115,10 @@ class Bloque(Base):
     palabras_dudosas: list[str] = Field(default_factory=list, max_length=200)
     conservar_imagen: bool = False
     editado: bool = False
+    # BACK-28 (opcionales: los apuntes anteriores no los tienen)
+    alternativas: list[Alternativa] = Field(default_factory=list, max_length=3)
+    procedencia: Procedencia | None = None
+    revision: MotivoRevision | None = None   # por qué se pide revisar aunque la confianza sea alta
 
     @field_validator("bbox")
     @classmethod
@@ -156,7 +201,7 @@ def validar(datos: dict) -> Documento:
 
 
 INMUTABLES_OCR = ("pagina", "bbox", "origen", "confianza", "texto_original", "latex_original", "recorte",
-                  "palabras_dudosas")
+                  "palabras_dudosas", "alternativas", "procedencia", "revision")
 
 
 def fusionar(anterior: Documento, nuevo: Documento) -> Documento:

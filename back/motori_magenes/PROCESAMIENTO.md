@@ -293,3 +293,26 @@ El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `test
 | `formulas_2d`: dibujadas en 2D (superíndice, barra de fracción, radical) | **0/4** | **0** | Las 4 se conservan como recorte |
 
 **Limitación importante:** Tesseract es un OCR de texto, no matemático. Las fórmulas en 2D (fracciones con barra, radicales, superíndices pequeños) **no se convierten automáticamente**: se conservan como imagen con su ubicación y el usuario escribe el LaTeX con vista previa. Los motores de OCR matemático (pix2tex/LaTeX-OCR, ~100 MB con PyTorch; Mathpix, de pago y externo) no se adoptaron por tamaño y privacidad; se podrían añadir como un paso más para los recortes `incierto`.
+
+## Apunte estructurado (BACK-19)
+
+`app/services/estructura.py` convierte el documento editado en un apunte organizado
+(portada, índice por títulos, secciones, resumen, conceptos clave, glosario, ejemplos,
+fórmulas, tablas y esquemas). Es una función pura que se recalcula para cualquier
+versión, así que regenerar nunca pierde contenido.
+
+Regla de fidelidad, verificada en `tests/test_estructura.py`:
+
+| Parte | De dónde sale | Lo que NO hace |
+|-------|---------------|----------------|
+| Secciones | Bloques de tipo `titulo` | No inventa títulos (sin títulos → una sección «Contenido») |
+| Resumen | Hasta 3 frases **del apunte**, elegidas por frecuencia de términos | No redacta frases nuevas |
+| Conceptos clave | Palabras que se repiten (≥ 2 veces, sin palabras vacías) | — |
+| Glosario | Líneas «Concepto: definición» / «X es …» escritas en el apunte | No define nada que el apunte no defina |
+| Tabla comparativa | Tablas del apunte, o el glosario si define ≥ 2 conceptos | No rellena celdas |
+| Fórmulas | LaTeX solo si es válido; si no, el recorte | No presenta LaTeX inválido como bueno |
+| Manuscrito ilegible | Se cuenta en `pendientes` y va como imagen, con aviso | No se transcribe |
+| Complementos | Solo ampliaciones **aceptadas**, con su fuente | No se mezclan con el resumen |
+
+Limitación conocida: el resumen es extractivo (no reescribe); en apuntes muy cortos
+coincide con el texto completo.

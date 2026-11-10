@@ -142,6 +142,7 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | `GET` | `/api/v2/apuntes/{id}/versiones/{n}` | Documento de una versión |
 | `POST` | `/api/v2/apuntes/{id}/versiones/{n}/restaurar` | Crea una versión nueva igual a la `n` (no borra nada) |
 | `DELETE` | `/api/v2/apuntes/{id}` | Cancela sus trabajos en curso y borra el apunte, sus versiones, trabajos y archivos |
+| `GET` | `/api/v2/apuntes/{id}/estructura` | Apunte estructurado (BACK-19) de la versión actual o de `?version=n`: `{version, estructura: {titulo, secciones, resumen, conceptos, glosario, ejemplos, formulas, tablas, esquemas, pendientes, complementos, avisos}}`. Todo sale del documento: el resumen son frases **extraídas**, el glosario solo recoge definiciones escritas en el apunte, y lo investigado solo aparece en `complementos` (aceptado y con fuente) |
 | `GET` | `/api/v2/apuntes/{id}/archivos/{archivo_id}` | Imagen original, procesada o recorte. Solo el propietario |
 | `POST` | `/api/v2/apuntes/{id}/investigacion` | `{consentimiento: true, conceptos: [...]}` → `202 {trabajo}`. Sin `consentimiento: true` → `400 CONSENTIMIENTO_REQUERIDO` |
 | `PATCH` | `/api/v2/apuntes/{id}/ampliaciones/{aid}` | `{estado: "aceptada"|"rechazada"}` (crea una versión) |

@@ -13,6 +13,7 @@ from app.services.cuentas import Sesion
 from app.core.errores import ApiError
 from app.services import analisis  # noqa: F401 — registra el manejador de trabajos «analisis»
 from app.services.documento import fusionar, validar
+from app.services.estructura import estructurar
 from app.services.entrada import validar_paginas
 
 router = APIRouter(prefix="/api/v2", tags=["v2: apuntes"])
@@ -136,3 +137,12 @@ def borrar_apunte(apunte_id: str, sesion: Sesion = Depends(sesion_actual)):
                                             "('pendiente', 'procesando')", (apunte_id,)):
         trabajos.cancelar(sesion.usuario.id, fila["id"])  # no deja trabajos sobre un apunte borrado
     repo.borrar(sesion.usuario.id, apunte_id)
+
+
+@router.get("/apuntes/{apunte_id}/estructura")
+def ver_estructura(apunte_id: str, version: int | None = Query(None, ge=1), sesion: Sesion = Depends(sesion_actual)):
+    """Apunte estructurado (secciones, resumen extraído, conceptos, glosario…) de una versión (BACK-19)."""
+    repo = repositorio()
+    doc = repo.documento(sesion.usuario.id, apunte_id, version)
+    numero = version or repo.obtener(sesion.usuario.id, apunte_id, con_documento=False)["version"]
+    return {"version": numero, "estructura": estructurar(doc).a_dict()}

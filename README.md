@@ -1,92 +1,178 @@
-# ApuntIA: apuntes del pizarrón, legibles
+# ApuntIA: del pizarrón o el cuaderno a un apunte en PDF
 
-ApuntIA convierte la foto de un pizarrón en una imagen **enderezada, sin ruido y más nítida**.
-Se toma la foto (o se elige de la galería), se procesa con visión por computadora y se compara con la original antes de descargarla.
-
-| Parte | Tecnología | Carpeta |
-|-------|------------|---------|
-| Frontend | HTML, CSS y JavaScript sin dependencias | `index.html`, `front/` |
-| Backend | Python, FastAPI y OpenCV | `back/motori_magenes/` |
+ApuntIA convierte fotos de **pizarrones y cuadernos** en apuntes digitales: reconoce el texto y las
+fórmulas, te deja corregirlo junto a la foto, puede añadir explicaciones de fuentes citadas si lo
+permites y genera un **PDF** con portada, índice, tablas y fórmulas. Tus apuntes quedan guardados en
+tu cuenta con todas sus versiones. Sin cuenta, también endereza y aclara una sola foto (PNG).
 
 ```mermaid
 flowchart LR
-    U["📷 Foto del pizarrón"] --> F["Frontend<br/>index.html"]
-    F -- "POST /analisis (multipart «file»)" --> B["Backend FastAPI :8000"]
-    B --> P["OpenCV: perspectiva → ruido → contraste y nitidez"]
-    P --> B
-    B -- "PNG procesado" --> F
-    F --> R["Comparar · Descargar"]
+    F["📷 Fotos (1–20)<br/>pizarrón o cuaderno"] --> A["Análisis<br/>OpenCV + Tesseract"]
+    A --> E["Editor<br/>texto · fórmulas · tablas"]
+    E --> C["Complementos citados<br/>(opcional, con permiso)"]
+    E --> P["PDF"]
+    C --> P
+    E --> H["Mis apuntes<br/>versiones · historial"]
 ```
+
+## Qué hace y qué no hace (estado comprobado)
+
+| Función | Estado |
+|---------|--------|
+| Mejorar una foto (enderezar, ruido, contraste) → PNG, sin cuenta | ✅ Disponible |
+| Cuentas: registro, sesión, recuperación de contraseña, perfil, borrar la cuenta | ✅ Disponible. La recuperación escribe el enlace en un buzón local: **no hay servidor de correo** |
+| Apuntes de 1–20 fotos de pizarrón o cuaderno, en el orden elegido | ✅ Disponible |
+| Reconocimiento de texto impreso (Tesseract 5, español e inglés) | ✅ CER 0,7 % en el banco de pruebas sintético ([evaluación](docs/evaluacion.md)) |
+| Letra manuscrita | ⚠️ Parcial: lo que no se lee con seguridad se marca y se conserva como imagen; no se inventa texto |
+| Fórmulas a LaTeX | ⚠️ Parcial: las fórmulas en una línea (potencias, raíces, fracciones con `/`) sí; las de dos dimensiones (fracciones apiladas, matrices) se conservan como imagen y se pueden escribir en el editor |
+| Tablas fotografiadas | ⚠️ Parcial: se lee el texto de las celdas, no la estructura; la tabla se arma en el editor con «Convertir en tabla» |
+| Editor: corregir bloques, fórmulas con vista previa, tablas, esquemas, versiones, comparación | ✅ Disponible |
+| Información complementaria de Wikipedia, con fuente y consentimiento | ✅ Disponible y **opcional** (necesita Internet) |
+| PDF del apunte | ✅ Disponible, sin Internet |
+| Mis apuntes: búsqueda, filtros, PDF, borrado | ✅ Disponible |
+| Probado en | Linux con Chromium (pruebas automáticas). Windows, macOS, Firefox, Safari y móviles reales: **pendiente de probar** |
+
+Resultados de cada escenario de uso (pizarrón, manuscrito, fórmulas, tabla, diagrama, varias páginas…),
+criterios de rechazo y limitaciones: [docs/aceptacion.md](docs/aceptacion.md).
+
+## Requisitos
+
+| Modo | Necesitas | Espacio | Internet |
+|------|-----------|---------|----------|
+| **Scripts** (recomendado para desarrollar) | Python 3.10+ · Tesseract 5 con idioma español (sin él, solo «Mejorar una foto») | ~500 MB (entorno de Python) | Solo la primera vez, para instalar dependencias; luego, solo para la investigación opcional |
+| **Docker** | Docker con Compose v2 | ~1 GB (imágenes) | Para construir las imágenes la primera vez |
+| Pruebas automáticas | Node.js 22+ y `npx playwright install chromium` | ~300 MB | Para instalar |
+
+Tesseract: Linux `sudo apt install tesseract-ocr tesseract-ocr-spa` · macOS `brew install tesseract tesseract-lang` ·
+Windows: instalador de [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) marcando el idioma *Spanish*.
 
 ## Inicio rápido
 
-Requisitos: **Python 3.10 o superior** y, solo para las pruebas automáticas, **Node.js 22 o superior**.
+Todos los comandos se ejecutan **desde la carpeta raíz del repositorio** (la que contiene este README).
 
-**1. Backend** (la guía completa para Windows, macOS y Linux está en [`back/motori_magenes/README.md`](back/motori_magenes/README.md)):
+### Opción A: scripts (sin Docker)
 
-```bash
-cd back/motori_magenes
-```
+Linux y macOS:
 
 ```bash
-python -m venv .venv
+./iniciar.sh
 ```
 
-Activa el entorno (Windows: `.\.venv\Scripts\Activate.ps1` · macOS/Linux: `source .venv/bin/activate`) y después:
+Windows (PowerShell o CMD): doble clic en `iniciar.bat`, o:
+
+```bat
+iniciar.bat
+```
+
+El script comprueba Python, Tesseract y el puerto, crea el entorno virtual, instala dependencias
+(solo si cambian), arranca la aplicación, espera a que responda y abre el navegador. Detalles,
+opciones (`--puerto`, `--red` para el móvil…) y códigos de salida en [docs/arranque.md](docs/arranque.md).
+> Los scripts de Windows aún **no se han ejecutado en un equipo con Windows**; los de Linux están
+> probados automáticamente y los de macOS comparten el mismo script, sin prueba en un Mac.
+
+Para pararla: `./detener.sh` (o `detener.bat`).
+
+**Para una demostración** sin tocar tus datos: `./iniciar.sh --demo` crea una cuenta
+`demo@example.com` con apuntes de ejemplo sintéticos en una carpeta aparte; guía de ~10 minutos en
+[docs/entrega.md](docs/entrega.md#5-guía-de-demostración--10-minutos).
+
+### Opción B: Docker
 
 ```bash
-pip install -r requirements.txt
+docker compose -f fullstack/compose.yaml up --build -d
 ```
 
-```bash
-uvicorn main:app --reload
-```
+Para pararla (los datos se conservan): `docker compose -f fullstack/compose.yaml down`. Más en [docs/docker.md](docs/docker.md).
 
-**2. Frontend:** en otra terminal, desde la raíz del repositorio:
-
-```bash
-python -m http.server 5500
-```
-
-Abre http://localhost:5500/index.html, elige una foto y pulsa **«Procesar imagen»**. También funciona abriendo `index.html` con doble clic.
-Para usarlo desde el celular en la misma red, ver [`docs/ejecutar.md`](docs/ejecutar.md).
+### Después de arrancar
 
 | Dirección | Qué es |
 |-----------|--------|
-| http://localhost:5500/index.html | La aplicación |
+| http://localhost:8000/inicio | Mejorar una foto (sin cuenta) y entrada a todo |
+| http://localhost:8000/front/cuenta.html | Crear cuenta o entrar |
+| http://localhost:8000/front/nuevo.html | Crear un apunte con tus fotos |
+| http://localhost:8000/front/apuntes.html | Mis apuntes |
+| http://localhost:8000/front/ayuda.html | Ayuda y estado real de cada función |
 | http://localhost:8000/docs | Documentación interactiva de la API |
-| http://localhost:8000/salud | Estado del backend |
-| `index.html?mock=ok` | La aplicación con respuestas simuladas, sin backend |
+| http://localhost:8000/salud · `/api/v2/listo` | ¿Responde? · ¿están listas sus dependencias? |
+
+`index.html` también se puede abrir con doble clic para mejorar una foto (necesita el servidor en marcha).
+
+## Cómo se usa
+
+1. **Crear cuenta** (Entrar → Crear cuenta).
+2. **Crear apuntes:** añade las fotos (archivo, cámara o arrastrándolas), ordénalas e indica si son de pizarrón o de cuaderno (lo sugiere ApuntIA). Pulsa «Crear apunte».
+3. **Revisar:** el editor muestra el avance del análisis y después cada bloque junto a su región en la foto. Corrige el texto, las fórmulas (con vista previa) y las tablas; lo dudoso está marcado.
+4. **Ampliar (opcional):** en «Complementos», permite la búsqueda, elige palabras clave y acepta solo lo que quieras; cada complemento lleva su fuente.
+5. **PDF:** en la pestaña «PDF», elige las opciones, genéralo, revísalo y descárgalo.
+6. **Historial:** cada guardado es una versión que puedes comparar o restaurar; todo queda en «Mis apuntes».
+
+Recorrido técnico completo: [docs/flujo-v2.md](docs/flujo-v2.md).
+
+## Configuración
+
+La primera ejecución crea `fullstack/config/.env` a partir de [`fullstack/config/.env.example`](fullstack/config/.env.example),
+con valores seguros por defecto (puerto 8000, datos en `back/motori_magenes/datos/`, investigación
+permitida a nivel de servidor pero desactivada para cada persona hasta que la active). No contiene
+contraseñas ni claves; no la subas al repositorio. Variables principales:
+
+| Variable | Defecto | Para qué |
+|----------|---------|----------|
+| `APUNTIA_PUERTO` | 8000 | Puerto de la aplicación |
+| `DATA_DIR` | `datos` | Base de datos y archivos privados |
+| `MAX_UPLOAD_MB`, `MAX_PAGINAS` | 10, 20 | Límites de subida |
+| `OCR_MOTOR`, `OCR_IDIOMAS` | `tesseract`, `spa+eng` | Reconocimiento de texto |
+| `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
+| `COOKIE_SEGURA`, `URL_PUBLICA` | 0, vacío | Solo si se publica por HTTPS |
+
+Copias de seguridad: `fullstack/scripts/respaldar.sh` y `restaurar.sh` ([docs/respaldo.md](docs/respaldo.md)).
+
+## Problemas frecuentes
+
+| Síntoma | Solución |
+|---------|----------|
+| «Hace falta Python 3.10 o superior» | Instálalo; en Windows marca «Add python.exe to PATH» |
+| «El puerto 8000 está ocupado» | `./iniciar.sh --puerto 8080` (o `iniciar.bat -Puerto 8080`) |
+| «Tesseract no está instalado» / los apuntes no se analizan | Instálalo (ver Requisitos) y vuelve a arrancar; la ayuda muestra si está disponible |
+| «No se pudo crear el entorno virtual» | Debian/Ubuntu: `sudo apt install python3-venv` |
+| «ApuntIA no arrancó» | Mira `fullstack/.estado/backend.log` o ejecuta `fullstack/scripts/diagnostico.sh` |
+| Docker: «Cannot connect to the Docker daemon» | Abre Docker Desktop o arranca el servicio de Docker |
+| La página de cuenta dice «Abre ApuntIA desde el servidor» | Usa `http://localhost:8000/…`, no el archivo con doble clic |
+| «Tu espacio está lleno» / «el servidor no tiene espacio» | Borra apuntes antiguos o libera disco; `/api/v2/listo` avisa |
+| Un error con «Referencia: …» | Búscala en el registro: [docs/diagnostico.md](docs/diagnostico.md) |
 
 ## Pruebas
 
-| Batería | Comando | Resultado |
-|---------|---------|-----------|
-| Backend (pytest) | `python -m pytest` desde `back/motori_magenes`, tras instalar `requirements-dev.txt` | 74 correctas |
-| Interfaz (Playwright, API simulada) | `npm run test:front` | 20 correctas |
-| Integración (interfaz + FastAPI reales) | `npm run test:integracion` | 19 correctas |
-
-Antes de las pruebas de Node, instala sus dependencias:
-
 ```bash
-npm install
+fullstack/scripts/validar.sh
 ```
 
-```bash
-npx playwright install chromium
-```
+Modo rápido (~1 min): pruebas del backend, evaluación real del OCR contra la línea base, búsqueda
+de secretos y reglas de seguridad de la interfaz. `--completo` (~6 min) añade la interfaz y la
+integración de punta a punta con el backend real; `--docker`, la prueba de los contenedores. La CI
+de GitHub ejecuta lo mismo en cada pull request. Detalle: [docs/ci.md](docs/ci.md).
 
 ## Documentación
 
-- [Alcance y trazabilidad](docs/alcance.md) · [Definición de Hecho](docs/definicion-de-hecho.md) · [Historial de Git](docs/historial-git.md) · [Dependencias y licencias](docs/dependencias.md) · [Cómo contribuir](CONTRIBUTING.md)
-- [**Arquitectura**](docs/arquitectura.md): componentes, flujo, carpetas, puertos, variables, CORS, comandos, dependencias, decisiones y cómo reproducir una prueba integral.
-- [Flujo y alcance](docs/flujo.md) · [Contrato de la API](docs/api.md) · [Ejecutar el proyecto completo](docs/ejecutar.md)
-- [Plan de integración](docs/integracion.md) · [Compatibilidad](docs/compatibilidad.md) · [Incidencias](docs/incidencias.md)
-- [Pruebas de interfaz](docs/pruebas-frontend.md) · [Pruebas de integración](docs/pruebas-integracion.md) · [Validación de UX](docs/validacion-ux.md)
-- [Backend: instalación y uso](back/motori_magenes/README.md) · [Detalles del procesamiento](back/motori_magenes/PROCESAMIENTO.md) · [Frontend](front/README.md)
+| Tema | Documento |
+|------|-----------|
+| Arquitectura y decisiones | [arquitectura](docs/arquitectura.md) · [flujo v2](docs/flujo-v2.md) · [datos](docs/datos.md) |
+| API | [v1 (`/analisis`)](docs/api.md) · [v2 (cuentas, apuntes, PDF)](docs/api-v2.md) |
+| Interfaz | [páginas v2](docs/interfaz-v2.md) · [frontend](front/README.md) |
+| Backend | [instalación y uso](back/motori_magenes/README.md) · [procesamiento y OCR](back/motori_magenes/PROCESAMIENTO.md) |
+| Arranque | [scripts](docs/arranque.md) · [Docker](docs/docker.md) · [carpeta fullstack](fullstack/README.md) |
+| Seguridad y privacidad | [auditoría](docs/seguridad.md) · [API](docs/seguridad-api.md) · [permisos](docs/permisos.md) · [privacidad](docs/privacidad.md) |
+| Operación | [diagnóstico](docs/diagnostico.md) · [copias de seguridad](docs/respaldo.md) |
+| Calidad | [evaluación del OCR y PDF](docs/evaluacion.md) · [pruebas del backend](docs/pruebas-backend.md) · [pruebas de interfaz](docs/pruebas-interfaz.md) · [CI](docs/ci.md) |
+| Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [aceptación y evidencias](docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
+| Proyecto | [alcance](docs/alcance.md) · [definición de hecho](docs/definicion-de-hecho.md) · [dependencias y licencias](docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 
-## Estado
+## Datos de ejemplo y licencias
 
-Versión 1.0: todos los issues BACK, FRONT y FULL implementados, con pruebas y evidencias. Quedan pendientes, con responsables humanos: la aprobación formal del flujo y el contrato, las pruebas en Firefox, Safari y celulares reales, y la bitácora de cada issue (ver [`docs/integracion.md`](docs/integracion.md#4-bloqueos-y-riesgos)).
+Las pruebas y la evaluación usan **datos sintéticos** generados por código (fotos con texto dibujado
+con las fuentes DejaVu, cuentas `@example.com`); la única foto real (`back/bd/img/image.png`) es del
+propio proyecto. No subas fotos de apuntes ajenos al repositorio. Las dependencias y sus licencias
+(todas libres: MIT, BSD, Apache-2.0…) están en [docs/dependencias.md](docs/dependencias.md); Tesseract
+y sus datos de idioma son Apache-2.0; el contenido de Wikipedia es CC BY-SA 4.0 y se cita en el PDF.
 
 Proyecto académico ApuntIA.

@@ -52,11 +52,22 @@ def respuesta_error(status_code: int, codigo: str, mensaje: str,
 
 async def manejar_api_error(_: Request, exc: ApiError) -> JSONResponse:
     logger.info("Petición rechazada: %s %s", exc.status_code, exc.codigo)
-    return respuesta_error(exc.status_code, exc.codigo, exc.mensaje)
+    respuesta = respuesta_error(exc.status_code, exc.codigo, exc.mensaje)
+    detalles = getattr(exc, "detalles", None)
+    if detalles:  # campo adicional (p. ej. qué páginas fallaron); la estructura base no cambia
+        import json
+        cuerpo = json.loads(respuesta.body)
+        cuerpo["error"]["detalles"] = detalles
+        respuesta = JSONResponse(status_code=exc.status_code, content=cuerpo)
+    return respuesta
 
 
-async def manejar_validacion(_: Request, exc: RequestValidationError) -> JSONResponse:
+async def manejar_validacion(request: Request, exc: RequestValidationError) -> JSONResponse:
     campos = sorted({str(e.get("loc", ["?"])[-1]) for e in exc.errors()})
+    if request.url.path.startswith("/api/v2/"):
+        # API v2: los datos del cuerpo inválidos son un 400 (docs/api-v2.md §6).
+        return respuesta_error(400, "DATOS_INVALIDOS",
+                               f"Revisa estos campos: {', '.join(campos)}.")
     return respuesta_error(
         422, "PARAMETRO_INVALIDO",
         f"Valor no válido en: {', '.join(campos)}. Revisa los parámetros de la petición.",

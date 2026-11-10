@@ -36,10 +36,17 @@
         return NS.config || {};
     }
 
+    function servidaPorBackend() {
+        const { protocol, pathname } = global.location;
+        return /^https?:$/.test(protocol) && (pathname === "/inicio" || pathname.startsWith("/front/"));
+    }
+
     function urlBase() {
         const desdeQuery = new URLSearchParams(global.location.search).get("api");
         const base = desdeQuery || config().apiUrl;
         if (base) return String(base).replace(/\/+$/, "");
+        // Servida por el propio backend (/inicio o /front/...): misma origen (FRONT-11).
+        if (servidaPorBackend()) return global.location.origin;
         const host = global.location.hostname || "localhost";
         const protocolo = global.location.protocol === "https:" ? "https:" : "http:";
         return `${protocolo}//${host}:${config().apiPuerto || 8000}`;
@@ -154,5 +161,5 @@
         }
     }
 
-    NS.api = { urlBase, procesarImagen, obtenerSalud, ApiError, CAMPO_ARCHIVO };
+    NS.api = { urlBase, servidaPorBackend, procesarImagen, obtenerSalud, ApiError, CAMPO_ARCHIVO };
 })(window);

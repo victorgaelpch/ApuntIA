@@ -8,7 +8,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 const { iniciarBackend, iniciarEstatico } = require("./entorno");
 
-const RAIZ = path.resolve(__dirname, "..", "..");
+const RAIZ = path.resolve(__dirname, "..", "..", "..");
 const FOTO_REAL = path.join(RAIZ, "back", "bd", "img", "image.png");
 const CAPTURAS = process.env.CAPTURAS ? path.resolve(process.env.CAPTURAS) : null;
 const resultados = [];

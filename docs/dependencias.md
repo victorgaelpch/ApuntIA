@@ -75,6 +75,18 @@ Versiones probadas. Las dependencias «transitivas» son las que traen las direc
 | pytest | 9.2.0 | MIT | sí |
 | tomli | 2.5.0 | MIT | transitiva |
 
+### Añadidas en la v2
+
+| Paquete | Licencia | Uso |
+|---------|----------|-----|
+| pytesseract | Apache-2.0 | OCR (BACK-13) |
+| **Tesseract 5** (programa del sistema, no de pip) | Apache-2.0 | Motor de OCR; idiomas `spa`/`eng` de tessdata (Apache-2.0) |
+| matplotlib (+ contourpy, cycler, fonttools, kiwisolver, pyparsing, python-dateutil, six) | Matplotlib License (tipo PSF), BSD, MIT | Dibujo seguro de fórmulas (mathtext) y fuentes DejaVu con Unicode completo (BACK-15, BACK-20) |
+| reportlab (+ charset-normalizer) | BSD, MIT | Generación del PDF (BACK-20). Elegido frente a WeasyPrint: no interpreta HTML/CSS ni descarga recursos y no necesita Pango/Cairo |
+| Fuentes DejaVu (incluidas en matplotlib) | Licencia Bitstream Vera / DejaVu (libre, permite incrustarlas) | Texto Unicode seleccionable en el PDF |
+| pypdf (solo pruebas) | BSD-3-Clause | Abrir y leer los PDF generados en las pruebas |
+| pytest-cov + coverage (solo pruebas) | MIT, Apache-2.0 | Informe de cobertura (BACK-25) |
+
 ## 4. Inventario de Node (solo para pruebas; no se distribuye con la aplicación)
 
 | Paquete | Versión | Licencia | Uso |

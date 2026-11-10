@@ -79,7 +79,7 @@ pip install -r requirements.txt
 | `numpy` | Matrices de las imágenes |
 | `pillow` | Leer las dimensiones antes de decodificar e imagen de ejemplo |
 
-Para desarrollar y ejecutar las pruebas, instala también `requirements-dev.txt` (añade `pytest` y `httpx`):
+Para desarrollar y ejecutar las pruebas, instala también `requirements-dev.txt` (añade `pytest`, `httpx`, `pytest-cov` y `pypdf`):
 
 ```bash
 pip install -r requirements-dev.txt
@@ -92,6 +92,18 @@ pip install -r requirements-dev.txt -c constraints.txt
 ```
 
 Las licencias y el mantenimiento de cada dependencia están en [`docs/dependencias.md`](../../docs/dependencias.md).
+
+### 2.4 bis Instalar Tesseract (OCR, para los apuntes con texto)
+
+El OCR usa **Tesseract 5** con el idioma español. Sin él, todo lo demás funciona (incluido `/analisis`), pero crear apuntes con texto responde `OCR_NO_DISPONIBLE`.
+
+| Sistema | Instalación |
+|---------|-------------|
+| Ubuntu/Debian | `sudo apt install tesseract-ocr tesseract-ocr-spa` |
+| macOS (Homebrew) | `brew install tesseract tesseract-lang` |
+| Windows | Instalador de UB Mannheim (github.com/UB-Mannheim/tesseract/wiki), marcando el idioma *Spanish*. Si no queda en el PATH, define `TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe` en `.env` |
+
+Comprueba con `tesseract --list-langs` que aparece `spa`.
 
 ### 2.5 Configurar las variables de entorno (opcional)
 
@@ -205,7 +217,19 @@ curl -X POST "http://127.0.0.1:8000/analisis" -F "file=@README.md"
 python -m pytest
 ```
 
-Resultado esperado: `70 passed`. Las pruebas cubren todas las rutas, todos los errores del contrato y el pipeline (ver [`PROCESAMIENTO.md`](PROCESAMIENTO.md)).
+Resultado esperado (noviembre de 2026): `368 passed, 15 deselected` (las 15 excluidas son la evaluación real del OCR y las de rendimiento, que se lanzan aparte). Las pruebas cubren todas las rutas v1 y v2, los errores del contrato, la seguridad y el pipeline. Guía completa (cobertura, mutaciones, evaluación y rendimiento): [`docs/pruebas-backend.md`](../../docs/pruebas-backend.md).
+
+```bash
+python -m pytest -m evaluacion
+```
+
+```bash
+python -m pytest -m rendimiento -s
+```
+
+```bash
+python herramientas/mutaciones.py
+```
 
 Herramientas de medición (desde `back/motori_magenes`):
 
@@ -234,7 +258,7 @@ back/motori_magenes/
 ├── main.py                  # Punto de entrada: uvicorn main:app
 ├── index.py                 # Alias por compatibilidad (uvicorn index:app)
 ├── requirements.txt         # Dependencias de ejecución
-├── requirements-dev.txt     # + pytest y httpx
+├── requirements-dev.txt     # + pytest, httpx, pytest-cov y pypdf
 ├── .env.example             # Plantilla de variables de entorno
 ├── PROCESAMIENTO.md         # Detalles técnicos y mediciones
 ├── app/

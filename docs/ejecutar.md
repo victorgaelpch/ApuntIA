@@ -1,5 +1,7 @@
 # Ejecutar ApuntIA completo (frontend + backend) (FULL-04)
 
+> **Hoy lo recomendado es `./iniciar.sh` (o `iniciar.bat`) o Docker:** ver [arranque.md](arranque.md) y [docker.md](docker.md). Esta guía describe el modo manual de la versión 1, con dos servidores, que sigue funcionando para «Mejorar una foto»; las páginas con cuenta necesitan que el backend sirva la interfaz (`/inicio`, `/front/…`).
+
 ApuntIA tiene dos partes que se ejecutan por separado:
 
 | Parte | Qué es | Puerto por defecto |

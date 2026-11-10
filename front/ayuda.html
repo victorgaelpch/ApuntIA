@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ayuda — ApuntIA</title>
+<meta name="description" content="Cómo usar ApuntIA para convertir fotos de pizarrones y cuadernos en apuntes digitales y PDF, qué funciones están activas y cómo se tratan tus datos.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <h1>Ayuda</h1>
+  <p class="lead">ApuntIA convierte fotos de <b>pizarrones o cuadernos</b> en apuntes digitales que puedes corregir y descargar como PDF. También puede, sin cuenta, devolverte solo la foto enderezada y más nítida.</p>
+
+  <section class="tarjeta" aria-labelledby="dosModos">
+    <h2 id="dosModos">Dos formas de usarlo</h2>
+    <div class="columnas">
+      <div>
+        <h3>Mejorar una foto <small>(sin cuenta)</small></h3>
+        <p>Sube una foto y recibe una imagen PNG enderezada, con mejor contraste y menos ruido. No se guarda nada en el servidor.</p>
+        <a class="btn" href="/inicio">Mejorar una foto</a>
+      </div>
+      <div>
+        <h3>Crear un apunte en PDF <small>(con cuenta)</small></h3>
+        <p>Sube una o varias páginas, revisa el texto reconocido, corrige fórmulas y tablas, añade información citada si quieres y descarga el PDF. Tus apuntes quedan guardados en tu cuenta.</p>
+        <a class="btn primary" href="/front/nuevo.html">Crear apuntes</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="pasos">
+    <h2 id="pasos">El recorrido de un apunte</h2>
+    <ol class="recorrido">
+      <li><b>Elige la fuente</b><span>Pizarrón o cuaderno, una o varias fotos en orden.</span></li>
+      <li><b>Procesa</b><span>El servidor endereza las fotos y reconoce el texto y las fórmulas.</span></li>
+      <li><b>Revisa</b><span>Compara cada bloque con la foto y corrige lo que haga falta.</span></li>
+      <li><b>Amplía (opcional)</b><span>Busca información complementaria con fuentes citadas.</span></li>
+      <li><b>Genera el PDF</b><span>Elige el estilo y descárgalo.</span></li>
+      <li><b>Guarda</b><span>Cada cambio crea una versión que puedes recuperar.</span></li>
+    </ol>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="estadoFunciones">
+    <h2 id="estadoFunciones">Qué funciona en este servidor</h2>
+    <p class="ayuda">Se consulta en vivo al servidor; si algo no está disponible, la interfaz no lo ofrece como si funcionara.</p>
+    <div class="aviso" id="avisoFunciones" hidden></div>
+    <table class="funciones">
+      <thead><tr><th scope="col">Función</th><th scope="col">Estado</th><th scope="col">Notas</th></tr></thead>
+      <tbody id="tablaFunciones"><tr><td colspan="3">Consultando…</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="privacidad">
+    <h2 id="privacidad">Privacidad</h2>
+    <ul>
+      <li>Tus fotos, el texto y los PDF se guardan solo en el servidor de ApuntIA y solo tú puedes verlos.</li>
+      <li>La búsqueda de información complementaria está <b>desactivada</b> por defecto. Si la activas, solo se envían a la fuente externa las palabras clave que elijas, nunca tus fotos ni el texto del apunte.</li>
+      <li>La información externa aparece separada de tu apunte, con su fuente, y solo entra en el PDF si la aceptas.</li>
+      <li>Puedes borrar un apunte o tu cuenta completa (con todos sus archivos) desde «Mis apuntes» y «Perfil».</li>
+    </ul>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="consejos">
+    <h2 id="consejos">Consejos para mejores resultados</h2>
+    <ul>
+      <li>Fotografía de frente, con buena luz y sin reflejos; que se vean los bordes del pizarrón o de la hoja.</li>
+      <li>Una página por foto. Puedes reordenarlas antes de enviarlas.</li>
+      <li>La letra manuscrita difícil y las fórmulas en dos dimensiones (fracciones apiladas, matrices) pueden no reconocerse: en ese caso se conservan como imagen y puedes escribirlas tú.</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/ayuda.js"></script>
+</body>
+</html>

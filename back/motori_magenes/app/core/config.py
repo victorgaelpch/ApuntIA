@@ -30,19 +30,67 @@ def _cargar_env(ruta: Path) -> None:
 _cargar_env(BASE_DIR / ".env")
 
 
+def _si(nombre: str, defecto: str = "0") -> bool:
+    """Booleano de una variable de entorno: 1, true, si/sí, yes u on (sin distinguir mayúsculas)."""
+    return os.getenv(nombre, defecto).strip().lower() in ("1", "true", "si", "sí", "yes", "on")
+
+
 class Settings:
     """Valores de configuración de la aplicación."""
 
     app_name: str = os.getenv("APP_NAME", "ApuntIA - Motor de imágenes")
 
-    version: str = "1.0.0"
+    version: str = "2.0.0"  # ver CHANGELOG.md
 
     # Límites de las imágenes recibidas (ver docs/api.md).
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
     max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 
+    # OCR (BACK-13): motor (tesseract | ninguno), idiomas de Tesseract y ruta
+    # opcional al ejecutable (en Windows, si no está en el PATH).
+    ocr_motor: str = os.getenv("OCR_MOTOR", "tesseract").strip().lower()
+    ocr_idiomas: str = os.getenv("OCR_IDIOMAS", "spa+eng")
+    tesseract_cmd: str = os.getenv("TESSERACT_CMD", "")
+
+    # Trabajos largos ejecutados a la vez (BACK-27).
+    max_trabajos_simultaneos: int = int(os.getenv("MAX_TRABAJOS_SIMULTANEOS", "2"))
+
+    # Páginas por apunte en la API v2 (BACK-11).
+    max_paginas: int = int(os.getenv("MAX_PAGINAS", "20"))
+
+    # Investigación opcional (BACK-18): "wikipedia" o "ninguno" (sin Internet).
+    investigacion_proveedor: str = os.getenv("INVESTIGACION_PROVEEDOR", "wikipedia").strip().lower()
+    investigacion_timeout_s: float = float(os.getenv("INVESTIGACION_TIMEOUT_S", "6"))
+
+    # Interfaz servida por el propio backend (FRONT-11): misma origen que la API,
+    # necesario para la cookie de sesión. Vacío = no se sirve.
+    front_dir: str = os.getenv("FRONT_DIR", str(BASE_DIR.parents[1] / "front"))
+    pagina_inicio: str = os.getenv("PAGINA_INICIO", str(BASE_DIR.parents[1] / "index.html"))
+
+    # URL pública del servidor (p. ej. https://apuntia.ejemplo.edu) para los enlaces
+    # de recuperación de contraseña. Recomendado en producción.
+    url_publica: str = os.getenv("URL_PUBLICA", "").strip()
+
+    # Diagnóstico (FULL-21): alertas en el log y espacio mínimo para declararse «listo».
+    alerta_peticion_ms: int = int(os.getenv("ALERTA_PETICION_MS", "10000"))
+    alerta_trabajo_s: int = int(os.getenv("ALERTA_TRABAJO_S", "120"))
+    minimo_disco_mb: int = int(os.getenv("MINIMO_DISCO_MB", "200"))
+
+    # Endurecimiento (BACK-24): cuerpo JSON máximo y espacio por usuario.
+    max_json_kb: int = int(os.getenv("MAX_JSON_KB", "4096"))
+    cuota_mb_usuario: int = int(os.getenv("CUOTA_MB_USUARIO", "500"))
+    # Cuentas nuevas por IP y hora (en un aula detrás de un mismo router puede hacer falta subirlo).
+    max_registros_hora: int = int(os.getenv("MAX_REGISTROS_HORA", "10"))
+
     # Lado mayor con el que se procesa la imagen (BACK-09). 0 = sin límite.
     max_lado_procesamiento: int = int(os.getenv("MAX_LADO_PROCESAMIENTO", "2000"))
+
+    # Datos privados (BACK-22): base de datos SQLite y archivos de los usuarios.
+    # Las rutas relativas se resuelven respecto a back/motori_magenes.
+    data_dir: Path = (BASE_DIR / os.getenv("DATA_DIR", "datos")).resolve()
+
+    # Cookie de sesión con el atributo Secure (actívalo detrás de HTTPS).
+    cookie_segura: bool = _si("COOKIE_SEGURA")
 
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [

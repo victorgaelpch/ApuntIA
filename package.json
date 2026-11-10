@@ -1,5 +1,6 @@
 {
   "name": "apuntia",
+  "version": "2.0.0",
   "private": true,
   "description": "ApuntIA: digitalización de fotos de pizarrón (frontend estático + backend FastAPI)",
   "engines": {
@@ -7,8 +8,15 @@
   },
   "scripts": {
     "test:front": "node --test \"front/tests/*.test.js\"",
-    "test:integracion": "node --test \"tests/integracion/*.test.js\"",
-    "lint:commits": "commitlint --from origin/main --to HEAD --verbose"
+    "test:integracion": "node --test --test-concurrency=1 \"fullstack/tests/integracion/*.test.js\"",
+    "lint:commits": "commitlint --from origin/main --to HEAD --verbose",
+    "test:v2": "node --test --test-concurrency=1 \"fullstack/tests/integracion/v2-*.test.js\"",
+    "test:a11y": "node --test \"fullstack/tests/integracion/v2-accesibilidad.test.js\"",
+    "test:scripts": "node --test \"fullstack/tests/scripts/*.test.js\"",
+    "test:docker": "node --test \"fullstack/tests/docker/*.test.js\"",
+    "validar": "fullstack/scripts/validar.sh",
+    "validar:completo": "fullstack/scripts/validar.sh --completo",
+    "test:entrega": "node --test --test-concurrency=1 \"fullstack/tests/entrega/*.test.js\""
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

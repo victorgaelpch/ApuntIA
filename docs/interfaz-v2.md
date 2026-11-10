@@ -1,0 +1,212 @@
+# Interfaz v2: páginas con cuenta (FRONT-11 … FRONT-22)
+
+## Cómo se sirve
+
+Las páginas con cuenta usan la cookie de sesión HttpOnly de la API v2, que el navegador
+solo envía a su propio origen. Por eso el backend sirve la interfaz (`app/routers/frontend.py`):
+
+| URL | Contenido |
+|-----|-----------|
+| `/inicio` | `index.html`: mejorar una foto (PNG, sin cuenta) y presentación |
+| `/front/ayuda.html` | Ayuda, privacidad y **estado real** de las funciones (según `GET /salud`) |
+| `/front/cuenta.html` | Registro, inicio de sesión y recuperación (FRONT-17) |
+| `/front/nuevo.html` | Crear un apunte con varias fotos (FRONT-12) |
+| `/front/editor.html?id=…` | Revisar y corregir el apunte, investigar y exportar el PDF (FRONT-13 … 16, 22) |
+| `/front/apuntes.html` | Mis apuntes (FRONT-18) |
+| `/front/perfil.html` | Perfil y preferencias (FRONT-19) |
+
+`GET /` sigue devolviendo `{"message": "Hola Mundo"}` (contrato v1). `index.html` también
+funciona abierto con doble clic: entonces sus enlaces de cuenta apuntan al servidor de la API.
+Solo se sirven HTML, CSS, JS e imágenes de `front/` (no `tests/` ni el README). Las páginas
+llevan una CSP sin scripts ni estilos en línea (`script-src 'self'`).
+
+## Navegación
+
+Inicio · Crear apuntes · Mis apuntes · Perfil · Mejorar una foto · Ayuda. Los enlaces privados
+solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 401).
+
+## Piezas comunes
+
+- `front/js/v2/nucleo.js`: cliente `pedir()` (mismo origen, `X-CSRF-Token` solo en memoria),
+  `h()` para crear elementos con `textContent` (nunca `innerHTML` con datos), avisos accesibles,
+  diálogo de confirmación, espera de trabajos y cabecera según la sesión.
+- `front/css/app.css`: tarjetas, formularios, avisos, pestañas, chips de estado y diálogos,
+  sobre los tokens de `index.css`.
+
+## Pruebas
+
+`fullstack/tests/integracion/v2-*.test.js` abren las páginas en Chromium contra el backend real
+(carpeta de datos temporal, investigación desactivada) — `npm run test:integracion`.
+
+## Cuenta (FRONT-17)
+
+- Pestañas accesibles (flechas ←/→) para iniciar sesión, crear cuenta y pedir el enlace de
+  recuperación. Validación junto a cada campo (`aria-invalid`, mensaje enlazado) antes de
+  enviar; el backend sigue siendo la autoridad.
+- Las contraseñas se borran de los campos tras cada envío y nunca se guardan. La sesión es la
+  cookie HttpOnly del servidor; el token CSRF solo vive en memoria.
+- «Email ya usado» no confirma de quién es la cuenta: ofrece iniciar sesión o recuperarla.
+- `?volver=` solo acepta rutas propias (`/front/…` o `/inicio`): sin redirecciones abiertas.
+- El enlace de recuperación lleva el token en el fragmento (`#recuperar=…`), que no viaja al
+  servidor ni en el Referer; la página lo quita de la barra al leerlo. Con `URL_PUBLICA`
+  configurada, el enlace no depende de la cabecera `Host` de la petición.
+- `?motivo=expirada` y `?motivo=salida` explican por qué se volvió a esta página.
+- Decisión: la mejora de una foto (`/inicio`) **sigue sin cuenta**; solo los apuntes guardados
+  la necesitan.
+
+## Crear apuntes (FRONT-12)
+
+- Añadir fotos desde el dispositivo (varias a la vez), arrastrándolas o con la cámara (el mismo
+  visor que la página de inicio; sin cámara en vivo se usa la app de cámara del móvil).
+- Cada foto muestra miniatura, número, nombre y tamaño, su tipo (Automático, Pizarrón o
+  Cuaderno; «Automático» sugiere pizarrón para fotos oscuras y cuaderno para claras) y botones
+  ↑ ↓ y Quitar; también se reordena arrastrando.
+- Se valida con las reglas del backend y los límites de `GET /salud` (formato real, MB,
+  megapíxeles y número de fotos). Las fotos repetidas (mismo contenido, SHA-256) no se añaden.
+  Una foto inválida queda marcada y bloquea el envío hasta quitarla; los errores del servidor
+  por página (`PAGINAS_INVALIDAS`) se muestran en su foto.
+- Avisos locales de resolución baja o foto muy oscura (el análisis añade después los del servidor).
+- Las fotos solo viven en memoria (las miniaturas son URL `blob:` que se liberan); al salir con
+  fotos sin enviar el navegador pide confirmación.
+- Envío con barra de progreso real, botón «Cancelar envío» y «Reintentar»; la cabecera
+  `Idempotency-Key` hace que un reintento tras un corte no cree dos apuntes.
+- Al aceptarse, se abre el editor del apunte, que muestra el avance del análisis.
+
+## Editor: transcripción (FRONT-13)
+
+- Mientras el análisis está en curso se muestra su etapa y progreso reales (`GET /api/v2/trabajos/{id}`),
+  con «Cancelar análisis»; si falla o se cancela, el motivo y «Reintentar el análisis».
+- Vista lado a lado: la foto procesada de cada página con las **regiones** de los bloques
+  (posicionadas en % de `bbox`, así escalan con el ancho; amarillo = reconocido, naranja
+  discontinuo = incierto, rojo punteado = sin leer) y la lista de bloques en orden de lectura.
+  Pulsar una región enfoca su bloque y viceversa. «Ver la foto original» oculta las regiones,
+  que están en coordenadas de la procesada.
+- Cada bloque muestra estado y confianza, palabras dudosas, el recorte de la foto cuando es dudoso
+  o manuscrito, y permite corregir el texto, cambiar el tipo, dividir (donde está el cursor),
+  unir con el siguiente, subir/bajar, volver al texto reconocido, borrar (con «Deshacer») y
+  conservar la imagen original en el PDF. Se pueden añadir textos y títulos a mano.
+- Guardado explícito (botón o Ctrl+S) con `If-Match`: «Cambios sin guardar» → «Guardando…» →
+  «Guardado · versión n · hh:mm» solo tras la respuesta del servidor. Un 409 no pisa nada:
+  se ofrece ver la versión guardada, copiar los cambios o guardar encima.
+- Si la sesión caduca, la página no se abandona: los cambios siguen en la pestaña y se pide
+  iniciar sesión en otra. Al cerrar con cambios sin guardar, el navegador pide confirmación.
+- Todo el texto se muestra con `value`/`textContent`: un `<script>` del OCR o del usuario es texto.
+
+## Editor: fórmulas, tablas y esquemas (FRONT-14)
+
+- **Fórmulas:** recorte de la foto junto al LaTeX reconocido, editable, con vista previa que dibuja
+  el servidor (`POST /api/v2/formulas/validar`) con el mismo motor que el PDF. Se eligió frente a
+  KaTeX/MathJax porque lo que se ve es lo que saldrá en el PDF, no hay que cargar scripts de un CDN
+  (la CSP solo admite los propios) y el navegador nunca interpreta macros ni HTML: recibe un PNG.
+  Errores de sintaxis y comandos no permitidos (`\input`, `\def`…) se explican junto al campo
+  (`aria-invalid`); también se puede escribir en texto normal (`sqrt(x+1) + x^2`) y convertir.
+  Si la fórmula no se puede dibujar, el PDF usa la imagen original; hay casilla para forzarlo.
+- **Tablas:** edición de encabezados y celdas, añadir y quitar filas y columnas (hasta 500 × 30),
+  con etiquetas accesibles por celda; «Convertir en tabla» pasa un texto con `|` o tabuladores a
+  tabla. Las tablas anchas se desplazan dentro de su caja en el móvil.
+- **Esquemas y dibujos:** se muestran y se exportan como la imagen original, con descripción
+  opcional. ApuntIA no los redibuja para no inventar relaciones.
+- Se pueden añadir fórmulas y tablas a mano. Todo se guarda con el mismo control de versiones.
+
+## Editor: versiones y guardado automático (FRONT-22)
+
+- «Guardar automáticamente» (activado por defecto) guarda 4 s después del último cambio con el
+  mismo `PUT` + `If-Match` del botón. El estado solo dice «Guardado · versión n» cuando el servidor
+  responde. Se pausa sin conexión («Sin conexión: los cambios solo están en esta pestaña»; guarda
+  al volver), con la sesión caducada y tras un conflicto 409, que siempre resuelve la persona.
+- Pestaña «Versiones»: lista de versiones del servidor (motivo y fecha), comparar cualquiera con
+  la actual —o con los cambios sin guardar— y restaurar con confirmación (crea una versión nueva;
+  nada se borra).
+- La comparación es por bloques y por palabras (tachado/rojo = quitado, subrayado/verde =
+  añadido), indica si el bloque viene de la foto, de la foto corregido o se añadió a mano, y lista
+  aparte los cambios de los complementos externos.
+- En un conflicto, «Comparar» muestra la versión guardada en otra pestaña frente a los cambios
+  locales; luego se elige ver la guardada, copiar los cambios o guardar encima.
+- No hay copia en el navegador (ni localStorage ni IndexedDB): lo no guardado solo vive en la pestaña,
+  y el aviso al salir lo recuerda. No hay edición simultánea en tiempo real.
+
+## Editor: información complementaria (FRONT-15)
+
+- Pestaña «Complementos», separada de la transcripción. «Buscar información complementaria» está
+  **desactivada por defecto**; requiere la preferencia del perfil (se puede activar desde aquí,
+  con confirmación) y una casilla de consentimiento en **cada** búsqueda.
+- Antes de buscar se explica la fuente (Wikipedia), qué se envía (solo las palabras clave
+  marcadas; nunca fotos ni texto del apunte) y la licencia. Los conceptos sugeridos salen del
+  propio apunte y se pueden añadir otros (palabras clave, sin URL ni emails).
+- Progreso real con «Cancelar búsqueda». Al terminar se resume: complementos nuevos, conceptos sin
+  fuentes fiables (no se añade nada), resultados descartados por instrucciones incrustadas y
+  posibles contradicciones.
+- Cada complemento muestra el texto citado, la fuente (título enlazado con `rel="noopener noreferrer"`,
+  autor, proveedor, fecha de consulta y licencia) y, si la hay, la contradicción con el apunte.
+  «Aceptar» lo incluye en el PDF (sección aparte y citada); «Descartar» lo deja fuera. El texto del
+  apunte nunca se modifica.
+- Sin proveedor o con la fuente caída se explica y se ofrece seguir al PDF sin complementos.
+- Pruebas con una Wikipedia simulada (`fullstack/tests/integracion/app_wikipedia_simulada.py`): el
+  backend es el real y el proveedor también; solo se sustituye la red.
+
+## Editor: PDF (FRONT-16)
+
+- Pestaña «PDF»: versión (la actual o cualquiera del historial), nivel de detalle (completo o
+  básico), incluir los complementos aceptados y añadir las fotos originales. La portada y el
+  título usan el título del apunte. Antes de generar se avisa de cambios sin guardar (se guardan
+  primero), bloques inciertos sin revisar, fragmentos sin leer y fórmulas que irán como imagen,
+  y complementos sin revisar (no se incluyen).
+- Estado real del trabajo (`En cola…`, `Maquetando el PDF… n %`), «Cancelar» y «Reintentar». Solo se
+  dice «PDF listo» cuando la descarga autenticada devuelve `application/pdf` y empieza por `%PDF-`.
+- Vista previa en un `iframe` con una URL `blob:` temporal (liberada al cambiarla o al salir),
+  «Descargar PDF» con el nombre que da el servidor (`titulo-vN.pdf`) y «Abrir en otra pestaña».
+  No hay URL públicas de archivos privados.
+- Pedir el mismo PDF (misma versión y opciones) lo reutiliza. Si el apunte cambió, la vista previa
+  se marca como desactualizada y se ofrece «Generar con la versión actual»; la lista de PDF marca
+  los de versiones anteriores. «PDF de esta versión» desde el historial.
+- Al recargar con una exportación en curso, la pestaña PDF la retoma.
+- La foto mejorada en PNG sigue en «Mejorar una foto»: son dos cosas distintas.
+
+## Mis apuntes (FRONT-18)
+
+- Lista paginada (12 por página) solo con los apuntes de la sesión: título, estado, fuente,
+  páginas, número de PDF y fechas. No se cargan imágenes privadas en la lista.
+- Búsqueda en el título y en el texto, filtros de estado, fuente y fechas (`desde`/`hasta`,
+  añadidos a `GET /api/v2/apuntes`) y orden. Los filtros quedan en la URL, así que al volver del
+  editor la lista sigue igual; la posición de desplazamiento se recuerda en la pestaña.
+- Acciones según el estado: «Abrir y editar», «Ver progreso» (en cola o procesando), «Revisar y
+  reintentar» (falló o cancelado), «Exportar PDF» (abre el editor en la pestaña PDF), «Descargar
+  último PDF» (si hay alguno; avisa si es de una versión anterior) y «Eliminar» con confirmación.
+- Estados vacíos (sin apuntes: «Crear mi primer apunte»; sin coincidencias: «Limpiar filtros»),
+  esqueletos mientras carga y «Reintentar» si falla la red.
+
+## Perfil (FRONT-19)
+
+- Datos: nombre visible (editable), email (solo lectura) y fecha de alta.
+- Preferencias guardadas en el servidor: tipo de fuente al subir fotos, idioma del OCR y las
+  opciones propuestas del PDF (nivel de detalle, complementos, fotos originales), que el editor
+  usa al exportar.
+- Privacidad: «Permitir buscar información complementaria» (con confirmación al activarlo y
+  explicación de qué se envía). Lo aplica el backend: sin ella, `POST …/investigacion` responde 400.
+- Cambiar contraseña con la actual, la nueva y su confirmación; la actual incorrecta se señala
+  en su campo, los tres campos se vacían siempre y se cierran las demás sesiones.
+- Sesiones: cuántas hay abiertas en otros navegadores, «Cerrar la sesión en los demás
+  navegadores» y «Cerrar sesión aquí».
+- Borrar la cuenta: contraseña + escribir «BORRAR» en una confirmación; borra apuntes, fotos,
+  versiones y PDF y vuelve a la página de cuenta con el aviso.
+
+## Mensajes y seguridad de la interfaz (FRONT-20)
+
+- **Un solo catálogo** (`front/js/mensajes.js`) para la página de inicio y las páginas con cuenta,
+  con todos los códigos de la API v1 y v2 agrupados por etapa (cuenta, apuntes, trabajos, fórmulas,
+  investigación, PDF, red). Cada código tiene texto, acciones y tipo: `error`, `aviso` (se puede
+  continuar, p. ej. 429 o investigación no disponible) o `info`. Una prueba falla si el backend
+  emite un código sin mensaje.
+- Prioridad: el mensaje 4xx de la API v2 (preciso y en español); para 5xx, errores de red y códigos
+  sin mensaje, el catálogo. Nunca se muestran trazas, rutas ni tokens; a la consola solo va el código
+  de los fallos del servidor o de la red.
+- Avisos accesibles: `role="alert"` para errores y `role="status"` para el resto, con botones de
+  «Reintentar» o «Cancelar» cuando tiene sentido. Las peticiones no se reintentan solas en bucle.
+- 401: en páginas privadas se vuelve a iniciar sesión y después a la misma página; en el editor con
+  cambios sin guardar no se sale (los cambios siguen en la pestaña).
+- Contenido no confiable (OCR, títulos, citas, LaTeX, nombres de archivo, respuestas del servidor):
+  siempre `textContent`/`value`. Pruebas automáticas: ningún `innerHTML`/`insertAdjacentHTML`/
+  `document.write`/`eval` en el código de la interfaz, páginas sin scripts ni estilos en línea (CSP),
+  enlaces externos con `rel="noopener"` y nada secreto en `localStorage`/`sessionStorage`.
+- La maqueta de diseño (`front/maqueta.html`) ya no se sirve desde el backend: usa estilos en línea
+  y datos de ejemplo.

@@ -76,7 +76,7 @@
                 if (!el.dialogo.open) { detener(); return; } // se cerró mientras se pedía permiso
                 el.video.srcObject = flujo;
                 await el.video.play();
-                el.mensaje.textContent = "Alinea el pizarrón dentro del marco y pulsa el botón";
+                el.mensaje.textContent = "Alinea el pizarrón o la hoja dentro del marco y pulsa el botón";
                 el.btCapturar.disabled = false;
                 el.btCapturar.focus();
             } catch (error) {

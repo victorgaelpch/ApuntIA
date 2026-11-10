@@ -1,0 +1,293 @@
+{
+  "fecha": "2026-11-10T06:48:36",
+  "versiones": {
+    "python": "3.13.18",
+    "opencv": "5.0.0",
+    "numpy": "2.5.4",
+    "reportlab": "5.0.1",
+    "ocr": {
+      "disponible": true,
+      "motor": "tesseract",
+      "version": "5.3.4",
+      "idiomas": [
+        "eng",
+        "spa"
+      ]
+    }
+  },
+  "texto": [
+    {
+      "muestra": "impreso_cuaderno",
+      "fuente": "cuaderno",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 3,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 520
+    },
+    {
+      "muestra": "cuaderno_con_sombra",
+      "fuente": "cuaderno",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 3,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 522
+    },
+    {
+      "muestra": "cuaderno_cuadriculado",
+      "fuente": "cuaderno",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 5,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 560
+    },
+    {
+      "muestra": "impreso_pizarron",
+      "fuente": "pizarron",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 5,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 486
+    },
+    {
+      "muestra": "pizarron_con_ruido",
+      "fuente": "pizarron",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 5,
+      "inciertos": 0,
+      "sin_leer": 1,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 1,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 818
+    },
+    {
+      "muestra": "pizarron_oscuro",
+      "fuente": "pizarron",
+      "escritura": "impreso",
+      "trabajo": "completado",
+      "cer": 0.0068,
+      "wer": 0.0385,
+      "reconocidos": 5,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 1,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.8,
+      "orden_lectura": 1.0,
+      "ms": 424
+    },
+    {
+      "muestra": "manuscrito_cuaderno",
+      "fuente": "cuaderno",
+      "escritura": "manuscrito",
+      "trabajo": "completado",
+      "cer": 0.0,
+      "wer": 0.0,
+      "reconocidos": 2,
+      "inciertos": 0,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 0,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 1.0,
+      "orden_lectura": 1.0,
+      "ms": 434
+    },
+    {
+      "muestra": "manuscrito_dificil",
+      "fuente": "cuaderno",
+      "escritura": "manuscrito",
+      "trabajo": "completado",
+      "cer": 0.0556,
+      "wer": 0.4,
+      "reconocidos": 1,
+      "inciertos": 1,
+      "sin_leer": 0,
+      "reconocidos_con_errores": 0,
+      "conservados_como_imagen": 0,
+      "lineas_exactas": 0.5,
+      "orden_lectura": 1.0,
+      "ms": 840
+    },
+    {
+      "muestra": "formulas_pizarron",
+      "fuente": "pizarron",
+      "escritura": "formula",
+      "trabajo": "completado",
+      "cer": 0.3542,
+      "wer": 0.6471,
+      "reconocidos": 1,
+      "inciertos": 2,
+      "sin_leer": 1,
+      "reconocidos_con_errores": 0,
+      "conservados_como_imagen": 1,
+      "lineas_exactas": 0.5,
+      "orden_lectura": 1.0,
+      "ms": 813
+    },
+    {
+      "muestra": "formulas_2d",
+      "fuente": "pizarron",
+      "escritura": "formula",
+      "trabajo": "completado",
+      "cer": 1.0,
+      "wer": 1.0,
+      "reconocidos": 0,
+      "inciertos": 0,
+      "sin_leer": 4,
+      "reconocidos_con_errores": 0,
+      "conservados_como_imagen": 4,
+      "lineas_exactas": 0.0,
+      "orden_lectura": null,
+      "ms": 305
+    },
+    {
+      "muestra": "diagrama",
+      "fuente": "cuaderno",
+      "escritura": "diagrama",
+      "trabajo": "completado",
+      "cer": 0.0,
+      "wer": 0.0,
+      "reconocidos": 1,
+      "inciertos": 0,
+      "sin_leer": 2,
+      "reconocidos_con_errores": 0,
+      "conservados_como_imagen": 2,
+      "lineas_exactas": 1.0,
+      "orden_lectura": 1.0,
+      "ms": 945
+    }
+  ],
+  "formulas": {
+    "total": 8,
+    "exactas": 3,
+    "latex_validos": 3,
+    "falsas_reconocidas": 0,
+    "detalle": [
+      {
+        "muestra": "formulas_pizarron",
+        "esperada": "x^{2} + 2 x + 1 = 0",
+        "exacta": true
+      },
+      {
+        "muestra": "formulas_pizarron",
+        "esperada": "\\frac{a}{b} + \\frac{c}{d}",
+        "exacta": true
+      },
+      {
+        "muestra": "formulas_pizarron",
+        "esperada": "\\sqrt{x + 1}",
+        "exacta": true
+      },
+      {
+        "muestra": "formulas_pizarron",
+        "esperada": "E = m c^{2}",
+        "exacta": false
+      },
+      {
+        "muestra": "formulas_2d",
+        "esperada": "x^{2} + 2 x + 1 = 0",
+        "exacta": false
+      },
+      {
+        "muestra": "formulas_2d",
+        "esperada": "\\frac{a}{b} + \\frac{c}{d}",
+        "exacta": false
+      },
+      {
+        "muestra": "formulas_2d",
+        "esperada": "\\sqrt{x + 1}",
+        "exacta": false
+      },
+      {
+        "muestra": "formulas_2d",
+        "esperada": "E = m c^{2}",
+        "exacta": false
+      }
+    ]
+  },
+  "pdf": {
+    "trabajo": "completado",
+    "paginas_pdf": 5,
+    "kb": 207,
+    "ms_analisis": 1048,
+    "ms_pdf": 293,
+    "comprobaciones": {
+      "abre_y_tiene_paginas": true,
+      "texto_seleccionable": true,
+      "unicode": true,
+      "tabla_completa": true,
+      "formula_e_imagenes_visibles": true,
+      "enlace_de_la_fuente": true,
+      "metadatos": true,
+      "orden_de_las_paginas": true
+    }
+  },
+  "robustez": {
+    "html_disfrazado": {
+      "http": 400,
+      "codigo": "TIPO_NO_PERMITIDO",
+      "ms": 6
+    },
+    "vacio": {
+      "http": 400,
+      "codigo": "ARCHIVO_VACIO",
+      "ms": 5
+    },
+    "demasiado_grande": {
+      "http": 400,
+      "codigo": "ARCHIVO_DEMASIADO_GRANDE",
+      "ms": 37
+    },
+    "png_truncado": {
+      "http": 400,
+      "codigo": "IMAGEN_CORRUPTA",
+      "ms": 5
+    }
+  },
+  "regresiones": {
+    "BACK-12: la mediana borraba la tilde de «rápido» en el pizarrón de tiza": true,
+    "BACK-21: un símbolo dudoso vaciaba un párrafo bueno entero": true,
+    "BACK-15: fórmulas 2D no se dan por reconocidas (se conservan como imagen)": true,
+    "BACK-14: ningún manuscrito se presenta como reconocido con errores": true,
+    "FULL-19: la cuadrícula no se convierte en texto": true,
+    "FULL-19: un diagrama se conserva como imagen y no se inventa texto": true
+  },
+  "segundos": 11.4,
+  "memoria_mb": 390
+}

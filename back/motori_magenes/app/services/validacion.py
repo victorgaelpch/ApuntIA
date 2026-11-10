@@ -80,7 +80,13 @@ def validar_imagen(file: UploadFile | None) -> ImagenRecibida:
     try:
         with Image.open(BytesIO(datos)) as cabecera:
             ancho, alto = cabecera.size
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+    except Image.DecompressionBombError:
+        # Cabecera con dimensiones enormes (p. ej. 400 MP comprimidos en pocos KB): se rechaza
+        # sin descomprimir. Es demasiado grande, no está dañada (FULL-20).
+        raise ApiError(413, "IMAGEN_DEMASIADO_GRANDE",
+                       f"La imagen supera los {settings.max_megapixeles:g} megapíxeles. "
+                       "Usa una de menor resolución.") from None
+    except (UnidentifiedImageError, OSError, ValueError):
         raise ApiError(400, "IMAGEN_CORRUPTA",
                        "No se pudo leer la imagen; puede estar dañada. Elige otra.")
 

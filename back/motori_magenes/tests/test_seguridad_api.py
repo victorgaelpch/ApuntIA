@@ -334,3 +334,35 @@ def test_v1_no_guarda_nada_en_el_servidor(subir, datos_tmp):
     antes = sorted(p for p in datos_tmp.data_dir.rglob("*") if p.is_file())
     assert subir(imagen_pil("PNG")).status_code == 200
     assert sorted(p for p in datos_tmp.data_dir.rglob("*") if p.is_file()) == antes
+
+
+def _bomba_png(lado=20000) -> bytes:
+    """PNG válido de lado×lado píxeles en gris (400 MP) que comprimido ocupa ~380 KB."""
+    import struct
+    import zlib
+
+    def trozo(tipo, datos):
+        return struct.pack(">I", len(datos)) + tipo + datos + struct.pack(">I", zlib.crc32(tipo + datos) & 0xffffffff)
+
+    comp = zlib.compressobj(9)
+    fila = b"\x00" * (lado + 1)
+    idat = b"".join(comp.compress(fila) for _ in range(lado)) + comp.flush()
+    return (b"\x89PNG\r\n\x1a\n" + trozo(b"IHDR", struct.pack(">IIBBBBB", lado, lado, 8, 0, 0, 0, 0))
+            + trozo(b"IDAT", idat) + trozo(b"IEND", b""))
+
+
+def test_bomba_de_descompresion_se_rechaza_sin_descomprimir(client, nuevo_cliente):
+    import resource
+    import time as reloj
+    bomba = _bomba_png()
+    antes = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    inicio = reloj.monotonic()
+    r = client.post("/analisis", files={"file": ("b.png", bomba, "image/png")})
+    assert r.status_code == 413 and r.json()["error"]["codigo"] == "IMAGEN_DEMASIADO_GRANDE"
+    assert reloj.monotonic() - inicio < 2
+    assert (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - antes) < 100 * 1024, "no se reservaron 400 MB"
+    c = nuevo_cliente()
+    c.registrar()
+    r = c.post("/api/v2/apuntes", data={"tipos": "cuaderno"}, files=[("paginas", ("b.png", bomba, "image/png"))])
+    # Contrato v2: fotos inválidas → 400 con el código de la página (docs/api-v2.md §6)
+    assert r.status_code == 400 and r.json()["error"]["codigo"] == "IMAGEN_DEMASIADO_GRANDE"

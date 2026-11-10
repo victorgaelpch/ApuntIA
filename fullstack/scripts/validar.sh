@@ -51,6 +51,7 @@ if command -v tesseract >/dev/null 2>&1; then
 else
     RESUMEN+=("○ Evaluación del OCR omitida: Tesseract no está instalado")
 fi
+paso "Seguridad: sin secretos en el repositorio ni en su historial" "$PY" fullstack/scripts/buscar_secretos.py
 paso "Interfaz: catálogo de mensajes y reglas de seguridad" bash -c "node --test $(junit_node catalogo) front/tests/catalogo.test.js"
 paso "Sintaxis de los scripts de arranque" bash -c "for s in fullstack/scripts/*.sh iniciar.sh detener.sh; do bash -n \"\$s\" || exit 1; done"
 paso "Sintaxis de los workflows y de compose.yaml" "$PY" - <<'PYEOF'

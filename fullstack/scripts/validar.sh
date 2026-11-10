@@ -48,6 +48,8 @@ if command -v tesseract >/dev/null 2>&1; then
     paso "Backend: evaluación real del OCR y las fórmulas" bash -c "cd back/motori_magenes && '$PY' -m pytest -p no:cacheprovider -m evaluacion $(junit_py evaluacion)"
     paso "Banco de evaluación: comparación con la línea base (FULL-19)" \
         "$PY" fullstack/evaluacion/evaluar.py --comparar fullstack/evaluacion/linea-base.json --salida "${INFORMES:-fullstack/evaluacion/resultados}"
+    paso "Aceptación: escenarios educativos y criterios de rechazo (FULL-24)" \
+        "$PY" fullstack/evaluacion/aceptacion.py --salida "${INFORMES:-fullstack/evaluacion/resultados}"
 else
     RESUMEN+=("○ Evaluación del OCR omitida: Tesseract no está instalado")
 fi

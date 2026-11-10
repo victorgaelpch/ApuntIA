@@ -8,7 +8,7 @@ fullstack/scripts/validar.sh
 
 | Modo | Qué ejecuta | Tiempo aprox. |
 |------|-------------|---------------|
-| `--rapido` (por defecto) | pytest del backend (370), evaluación real del OCR y las fórmulas y banco de evaluación contra la línea base (si hay Tesseract), búsqueda de secretos, enlaces de la documentación, catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1,5 min |
+| `--rapido` (por defecto) | pytest del backend (375), evaluación real del OCR y las fórmulas, banco de evaluación contra la línea base y escenarios de aceptación con criterios de rechazo (si hay Tesseract), búsqueda de secretos, enlaces de la documentación, catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1,5 min |
 | `--completo` | además: interfaz con API simulada (Playwright), integración v1/v2 con el backend real (incluida accesibilidad), scripts de arranque y humo de entrega con reinicio y demostración | 6,5 min |
 | `--docker` | además: construir las imágenes, la prueba de humo de Docker Compose y el humo de entrega con `down` + `up` | +3 min |
 
@@ -31,6 +31,7 @@ paso del workflow con «: » sin comillas, que hacía inválido el YAML.
 | Scripts de arranque | `fullstack/tests/scripts/` | `npm run test:scripts` |
 | Humo de despliegue (Docker) | `fullstack/tests/docker/` | `npm run test:docker` |
 | Humo de entrega: el mismo en scripts y Docker, reinicio, demostración (FULL-22) | `fullstack/tests/entrega/` | `npm run test:entrega` |
+| Aceptación: escenarios educativos y criterios de rechazo (FULL-24) | `fullstack/evaluacion/aceptacion.py` | `python fullstack/evaluacion/aceptacion.py` |
 | Mutaciones (¿detecta regresiones?) | `back/motori_magenes/herramientas/mutaciones.py` | `python herramientas/mutaciones.py` |
 
 Detalle: [`docs/pruebas-backend.md`](pruebas-backend.md) y [`docs/pruebas-interfaz.md`](pruebas-interfaz.md).

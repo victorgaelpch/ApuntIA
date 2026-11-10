@@ -13,9 +13,9 @@ nueva, apunte con la foto real de pizarrón, OCR y PDF).
 1. **El clon limpio no arrancaba:** `ModuleNotFoundError: No module named 'app.datos'`. La regla
    `datos/` del `.gitignore` excluía también el paquete de código `back/motori_magenes/app/datos/`, que
    nunca había llegado al repositorio (en el equipo de desarrollo existía y todas las pruebas pasaban).
-   Corregido en el commit `9ff37ce`.
+   Corregido en el commit `500acb7`.
 2. **La demostración tardaba 3 min 8 s** porque dos análisis simultáneos se estorbaban (hilos OpenMP de
-   Tesseract). Con `OMP_THREAD_LIMIT=1` (commit `4ad4fea`): 5 s.
+   Tesseract). Con `OMP_THREAD_LIMIT=1` (commit `d48cefe`): 5 s.
 
 ## Transcripción (salida real, sin colores)
 
@@ -78,7 +78,7 @@ instancia; con `./iniciar.sh` a secas es el 8000.
 
 ## Validación rápida en el mismo clon
 
-`fullstack/scripts/validar.sh --rapido` en el clon limpio (con el commit `9ff37ce`): **todo en verde en
+`fullstack/scripts/validar.sh --rapido` en el clon limpio (con el commit `500acb7`): **todo en verde en
 1 min 9 s** (pytest 368 passed, evaluación 12 passed, banco de evaluación 9/9 sin regresiones, sin
 secretos, enlaces correctos, reglas de la interfaz y sintaxis de scripts, workflows y `compose.yaml`).
 

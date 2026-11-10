@@ -25,11 +25,15 @@ flowchart LR
 | Reconocimiento de texto impreso (Tesseract 5, español e inglés) | ✅ CER 0,7 % en el banco de pruebas sintético ([evaluación](docs/evaluacion.md)) |
 | Letra manuscrita | ⚠️ Parcial: lo que no se lee con seguridad se marca y se conserva como imagen; no se inventa texto |
 | Fórmulas a LaTeX | ⚠️ Parcial: las fórmulas en una línea (potencias, raíces, fracciones con `/`) sí; las de dos dimensiones (fracciones apiladas, matrices) se conservan como imagen y se pueden escribir en el editor |
+| Tablas fotografiadas | ⚠️ Parcial: se lee el texto de las celdas, no la estructura; la tabla se arma en el editor con «Convertir en tabla» |
 | Editor: corregir bloques, fórmulas con vista previa, tablas, esquemas, versiones, comparación | ✅ Disponible |
 | Información complementaria de Wikipedia, con fuente y consentimiento | ✅ Disponible y **opcional** (necesita Internet) |
 | PDF del apunte | ✅ Disponible, sin Internet |
 | Mis apuntes: búsqueda, filtros, PDF, borrado | ✅ Disponible |
 | Probado en | Linux con Chromium (pruebas automáticas). Windows, macOS, Firefox, Safari y móviles reales: **pendiente de probar** |
+
+Resultados de cada escenario de uso (pizarrón, manuscrito, fórmulas, tabla, diagrama, varias páginas…),
+criterios de rechazo y limitaciones: [docs/aceptacion.md](docs/aceptacion.md).
 
 ## Requisitos
 
@@ -160,7 +164,7 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [docs/ci.md](docs/ci.m
 | Seguridad y privacidad | [auditoría](docs/seguridad.md) · [API](docs/seguridad-api.md) · [permisos](docs/permisos.md) · [privacidad](docs/privacidad.md) |
 | Operación | [diagnóstico](docs/diagnostico.md) · [copias de seguridad](docs/respaldo.md) |
 | Calidad | [evaluación del OCR y PDF](docs/evaluacion.md) · [pruebas del backend](docs/pruebas-backend.md) · [pruebas de interfaz](docs/pruebas-interfaz.md) · [CI](docs/ci.md) |
-| Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [cambios por versión](CHANGELOG.md) |
+| Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [aceptación y evidencias](docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](docs/alcance.md) · [definición de hecho](docs/definicion-de-hecho.md) · [dependencias y licencias](docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 
 ## Datos de ejemplo y licencias

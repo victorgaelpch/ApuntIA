@@ -29,6 +29,7 @@ el número mayor sube porque cambia el producto, no el contrato v1.
   seguridad** verificadas con restauración. FULL-21, FULL-23.
 - **Banco de evaluación** sintético con línea base y comparación automática. FULL-19.
 - **Modo demostración** (`iniciar.sh --demo`): cuenta y apuntes sintéticos en una carpeta aparte. FULL-22.
+- **Escenarios de aceptación** con criterios de rechazo (`fullstack/evaluacion/aceptacion.py`), en la CI. FULL-24.
 - Pruebas de punta a punta con el backend real, accesibilidad y diseño adaptable; CI con trabajos
   rápido, interfaz, integración y Docker. BACK-25, FRONT-21, FULL-16, FULL-17.
 
@@ -43,12 +44,16 @@ el número mayor sube porque cambia el producto, no el contrato v1.
   amplia del `.gitignore` (`datos/`): un clon limpio no arrancaba. Detectado al instalar desde cero.
 - Dos análisis simultáneos tardaban ~200 s en vez de ~2 s porque los hilos OpenMP de Tesseract
   competían: ahora `OMP_THREAD_LIMIT=1` por defecto.
+- Una tabla dibujada en la hoja se tomaba por el borde de la hoja (se perdía lo de alrededor) y sus
+  celdas no se leían (0 de 8): ahora se conserva la página entera y se leen 7 de 8.
+- El PDF rotulaba como «manuscrito» cualquier fragmento no transcrito (también fórmulas impresas).
 - Nginx sobrescribe `X-Forwarded-For` (antes se podía falsear para saltarse los límites por IP).
 - Las bombas de descompresión se rechazan como `IMAGEN_DEMASIADO_GRANDE` (413), no como imagen corrupta.
 
 ### Seguridad
 
 Auditoría completa (FULL-20) en [docs/seguridad.md](docs/seguridad.md), con los riesgos que siguen abiertos.
+Escenarios de aceptación, criterios de rechazo, trazabilidad y limitaciones: [docs/aceptacion.md](docs/aceptacion.md) (FULL-24).
 
 ## [1.0.0] — 2026-11-03
 

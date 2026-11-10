@@ -25,6 +25,7 @@
                      ocr.disponible ? `Motor ${ocr.motor} ${ocr.version || ""}; idiomas: ${(ocr.idiomas || []).join(", ")}.`
                                     : "Sin OCR los apuntes no se pueden analizar (falta Tesseract en el servidor)."),
                 fila("Fórmulas a LaTeX", Boolean(ocr.disponible), "Las fórmulas que no se reconocen con seguridad se conservan como imagen."),
+                fila("Tablas fotografiadas", Boolean(ocr.disponible), "Se lee el texto de las celdas; la tabla se arma en el editor con «Convertir en tabla»."),
                 fila("Apuntes de varias páginas", true, `Hasta ${s.max_paginas || 20} fotos por apunte.`),
                 fila("PDF del apunte", true, "Se genera en el servidor, sin Internet."),
                 fila("Información complementaria", Boolean(inv.disponible),

@@ -11,10 +11,12 @@ fullstack/
 ├── config/
 │   └── .env.example        # Variables de toda la aplicación (puertos, datos, OCR, límites)
 ├── scripts/                # iniciar/detener .sh y .ps1 sin Docker (FULL-11), copias de seguridad (FULL-23)
-├── docker/                 # Dockerfile, nginx y compose.yaml (FULL-13)
+├── compose.yaml            # Docker Compose: backend + web (FULL-13)
+├── docker/                 # Dockerfiles, .dockerignore y nginx.conf (FULL-13)
 ├── tests/
 │   ├── integracion/        # Pruebas frontend + backend reales (antes en tests/integracion/)
-│   └── scripts/            # Pruebas de los scripts de arranque (npm run test:scripts)
+│   ├── scripts/            # Pruebas de los scripts de arranque (npm run test:scripts)
+│   └── docker/             # Prueba de humo de Docker Compose (npm run test:docker)
 └── evaluacion/             # Banco de muestras y métricas de OCR, fórmulas y PDF (FULL-19)
 ```
 

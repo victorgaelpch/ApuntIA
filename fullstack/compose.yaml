@@ -1,0 +1,67 @@
+# ApuntIA con Docker Compose (FULL-13). Desde la raíz del repositorio:
+#
+#   docker compose -f fullstack/compose.yaml up --build -d     # arrancar
+#   docker compose -f fullstack/compose.yaml logs -f           # ver registros
+#   docker compose -f fullstack/compose.yaml down              # parar (los datos se conservan)
+#
+# Abre http://localhost:8000/inicio (o el puerto de APUNTIA_PUERTO).
+# Solo hay dos servicios porque solo existen dos componentes: el backend FastAPI y la
+# interfaz estática (Nginx, que además hace de proxy de la API en el mismo origen).
+name: apuntia
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: fullstack/docker/backend.Dockerfile
+    image: apuntia-backend:local
+    env_file:
+      - path: config/.env        # opcional: misma configuración que los scripts (FULL-11)
+        required: false
+    environment:
+      DATA_DIR: /datos
+      FRONT_DIR: ""              # la interfaz la sirve el servicio web
+    volumes:
+      - datos:/datos             # base de datos y archivos de los usuarios (nunca en la imagen)
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 2g
+    cpus: 2
+    stop_grace_period: 20s
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request,sys; sys.exit(0 if json.load(urllib.request.urlopen('http://127.0.0.1:8000/salud', timeout=4))['estado']=='ok' else 1)"]
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks: [interna]
+
+  web:
+    build:
+      context: ..
+      dockerfile: fullstack/docker/web.Dockerfile
+    image: apuntia-web:local
+    ports:
+      - "${APUNTIA_PUERTO:-8000}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 1
+    restart: unless-stopped
+    networks: [interna]
+
+volumes:
+  datos:
+
+networks:
+  interna:

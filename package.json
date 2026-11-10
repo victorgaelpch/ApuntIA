@@ -11,7 +11,8 @@
     "lint:commits": "commitlint --from origin/main --to HEAD --verbose",
     "test:v2": "node --test --test-concurrency=1 \"fullstack/tests/integracion/v2-*.test.js\"",
     "test:a11y": "node --test \"fullstack/tests/integracion/v2-accesibilidad.test.js\"",
-    "test:scripts": "node --test \"fullstack/tests/scripts/*.test.js\""
+    "test:scripts": "node --test \"fullstack/tests/scripts/*.test.js\"",
+    "test:docker": "node --test \"fullstack/tests/docker/*.test.js\""
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",

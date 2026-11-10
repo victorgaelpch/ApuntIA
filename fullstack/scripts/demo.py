@@ -2,7 +2,8 @@
 
 Crea en una ApuntIA ya en marcha una cuenta de ejemplo con apuntes hechos a partir de fotos
 SINTÉTICAS (el corpus de evaluación, generado por código): ningún dato de una persona real.
-Es idempotente: si la cuenta ya existe, no crea nada más.
+Es idempotente: si la cuenta ya existe, no crea nada más. La contraseña se genera la primera vez,
+se muestra al terminar y se guarda en clave-demo.txt, junto a los datos de la demostración.
 
     python fullstack/scripts/demo.py http://localhost:8000
 
@@ -13,6 +14,7 @@ la demostración nunca se mezcle con los datos reales. Necesita el Python del ba
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -22,10 +24,27 @@ from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parents[2] / "back" / "motori_magenes"
 sys.path.insert(0, str(BACKEND))
-from herramientas.claves_prueba import clave_de_prueba
+from herramientas.claves_prueba import clave_de_prueba  # noqa: E402
 
 EMAIL = "demo@example.com"
-PASSWORD = clave_de_prueba("demo")
+
+
+def clave_demo() -> str:
+    """La contraseña de la cuenta de demostración NO está en el código: se genera la primera vez y
+    se guarda (solo legible por ti) junto a los datos de la demostración, para reutilizarla."""
+    datos = os.environ.get("DATA_DIR")
+    carpeta = Path(datos).parent if datos else Path(__file__).resolve().parents[1] / ".demo"
+    archivo = carpeta / "clave-demo.txt"
+    if archivo.exists():
+        return archivo.read_text(encoding="utf-8").strip()
+    clave = clave_de_prueba("demo")
+    carpeta.mkdir(parents=True, exist_ok=True)
+    archivo.write_text(clave + "\n", encoding="utf-8")
+    archivo.chmod(0o600)
+    return clave
+
+
+PASSWORD = clave_demo()
 APUNTES = [
     ("Demostración: pizarrón", ["impreso_pizarron", "pizarron_con_ruido", "formulas_pizarron"]),
     ("Demostración: cuaderno", ["impreso_cuaderno", "cuaderno_con_sombra", "diagrama"]),

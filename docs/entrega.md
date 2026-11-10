@@ -81,7 +81,8 @@ npm run test:entrega
 ```
 
 Arranca ApuntIA con los datos en **`fullstack/.demo/`**, separados de los reales, y crea la cuenta
-**`demo@example.com`** (la contraseña la muestra el script al terminar) con dos apuntes hechos a partir de fotos
+**`demo@example.com`** (la contraseña se genera la primera vez, la muestra el script al terminar y queda guardada en
+`fullstack/.demo/clave-demo.txt`; no está escrita en ningún archivo del repositorio) con dos apuntes hechos a partir de fotos
 **sintéticas** del banco de evaluación: «Demostración: pizarrón» (texto, ruido y fórmulas) y
 «Demostración: cuaderno» (renglones, sombra y un diagrama). Tarda unos 5 s una vez instalado.
 Ningún dato de una persona real.

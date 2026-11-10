@@ -61,6 +61,15 @@ describe("FULL-22 humo principal en los dos modos", () => {
             assert.equal(detener().status, 0);
             assert.deepEqual(fs.readdirSync(reales), ["testigo"], "la demostración no toca los datos reales");
             assert.ok(fs.existsSync(path.join(demo, "datos", "apuntia.sqlite3")));
+            // La contraseña no está en el código: se genera, se guarda solo para su dueño y se reutiliza.
+            const archivoClave = path.join(demo, "clave-demo.txt");
+            assert.equal(fs.readFileSync(archivoClave, "utf8").trim(), claveDePrueba("demo"));
+            assert.equal(fs.statSync(archivoClave).mode & 0o777, 0o600);
+            r = iniciar("--demo");
+            assert.equal(r.status, 0, r.stderr);
+            assert.match(r.stdout, /ya está preparada/);
+            assert.deepEqual(await apuntesDemo(), esperado);
+            assert.equal(detener().status, 0);
 
             // Una carpeta sin la marca de demostración no se borra nunca.
             const ajena = path.join(base, "ajena");

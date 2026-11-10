@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-11-10T06:48:36",
+  "fecha": "2026-11-10T11:41:12",
   "versiones": {
     "python": "3.13.18",
     "opencv": "5.0.0",
@@ -10,8 +10,27 @@
       "motor": "tesseract",
       "version": "5.3.4",
       "idiomas": [
+        "ara",
+        "chi_sim",
+        "chi_tra",
+        "deu",
         "eng",
-        "spa"
+        "fra",
+        "heb",
+        "hin",
+        "ind",
+        "ita",
+        "jpn",
+        "jpn_vert",
+        "kor",
+        "nld",
+        "pol",
+        "por",
+        "rus",
+        "spa",
+        "tha",
+        "tur",
+        "vie"
       ]
     }
   },
@@ -23,14 +42,14 @@
       "trabajo": "completado",
       "cer": 0.0068,
       "wer": 0.0385,
-      "reconocidos": 3,
-      "inciertos": 0,
+      "reconocidos": 2,
+      "inciertos": 1,
       "sin_leer": 0,
-      "reconocidos_con_errores": 1,
+      "reconocidos_con_errores": 0,
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 520
+      "ms": 1640
     },
     {
       "muestra": "cuaderno_con_sombra",
@@ -39,14 +58,14 @@
       "trabajo": "completado",
       "cer": 0.0068,
       "wer": 0.0385,
-      "reconocidos": 3,
-      "inciertos": 0,
+      "reconocidos": 2,
+      "inciertos": 1,
       "sin_leer": 0,
-      "reconocidos_con_errores": 1,
+      "reconocidos_con_errores": 0,
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 522
+      "ms": 1871
     },
     {
       "muestra": "cuaderno_cuadriculado",
@@ -55,14 +74,14 @@
       "trabajo": "completado",
       "cer": 0.0068,
       "wer": 0.0385,
-      "reconocidos": 5,
-      "inciertos": 0,
+      "reconocidos": 4,
+      "inciertos": 1,
       "sin_leer": 0,
-      "reconocidos_con_errores": 1,
+      "reconocidos_con_errores": 0,
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 560
+      "ms": 1897
     },
     {
       "muestra": "impreso_pizarron",
@@ -78,7 +97,7 @@
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 486
+      "ms": 1422
     },
     {
       "muestra": "pizarron_con_ruido",
@@ -94,7 +113,7 @@
       "conservados_como_imagen": 1,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 818
+      "ms": 2055
     },
     {
       "muestra": "pizarron_oscuro",
@@ -110,7 +129,7 @@
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.8,
       "orden_lectura": 1.0,
-      "ms": 424
+      "ms": 1516
     },
     {
       "muestra": "manuscrito_cuaderno",
@@ -126,7 +145,7 @@
       "conservados_como_imagen": 0,
       "lineas_exactas": 1.0,
       "orden_lectura": 1.0,
-      "ms": 434
+      "ms": 1041
     },
     {
       "muestra": "manuscrito_dificil",
@@ -135,14 +154,14 @@
       "trabajo": "completado",
       "cer": 0.0556,
       "wer": 0.4,
-      "reconocidos": 1,
-      "inciertos": 1,
+      "reconocidos": 0,
+      "inciertos": 2,
       "sin_leer": 0,
       "reconocidos_con_errores": 0,
       "conservados_como_imagen": 0,
       "lineas_exactas": 0.5,
       "orden_lectura": 1.0,
-      "ms": 840
+      "ms": 2027
     },
     {
       "muestra": "formulas_pizarron",
@@ -158,7 +177,7 @@
       "conservados_como_imagen": 1,
       "lineas_exactas": 0.5,
       "orden_lectura": 1.0,
-      "ms": 813
+      "ms": 3741
     },
     {
       "muestra": "formulas_2d",
@@ -174,7 +193,7 @@
       "conservados_como_imagen": 4,
       "lineas_exactas": 0.0,
       "orden_lectura": null,
-      "ms": 305
+      "ms": 422
     },
     {
       "muestra": "diagrama",
@@ -190,7 +209,7 @@
       "conservados_como_imagen": 2,
       "lineas_exactas": 1.0,
       "orden_lectura": 1.0,
-      "ms": 945
+      "ms": 2707
     }
   ],
   "formulas": {
@@ -245,8 +264,8 @@
     "trabajo": "completado",
     "paginas_pdf": 5,
     "kb": 207,
-    "ms_analisis": 1048,
-    "ms_pdf": 293,
+    "ms_analisis": 3048,
+    "ms_pdf": 192,
     "comprobaciones": {
       "abre_y_tiene_paginas": true,
       "texto_seleccionable": true,
@@ -262,7 +281,7 @@
     "html_disfrazado": {
       "http": 400,
       "codigo": "TIPO_NO_PERMITIDO",
-      "ms": 6
+      "ms": 7
     },
     "vacio": {
       "http": 400,
@@ -272,12 +291,12 @@
     "demasiado_grande": {
       "http": 400,
       "codigo": "ARCHIVO_DEMASIADO_GRANDE",
-      "ms": 37
+      "ms": 42
     },
     "png_truncado": {
       "http": 400,
       "codigo": "IMAGEN_CORRUPTA",
-      "ms": 5
+      "ms": 6
     }
   },
   "regresiones": {
@@ -288,6 +307,6 @@
     "FULL-19: la cuadrícula no se convierte en texto": true,
     "FULL-19: un diagrama se conserva como imagen y no se inventa texto": true
   },
-  "segundos": 11.4,
-  "memoria_mb": 390
+  "segundos": 26.3,
+  "memoria_mb": 517
 }

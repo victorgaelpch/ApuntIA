@@ -51,6 +51,7 @@ class Preprocesado:
     psm: int                          # modo de segmentación de Tesseract
     perspectiva: str
     advertencias: list[str] = field(default_factory=list)
+    inclinacion: float = 0.0          # grados corregidos al enderezar (BACK-28)
 
 
 def advertencias_calidad(img: np.ndarray) -> list[str]:
@@ -171,10 +172,61 @@ def quitar_lineas_largas(gris: np.ndarray) -> np.ndarray:
     return cv2.inpaint(gris, mascara, 2, cv2.INPAINT_TELEA)
 
 
-def preprocesar_para_ocr(imagen: np.ndarray, tipo_fuente: str) -> Preprocesado:
+INCLINACION_MAX = 15.0    # grados que se buscan al enderezar
+INCLINACION_MIN = 0.7     # por debajo no se gira (Tesseract lo tolera y girar suaviza la letra)
+
+
+def estimar_inclinacion(img: np.ndarray) -> float:
+    """Ángulo (grados, antihorario) que endereza las líneas de texto de la foto (BACK-28).
+
+    Perfil de proyección: al girar la tinta al ángulo correcto, las filas con texto y las
+    vacías se alternan con nitidez y la varianza del perfil horizontal es máxima. Se busca
+    primero cada 1° y después cada 0,1°. Devuelve 0 si no hay un máximo claro (página casi
+    vacía, un dibujo, o texto ya derecho)."""
+    gris = img if img.ndim == 2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    escala = 800 / max(gris.shape)
+    if escala < 1:
+        gris = cv2.resize(gris, None, fx=escala, fy=escala, interpolation=cv2.INTER_AREA)
+    tinta = cv2.adaptiveThreshold(gris, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 25, 15)
+    if tinta.mean() < 0.5:  # casi sin tinta: nada que alinear
+        return 0.0
+    alto, ancho = tinta.shape
+    centro = (ancho / 2, alto / 2)
+
+    def puntuacion(angulo: float) -> float:
+        m = cv2.getRotationMatrix2D(centro, angulo, 1.0)
+        girada = cv2.warpAffine(tinta, m, (ancho, alto), flags=cv2.INTER_NEAREST)
+        return float(np.var(girada.sum(axis=1, dtype=np.float64)))
+
+    gruesos = np.arange(-INCLINACION_MAX, INCLINACION_MAX + 0.01, 1.0)
+    puntos = [puntuacion(a) for a in gruesos]
+    mejor = float(gruesos[int(np.argmax(puntos))])
+    finos = np.arange(mejor - 1.0, mejor + 1.01, 0.1)
+    puntos_finos = [puntuacion(a) for a in finos]
+    angulo = float(finos[int(np.argmax(puntos_finos))])
+    base = puntuacion(0.0)
+    # Solo si alinear mejora el perfil de forma clara (no por ruido) y no está en el límite
+    # de la búsqueda (un ángulo de 15° suele ser un diagrama, no texto girado).
+    if abs(angulo) < INCLINACION_MIN or abs(angulo) > INCLINACION_MAX - 0.5 or max(puntos_finos) < 1.15 * base:
+        return 0.0
+    return round(angulo, 1)
+
+
+def enderezar(img: np.ndarray, angulo: float) -> np.ndarray:
+    alto, ancho = img.shape[:2]
+    m = cv2.getRotationMatrix2D((ancho / 2, alto / 2), angulo, 1.0)
+    return cv2.warpAffine(img, m, (ancho, alto), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+
+def preprocesar_para_ocr(imagen: np.ndarray, tipo_fuente: str, enderezar_texto: bool = False) -> Preprocesado:
     original = a_bgr(imagen)
     avisos = advertencias_calidad(original)
     vista, estado = corregir_perspectiva_hoja(original)
+    inclinacion = 0.0
+    if enderezar_texto and estado != "corregida":  # con la perspectiva corregida ya está alineado
+        inclinacion = estimar_inclinacion(vista)
+        if inclinacion:
+            vista = enderezar(vista, inclinacion)
     vista = _escalar_para_ocr(vista)
 
     if tipo_fuente == "cuaderno":
@@ -194,4 +246,4 @@ def preprocesar_para_ocr(imagen: np.ndarray, tipo_fuente: str) -> Preprocesado:
         if ruido_estimado(gris) > UMBRAL_RUIDO:
             gris = cv2.medianBlur(gris, 3)
         psm = 3
-    return Preprocesado(quitar_lineas_largas(gris), vista, psm, estado, avisos)
+    return Preprocesado(quitar_lineas_largas(gris), vista, psm, estado, avisos, inclinacion)

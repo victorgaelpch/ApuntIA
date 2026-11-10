@@ -1,9 +1,9 @@
 """Trabajo de análisis de un apunte: fotos → documento editable (BACK-21).
 
 Para cada página, en orden:
-  preprocesado por perfil (BACK-12) → OCR por bloques (BACK-13) → respaldo de
-  manuscritos (BACK-14) → fórmulas a LaTeX (BACK-15) → recortes privados →
-  bloques del documento (BACK-17).
+  reconocimiento de la página (services/reconocimiento.py, BACK-28: preprocesado,
+  OCR, respaldo de manuscritos y fórmulas) → recortes privados → bloques del
+  documento (BACK-17).
 
 Estados finales:
   - completado: todas las páginas se analizaron;
@@ -24,11 +24,9 @@ from app.core import contexto
 from app.core.config import settings
 from app.core.errores import ApiError
 from app.datos.apuntes import RepositorioApuntes
-from app.services.documento import Bloque, Documento
-from app.services.formulas import separar_formulas
-from app.services.manuscrito import leer_con_respaldo
-from app.services.ocr import ErrorOCR, reconocer
-from app.services.preprocesado_ocr import preprocesar_para_ocr
+from app.services.documento import Bloque, CalidadPagina, Documento, MetricasCalidad
+from app.services.ocr import ErrorOCR
+from app.services.reconocimiento import reconocer_pagina
 from app.services.trabajos import ErrorTrabajo, Resultado, Trabajo
 
 logger = logging.getLogger("apuntia.analisis")
@@ -73,10 +71,8 @@ def analizar_pagina(trabajo: Trabajo, pagina, idiomas: str) -> tuple[dict, list[
     imagen = cv2.imdecode(np.frombuffer(datos, np.uint8), cv2.IMREAD_COLOR)
     if imagen is None:
         raise ErrorTrabajo("IMAGEN_CORRUPTA", "La foto no se pudo leer.")
-    pre = preprocesar_para_ocr(imagen, pagina.tipo_fuente)
-    bloques_ocr = reconocer(pre.imagen_ocr, idiomas=idiomas, psm=pre.psm)
-    bloques_ocr = leer_con_respaldo(pre.imagen_ocr, bloques_ocr, idiomas)
-    bloques_ocr = separar_formulas(bloques_ocr)
+    resultado = reconocer_pagina(imagen, pagina.tipo_fuente, idiomas)
+    pre, bloques_ocr = resultado.pre, resultado.bloques
 
     procesada = _guardar(trabajo, _jpeg(pre.imagen_vista), "procesada", "image/jpeg")
     alto, ancho = pre.imagen_vista.shape[:2]
@@ -92,9 +88,15 @@ def analizar_pagina(trabajo: Trabajo, pagina, idiomas: str) -> tuple[dict, list[
             estado=estado, confianza=round(b.confianza, 3), texto=b.texto, texto_original=b.texto,
             latex=latex, latex_original=latex, latex_valido=getattr(b, "latex_valido", None),
             recorte=recorte, palabras_dudosas=b.dudosas[:200],
-            conservar_imagen=tipo in ("imagen", "manuscrito") and not b.texto))
+            conservar_imagen=tipo in ("imagen", "manuscrito") and not b.texto,
+            alternativas=b.alternativas[:3], procedencia=b.procedencia or None,
+            revision=b.revision if estado != "no_reconocido" else None))
     cambios = {"archivo_procesado": procesada, "ancho": ancho, "alto": alto,
-               "advertencias": pre.advertencias, "error": None}
+               "advertencias": resultado.advertencias, "error": None,
+               # model_copy no valida: se construye ya el modelo (no un dict).
+               "calidad": (CalidadPagina(nivel=resultado.calidad.nivel,
+                                         metricas=MetricasCalidad(**resultado.calidad.metricas))
+                           if resultado.calidad else None)}
     return cambios, bloques
 
 

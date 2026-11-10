@@ -4,6 +4,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 [semánticas](https://semver.org/lang/es/). La versión se ve en `GET /salud` (`"version"`).
 Cómo se publica una versión: [docs/entrega.md](docs/entrega.md#6-lista-de-comprobación-de-la-versión).
 
+## [Sin publicar]
+
+### Añadido
+
+- **Reconocimiento adaptativo** (BACK-28, `RECONOCIMIENTO_MODO=adaptativo` por defecto): diagnóstico
+  de calidad de cada foto con avisos concretos y nivel `insuficiente` (se pide repetir la foto y
+  nada queda como seguro); el texto girado se endereza; las regiones dudosas se releen con
+  variantes por región; una relectura de consenso detecta errores con confianza alta; lectura
+  especializada de fórmulas. Cada bloque guarda su procedencia, hasta 3 lecturas alternativas
+  reales y el motivo de revisión; el editor las muestra y una alternativa se usa con un clic.
+  Corpus de casos difíciles con particiones de desarrollo y evaluación (`herramientas/corpus_dificil.py`,
+  `herramientas/evaluar_dificil.py`). En la partición de evaluación: CER 27,4 % → 17,4 %, textos
+  falsos dados por seguros 6 → 3. Sin dependencias nuevas. `RECONOCIMIENTO_MODO=clasico` vuelve al flujo anterior.
+
+### Cambiado
+
+- El análisis tarda más: ~1 s por foto en la mediana (antes ~0,4 s). Límites configurables con
+  `RECONOCIMIENTO_MAX_VARIANTES`, `RECONOCIMIENTO_MAX_BLOQUES` y `RECONOCIMIENTO_MAX_SEGUNDOS`.
+- Igualdades cortas como `F = ma` se detectan como fórmula.
+
 ## [2.0.0] — 2026-11-10 (preparada, sin etiqueta publicada)
 
 Apuntes completos con cuenta: de varias fotos de pizarrón o cuaderno a un apunte editable y un PDF.

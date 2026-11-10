@@ -9,7 +9,7 @@ const { claveDePrueba } = require("../claves");
 
 async function iniciarBackendV2(env = {}) {
     const datos = fs.mkdtempSync(path.join(os.tmpdir(), "apuntia-e2e-"));
-    const backend = await iniciarBackend({ DATA_DIR: datos, INVESTIGACION_PROVEEDOR: "ninguno", ...env });
+    const backend = await iniciarBackend({ DATA_DIR: datos, INVESTIGACION_PROVEEDOR: "ninguno", MAX_REGISTROS_HORA: "1000", ...env });
     const detener = backend.detener;
     backend.datos = datos;
     backend.detener = async () => { await detener(); fs.rmSync(datos, { recursive: true, force: true }); };

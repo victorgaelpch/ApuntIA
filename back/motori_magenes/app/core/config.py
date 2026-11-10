@@ -69,6 +69,8 @@ class Settings:
     # Endurecimiento (BACK-24): cuerpo JSON máximo y espacio por usuario.
     max_json_kb: int = int(os.getenv("MAX_JSON_KB", "4096"))
     cuota_mb_usuario: int = int(os.getenv("CUOTA_MB_USUARIO", "500"))
+    # Cuentas nuevas por IP y hora (en un aula detrás de un mismo router puede hacer falta subirlo).
+    max_registros_hora: int = int(os.getenv("MAX_REGISTROS_HORA", "10"))
 
     # Lado mayor con el que se procesa la imagen (BACK-09). 0 = sin límite.
     max_lado_procesamiento: int = int(os.getenv("MAX_LADO_PROCESAMIENTO", "2000"))

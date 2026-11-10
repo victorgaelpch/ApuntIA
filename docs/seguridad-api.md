@@ -52,7 +52,7 @@ interfaz debe mostrar ese texto con `textContent`, nunca con `innerHTML`.
 | Páginas por apunte | `MAX_PAGINAS` (20) | `400 DEMASIADAS_PAGINAS` |
 | Espacio por usuario | `CUOTA_MB_USUARIO` (500 MB) | `413 CUOTA_EXCEDIDA` |
 | Inicios de sesión fallidos | 5 por email y 20 por IP en 15 min | `429 DEMASIADOS_INTENTOS` |
-| Registros | 10 por IP y hora | `429 DEMASIADAS_PETICIONES` |
+| Registros | 10 por IP y hora (`MAX_REGISTROS_HORA`) | `429 DEMASIADAS_PETICIONES` |
 | Recuperación de contraseña | 10 por IP y 3 por email cada hora | `429 DEMASIADAS_PETICIONES` |
 | Apuntes nuevos | 30 por usuario y hora | `429 DEMASIADAS_PETICIONES` |
 | Vistas previas de fórmulas | 120 por usuario y minuto | `429 DEMASIADAS_PETICIONES` |

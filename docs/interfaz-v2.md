@@ -71,3 +71,23 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 - Envío con barra de progreso real, botón «Cancelar envío» y «Reintentar»; la cabecera
   `Idempotency-Key` hace que un reintento tras un corte no cree dos apuntes.
 - Al aceptarse, se abre el editor del apunte, que muestra el avance del análisis.
+
+## Editor: transcripción (FRONT-13)
+
+- Mientras el análisis está en curso se muestra su etapa y progreso reales (`GET /api/v2/trabajos/{id}`),
+  con «Cancelar análisis»; si falla o se cancela, el motivo y «Reintentar el análisis».
+- Vista lado a lado: la foto procesada de cada página con las **regiones** de los bloques
+  (posicionadas en % de `bbox`, así escalan con el ancho; amarillo = reconocido, naranja
+  discontinuo = incierto, rojo punteado = sin leer) y la lista de bloques en orden de lectura.
+  Pulsar una región enfoca su bloque y viceversa. «Ver la foto original» oculta las regiones,
+  que están en coordenadas de la procesada.
+- Cada bloque muestra estado y confianza, palabras dudosas, el recorte de la foto cuando es dudoso
+  o manuscrito, y permite corregir el texto, cambiar el tipo, dividir (donde está el cursor),
+  unir con el siguiente, subir/bajar, volver al texto reconocido, borrar (con «Deshacer») y
+  conservar la imagen original en el PDF. Se pueden añadir textos y títulos a mano.
+- Guardado explícito (botón o Ctrl+S) con `If-Match`: «Cambios sin guardar» → «Guardando…» →
+  «Guardado · versión n · hh:mm» solo tras la respuesta del servidor. Un 409 no pisa nada:
+  se ofrece ver la versión guardada, copiar los cambios o guardar encima.
+- Si la sesión caduca, la página no se abandona: los cambios siguen en la pestaña y se pide
+  iniciar sesión en otra. Al cerrar con cambios sin guardar, el navegador pide confirmación.
+- Todo el texto se muestra con `value`/`textContent`: un `<script>` del OCR o del usuario es texto.

@@ -141,7 +141,7 @@ class LimiteCuerpo:
 # ------------------------------------------------------------------ límites de frecuencia
 
 LIMITES = {  # acción → (máximo, ventana en segundos)
-    "registro": (10, 3600),           # por IP
+    "registro": (settings.max_registros_hora, 3600),  # por IP (MAX_REGISTROS_HORA)
     "recuperacion_ip": (10, 3600),    # por IP
     "recuperacion_email": (3, 3600),  # por email (no revela si existe)
     "subida": (30, 3600),             # apuntes creados por usuario

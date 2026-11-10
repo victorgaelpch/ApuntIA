@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Editor de apuntes — ApuntIA</title>
+<meta name="description" content="Revisa y corrige el texto reconocido de tu apunte junto a la foto.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <div class="editor-cabecera">
+    <div class="campo editor-titulo">
+      <label for="inpTituloApunte" class="sr-only">Título del apunte</label>
+      <input type="text" id="inpTituloApunte" maxlength="200" disabled>
+    </div>
+    <span id="chipEstadoApunte"></span>
+    <p class="estado-guardado" id="estadoGuardado" role="status" aria-live="polite">Cargando…</p>
+    <button type="button" class="btn primary" id="btGuardar" disabled>Guardar</button>
+  </div>
+  <div class="aviso" id="avisoEditor" hidden></div>
+
+  <section class="tarjeta" id="panelAnalisis" hidden aria-labelledby="tituloAnalisis">
+    <h2 id="tituloAnalisis">Analizando tus fotos</h2>
+    <p id="textoAnalisis" aria-live="polite">En cola…</p>
+    <div class="progreso" role="progressbar" aria-labelledby="textoAnalisis" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barraAnalisis"><span></span></div>
+    <div class="botones"><button type="button" class="btn" id="btCancelarAnalisis">Cancelar análisis</button></div>
+  </section>
+
+  <div class="pestanas" role="tablist" aria-label="Partes del apunte" id="pestanasEditor"></div>
+  <div id="panelesEditor"></div>
+</main>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/editor.js"></script>
+<script src="js/v2/editor-arranque.js"></script>
+</body>
+</html>

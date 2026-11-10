@@ -104,4 +104,31 @@ describe("FULL-13 Docker Compose", { skip: !hayDocker && "Docker no está dispon
         assert.match(await p2.textContent(".apunte"), /1 PDF/);
         await otra.close();
     });
+
+    test("diagnóstico y copia de seguridad: se pierde el volumen y se restaura (FULL-21, FULL-23)", async () => {
+        const conProyecto = { ...process.env, ...env, COMPOSE_PROJECT_NAME: "apuntia-prueba" };
+        const script = (nombre, args) => spawnSync(path.join(RAIZ, "fullstack", "scripts", nombre), args, { cwd: RAIZ, encoding: "utf8", env: conProyecto, timeout: 600000 });
+        assert.equal((await fetch(`${url}/api/v2/diagnostico`)).status, 404, "las métricas no se ven desde fuera");
+        const diag = script("diagnostico.sh", ["--docker"]);
+        assert.match(diag.stdout, /"listo": true/);
+        assert.match(diag.stdout, /"trabajos"/);
+        const copia = path.join(require("node:os").tmpdir(), `apuntia-docker-${Date.now()}.tar.gz`);
+        try {
+            const c = script("respaldar.sh", ["--docker", "--destino", copia]);
+            assert.equal(c.status, 0, c.stderr);
+            docker(["down", "-v"], env);   // se pierde el volumen de datos
+            docker(["up", "-d", "--no-build", "--wait"], env);
+            const vacio = await fetch(`${url}/api/v2/auth/sesion`, { method: "POST", headers: { "Content-Type": "application/json", Origin: url },
+                body: JSON.stringify({ email: "docker@example.com", password: claveDePrueba("c9") }) });
+            assert.equal(vacio.status, 401, "sin la copia, la cuenta ya no existe");
+            const r = script("restaurar.sh", [copia, "--docker", "--forzar"]);
+            assert.equal(r.status, 0, r.stderr + r.stdout);
+            await esperarSalud(url);
+            const login = await fetch(`${url}/api/v2/auth/sesion`, { method: "POST", headers: { "Content-Type": "application/json", Origin: url },
+                body: JSON.stringify({ email: "docker@example.com", password: claveDePrueba("c9") }) });
+            assert.equal(login.status, 200, "la cuenta vuelve con la copia");
+        } finally {
+            require("node:fs").rmSync(copia, { force: true });
+        }
+    });
 });

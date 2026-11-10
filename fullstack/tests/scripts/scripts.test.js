@@ -8,6 +8,7 @@ const fs = require("node:fs");
 const net = require("node:net");
 const os = require("node:os");
 const path = require("node:path");
+const { claveDePrueba } = require("../claves");
 
 const RAIZ = path.resolve(__dirname, "..", "..", "..");
 const ESTADO = path.join(RAIZ, "fullstack", ".estado");
@@ -79,6 +80,39 @@ describe("FULL-11 scripts de arranque", () => {
         assert.match(limpio(d.stdout), /ya no es de ApuntIA: no se toca/);
         assert.doesNotThrow(() => process.kill(ajeno.pid, 0), "sigue vivo");
         ajeno.kill();
+    });
+
+    test("copia de seguridad y restauración con los scripts (FULL-23)", async () => {
+        const datos = fs.mkdtempSync(path.join(os.tmpdir(), "apuntia-respaldo-"));
+        const env = { DATA_DIR: path.join(datos, "datos"), MAX_REGISTROS_HORA: "100" };
+        const puerto = await puertoLibre();
+        const url = `http://localhost:${puerto}`;
+        try {
+            assert.equal(ejecutar("iniciar.sh", ["--puerto", String(puerto), "--sin-navegador", "--sin-venv"], env).status, 0);
+            const r = await fetch(`${url}/api/v2/auth/registro`, { method: "POST", headers: { "Content-Type": "application/json", Origin: url },
+                body: JSON.stringify({ email: "copia@example.com", nombre: "Copia", password: claveDePrueba("c10") }) });
+            assert.equal(r.status, 201);
+            const copia = path.join(datos, "copia.tar.gz");
+            const c = ejecutar("fullstack/scripts/respaldar.sh", ["--destino", copia], env);
+            assert.equal(c.status, 0, c.stderr);
+            assert.match(c.stdout, /Copia correcta/);
+            assert.equal(fs.statSync(copia).mode & 0o777, 0o600);
+            // Con la aplicación en marcha no deja restaurar
+            const enMarcha = ejecutar("fullstack/scripts/restaurar.sh", [copia, "--forzar"], env);
+            assert.equal(enMarcha.status, 1);
+            assert.match(enMarcha.stderr, /detenla primero/);
+            ejecutar("detener.sh");
+            fs.rmSync(env.DATA_DIR, { recursive: true, force: true });   // se pierden los datos
+            const rest = ejecutar("fullstack/scripts/restaurar.sh", [copia], env);
+            assert.equal(rest.status, 0, rest.stderr);
+            assert.equal(ejecutar("iniciar.sh", ["--puerto", String(puerto), "--sin-navegador", "--sin-venv"], env).status, 0);
+            const login = await fetch(`${url}/api/v2/auth/sesion`, { method: "POST", headers: { "Content-Type": "application/json", Origin: url },
+                body: JSON.stringify({ email: "copia@example.com", password: claveDePrueba("c10") }) });
+            assert.equal(login.status, 200, "la cuenta vuelve tras restaurar");
+        } finally {
+            ejecutar("detener.sh");
+            fs.rmSync(datos, { recursive: true, force: true });
+        }
     });
 
     test("detecta un backend Spring Boot si se añade (sin inventarlo si no existe)", () => {

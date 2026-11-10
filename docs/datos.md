@@ -39,3 +39,8 @@ erDiagram
 - Cada migración se aplica en **una transacción**: si falla, se revierte completa y el arranque se detiene con un error que nombra el archivo.
 - Las migraciones aplicadas se registran con su **SHA-256**. Si se modifica una ya aplicada, el arranque falla con «cambió después de aplicarse»: los cambios de esquema se hacen siempre con una migración **nueva**.
 - Son repetibles: ejecutarlas otra vez no aplica nada.
+
+
+## Copias de seguridad y recuperación
+
+Ver [`docs/respaldo.md`](respaldo.md): copias consistentes con la app en marcha, restauración verificada, copia automática antes de migrar y plan ante una migración fallida.

@@ -35,6 +35,12 @@ def iniciar(data_dir: Path | None = None) -> Contexto:
         carpeta = Path(data_dir or settings.data_dir)
         carpeta.mkdir(parents=True, exist_ok=True)
         bd = BaseDatos(carpeta / "apuntia.sqlite3")
+        pendientes = bd.migraciones_pendientes()
+        if pendientes:  # actualización sobre datos existentes: copia previa por si algo sale mal (FULL-23)
+            from app.datos.respaldo import copia_antes_de_migrar
+            copia = copia_antes_de_migrar(bd.ruta, bd.version_esquema())
+            logger.warning("Migraciones pendientes %s: copia previa de la base de datos en %s", pendientes,
+                           copia.relative_to(carpeta) if copia else "-")
         aplicadas = bd.migrar()
         if aplicadas:
             logger.info("Base de datos lista (%s); migraciones nuevas: %s", carpeta.name, aplicadas)

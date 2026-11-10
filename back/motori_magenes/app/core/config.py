@@ -52,6 +52,13 @@ class Settings:
     ocr_idiomas: str = os.getenv("OCR_IDIOMAS", "spa+eng")
     tesseract_cmd: str = os.getenv("TESSERACT_CMD", "")
 
+    # Reconocimiento adaptativo (BACK-28): «adaptativo» o «clasico» (el flujo anterior).
+    reconocimiento_modo: str = os.getenv("RECONOCIMIENTO_MODO", "adaptativo").strip().lower()
+    # Límites por página: variantes por bloque dudoso, bloques que se releen y segundos en total.
+    reconocimiento_max_variantes: int = int(os.getenv("RECONOCIMIENTO_MAX_VARIANTES", "4"))
+    reconocimiento_max_bloques: int = int(os.getenv("RECONOCIMIENTO_MAX_BLOQUES", "60"))
+    reconocimiento_max_segundos: float = float(os.getenv("RECONOCIMIENTO_MAX_SEGUNDOS", "30"))
+
     # Trabajos largos ejecutados a la vez (BACK-27).
     max_trabajos_simultaneos: int = int(os.getenv("MAX_TRABAJOS_SIMULTANEOS", "2"))
 

@@ -14,7 +14,7 @@ Los commits usan el prefijo del issue en el que se corrigieron.
 
 ## D1: un 500 por excepción no prevista llega como «sin conexión»
 
-**Reproducción:** prueba I08 de `tests/integracion/flujo.test.js` y pasos manuales en [`pruebas-integracion.md`](pruebas-integracion.md#d1-un-500-por-excepción-no-prevista-llega-al-navegador-como-sin-conexión).
+**Reproducción:** prueba I08 de `fullstack/tests/integracion/flujo.test.js` y pasos manuales en [`pruebas-integracion.md`](pruebas-integracion.md#d1-un-500-por-excepción-no-prevista-llega-al-navegador-como-sin-conexión).
 
 **Investigación por capa:**
 

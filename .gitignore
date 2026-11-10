@@ -18,3 +18,15 @@ back/bd/muestras/
 
 # Node
 node_modules/
+
+# Datos privados de ApuntIA (base de datos, fotos, PDFs, buzón de desarrollo)
+back/motori_magenes/datos/
+datos/
+*.sqlite3
+*.db
+# Configuración local con valores reales
+fullstack/config/.env
+# Estado de los scripts de arranque (PIDs y logs)
+fullstack/.estado/
+# Copias de seguridad
+respaldos/

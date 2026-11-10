@@ -4,9 +4,9 @@
 const { spawn } = require("node:child_process");
 const net = require("node:net");
 const path = require("node:path");
-const { iniciar: iniciarEstatico } = require("../../front/tests/servidor");
+const { iniciar: iniciarEstatico } = require("../../../front/tests/servidor");
 
-const BACKEND = path.resolve(__dirname, "..", "..", "back", "motori_magenes");
+const BACKEND = path.resolve(__dirname, "..", "..", "..", "back", "motori_magenes");
 
 function puertoLibre() {
     return new Promise((resolve) => {

@@ -7,6 +7,7 @@ Se toma la foto (o se elige de la galería), se procesa con visión por computad
 |-------|------------|---------|
 | Frontend | HTML, CSS y JavaScript sin dependencias | `index.html`, `front/` |
 | Backend | Python, FastAPI y OpenCV | `back/motori_magenes/` |
+| Herramientas transversales (scripts, Docker, pruebas de integración) | — | `fullstack/` ([guía](fullstack/README.md)) |
 
 ```mermaid
 flowchart LR

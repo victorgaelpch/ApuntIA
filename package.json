@@ -7,7 +7,7 @@
   },
   "scripts": {
     "test:front": "node --test \"front/tests/*.test.js\"",
-    "test:integracion": "node --test \"tests/integracion/*.test.js\"",
+    "test:integracion": "node --test \"fullstack/tests/integracion/*.test.js\"",
     "lint:commits": "commitlint --from origin/main --to HEAD --verbose"
   },
   "devDependencies": {

@@ -118,6 +118,17 @@ def confirmar_recuperacion(datos: ConfirmacionRecuperacion, request: Request, re
     quitar_cookie(response)
 
 
+@router.get("/auth/sesiones")
+def resumen_sesiones(sesion: Sesion = Depends(sesion_actual)):
+    """Cuántas sesiones hay abiertas en otros navegadores (FRONT-19)."""
+    return {"otras": cuentas().contar_otras_sesiones(sesion)}
+
+
+@router.delete("/auth/sesiones/otras")
+def cerrar_otras_sesiones(sesion: Sesion = Depends(sesion_actual)):
+    return {"cerradas": cuentas().cerrar_otras_sesiones(sesion)}
+
+
 @router.put("/auth/password", status_code=204)
 def cambiar_password(datos: CambioPassword, sesion: Sesion = Depends(sesion_actual)):
     cuentas().cambiar_password(sesion, datos.actual, datos.nueva)

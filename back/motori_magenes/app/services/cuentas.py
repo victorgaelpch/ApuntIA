@@ -39,6 +39,10 @@ PREFERENCIAS_POR_DEFECTO = {
     "tipo_fuente": "auto",               # auto: la interfaz sugiere pizarrón o cuaderno por foto
     "investigacion_permitida": False,   # la investigación externa requiere activarla
     "idioma_ocr": "spa+eng",   # eng ayuda con símbolos y fórmulas
+    # Opciones propuestas al exportar el PDF (FRONT-19); se pueden cambiar en cada exportación.
+    "estilo_pdf": "extendido",
+    "incluir_complementos_pdf": True,
+    "incluir_originales_pdf": False,
 }
 
 
@@ -48,9 +52,11 @@ class Usuario:
     email: str
     nombre: str
     preferencias: dict = field(default_factory=dict)
+    creado: str = ""
 
     def publico(self) -> dict:
-        return {"id": self.id, "email": self.email, "nombre": self.nombre, "preferencias": self.preferencias}
+        return {"id": self.id, "email": self.email, "nombre": self.nombre, "preferencias": self.preferencias,
+                "creado": self.creado}
 
 
 @dataclass
@@ -96,7 +102,7 @@ def _sha(texto: str) -> str:
 
 def _fila_a_usuario(fila) -> Usuario:
     prefs = {**PREFERENCIAS_POR_DEFECTO, **json.loads(fila["preferencias"] or "{}")}
-    return Usuario(fila["id"], fila["email"], fila["nombre"], prefs)
+    return Usuario(fila["id"], fila["email"], fila["nombre"], prefs, fila["creado"])
 
 
 class Cuentas:
@@ -201,6 +207,15 @@ class Cuentas:
             con.execute("DELETE FROM sesiones WHERE usuario_id = ? AND id != ?",
                         (sesion.usuario.id, _sha(sesion.token)))
 
+    def contar_otras_sesiones(self, sesion: Sesion) -> int:
+        return self.bd.uno("SELECT COUNT(*) AS n FROM sesiones WHERE usuario_id = ? AND id != ? AND expira > ?",
+                           (sesion.usuario.id, _sha(sesion.token), time.time()))["n"]
+
+    def cerrar_otras_sesiones(self, sesion: Sesion) -> int:
+        """Cierra las sesiones de la cuenta en otros navegadores; conserva la actual."""
+        return self.bd.ejecutar("DELETE FROM sesiones WHERE usuario_id = ? AND id != ?",
+                                (sesion.usuario.id, _sha(sesion.token)))
+
     def solicitar_recuperacion(self, email: str, url_base: str) -> None:
         """No revela si el email existe: el llamador responde 202 siempre."""
         fila = self.bd.uno("SELECT id, email FROM usuarios WHERE email = ?", ((email or "").strip(),))
@@ -248,6 +263,10 @@ class Cuentas:
                 raise ApiError(400, "DATOS_INVALIDOS", "investigacion_permitida debe ser verdadero o falso.")
             if clave == "idioma_ocr" and valor not in ("spa", "eng", "spa+eng"):
                 raise ApiError(400, "DATOS_INVALIDOS", "Idioma de OCR no admitido.")
+            if clave == "estilo_pdf" and valor not in ("extendido", "basico"):
+                raise ApiError(400, "DATOS_INVALIDOS", "El estilo del PDF debe ser extendido o basico.")
+            if clave in ("incluir_complementos_pdf", "incluir_originales_pdf") and not isinstance(valor, bool):
+                raise ApiError(400, "DATOS_INVALIDOS", f"{clave} debe ser verdadero o falso.")
             prefs[clave] = valor
         self.bd.ejecutar("UPDATE usuarios SET nombre = ?, preferencias = ?, actualizado = ? WHERE id = ?",
                          (nombre if nombre is not None else actual.nombre, json.dumps(prefs), ahora(), uid))

@@ -165,6 +165,7 @@
         const motivo = params.get("motivo");
         if (motivo === "expirada") avisar(aviso, "aviso", "Tu sesión caducó. Inicia sesión de nuevo para continuar donde estabas.");
         else if (motivo === "salida") avisar(aviso, "exito", "Cerraste la sesión en este navegador.");
+        else if (motivo === "cuenta-borrada") avisar(aviso, "exito", "Tu cuenta y todos tus apuntes se borraron.");
         else if (params.get("volver")) avisar(aviso, "info", "Inicia sesión para continuar.");
         if (params.get("modo") === "registro") mostrar("Registro", false);
 

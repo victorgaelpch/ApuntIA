@@ -203,3 +203,25 @@ def test_enlace_de_recuperacion_usa_url_publica(nuevo_cliente, datos_tmp, monkey
     c.http.post("/api/v2/auth/recuperacion", json={"email": "rec@example.com"}, headers={"Host": "malicioso.example"})
     mensaje = next((datos_tmp.data_dir / "buzon").glob("*.txt")).read_text(encoding="utf-8")
     assert "https://apuntia.ejemplo.edu/front/cuenta.html#recuperar=" in mensaje and "malicioso" not in mensaje
+
+
+def test_preferencias_del_pdf_y_fecha_de_alta(nuevo_cliente):
+    c = nuevo_cliente()
+    u = c.registrar()
+    assert u["creado"] and u["preferencias"]["estilo_pdf"] == "extendido"
+    r = c.patch("/api/v2/perfil", json={"preferencias": {"estilo_pdf": "basico", "incluir_originales_pdf": True}})
+    assert r.status_code == 200 and r.json()["usuario"]["preferencias"]["incluir_originales_pdf"] is True
+    assert c.patch("/api/v2/perfil", json={"preferencias": {"estilo_pdf": "raro"}}).status_code == 400
+    assert c.patch("/api/v2/perfil", json={"preferencias": {"incluir_complementos_pdf": "si"}}).status_code == 400
+
+
+def test_cerrar_las_demas_sesiones(nuevo_cliente):
+    a = nuevo_cliente()
+    a.registrar("multi@example.com")
+    b = nuevo_cliente()
+    r = b.http.post("/api/v2/auth/sesion", json={"email": "multi@example.com", "password": clave_de_prueba("c1")})
+    b.csrf = r.json()["csrf"]
+    assert a.get("/api/v2/auth/sesiones").json() == {"otras": 1}
+    assert a.delete("/api/v2/auth/sesiones/otras").json() == {"cerradas": 1}
+    assert b.get("/api/v2/perfil").status_code == 401
+    assert a.get("/api/v2/perfil").status_code == 200

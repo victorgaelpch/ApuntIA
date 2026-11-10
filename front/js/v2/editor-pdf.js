@@ -236,6 +236,11 @@
                           alMostrar: () => { avisosPrevios(); opcionesVersion(); pintarLista(); } });
     ed.alGuardar(() => { if ($("#avisosPrevios")) { avisosPrevios(); marcarObsoleto(); } });
     ed.alCargar(async () => {
+        // Opciones propuestas según las preferencias del perfil (FRONT-19).
+        const p = (NS.v2.sesion.usuario && NS.v2.sesion.usuario.preferencias) || {};
+        if (p.estilo_pdf) $("#selEstiloPdf").value = p.estilo_pdf;
+        if (typeof p.incluir_complementos_pdf === "boolean") $("#chkComplementosPdf").checked = p.incluir_complementos_pdf;
+        if (typeof p.incluir_originales_pdf === "boolean") $("#chkOriginalesPdf").checked = p.incluir_originales_pdf;
         await opcionesVersion();
         const exportaciones = await pintarLista() || [];
         const enCurso = exportaciones.find((x) => x.estado === "pendiente" && x.trabajo_id);

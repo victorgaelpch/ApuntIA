@@ -174,3 +174,18 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
   último PDF» (si hay alguno; avisa si es de una versión anterior) y «Eliminar» con confirmación.
 - Estados vacíos (sin apuntes: «Crear mi primer apunte»; sin coincidencias: «Limpiar filtros»),
   esqueletos mientras carga y «Reintentar» si falla la red.
+
+## Perfil (FRONT-19)
+
+- Datos: nombre visible (editable), email (solo lectura) y fecha de alta.
+- Preferencias guardadas en el servidor: tipo de fuente al subir fotos, idioma del OCR y las
+  opciones propuestas del PDF (nivel de detalle, complementos, fotos originales), que el editor
+  usa al exportar.
+- Privacidad: «Permitir buscar información complementaria» (con confirmación al activarlo y
+  explicación de qué se envía). Lo aplica el backend: sin ella, `POST …/investigacion` responde 400.
+- Cambiar contraseña con la actual, la nueva y su confirmación; la actual incorrecta se señala
+  en su campo, los tres campos se vacían siempre y se cierran las demás sesiones.
+- Sesiones: cuántas hay abiertas en otros navegadores, «Cerrar la sesión en los demás
+  navegadores» y «Cerrar sesión aquí».
+- Borrar la cuenta: contraseña + escribir «BORRAR» en una confirmación; borra apuntes, fotos,
+  versiones y PDF y vuelve a la página de cuenta con el aviso.

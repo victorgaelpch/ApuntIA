@@ -204,3 +204,7 @@ del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decor
 .apunte .btn { min-height: 38px; padding: 6px 12px; }
 .paginacion { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
 .paginacion[hidden] { display: none; }
+
+/* ---------- perfil (FRONT-19) ---------- */
+.estado-guardado[data-tipo=exito] { color: var(--brand-text); font-weight: 600; }
+.zona-peligro { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }

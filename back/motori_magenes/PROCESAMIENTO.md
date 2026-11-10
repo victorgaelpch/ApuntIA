@@ -246,3 +246,28 @@ El pizarrón fotografiado en ángulo pierde líneas enteras: es lo que corrige e
 El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `tests/test_preprocesado_ocr.py` comprueba que ninguna muestra empeora frente a la línea base.
 
 **Limitación:** una tabla con 4 o más filas equiespaciadas que ocupen más del 60 % del ancho de la hoja se confundiría con el rayado.
+
+## Escritura a mano con alternativa segura (BACK-14)
+
+`app/services/manuscrito.py`. Estrategia híbrida sobre Tesseract, **sin transcribir por imaginación**:
+
+1. **La confianza del bloque la limita su palabra más dudosa.** Se midió que, en escritura irregular, Tesseract daba una media alta (0.85) a bloques con palabras mal leídas («inte grates», confianza 0.70) y los marcaba como `reconocido`. Ahora basta una palabra por debajo de 0.80 para que el bloque sea `incierto`, y esas palabras se listan en `palabras_dudosas`.
+2. **Segundo intento** para lo que no quedó reconocido: recorte ampliado ×2, binarizado con Otsu y `psm 6`. Se queda la lectura con más confianza.
+3. **Ilegible = sin texto:** un bloque `no_reconocido` queda vacío, de tipo `manuscrito`, y conserva su **recorte** con la ubicación, para transcribirlo a mano. Los `inciertos` conservan su texto y también el recorte, para comparar.
+4. **Tinta no detectada por el OCR:** se conserva como `manuscrito` (trazos del tamaño del texto) o `imagen` (dibujos y esquemas, más altos y poco densos), siempre como recorte.
+5. Los bloques `reconocidos` **no se tocan**, y las fórmulas se tratan aparte (BACK-15).
+
+### Evaluación por tipo de escritura (`python -m herramientas.evaluar_ocr`)
+
+«Reconocidos con errores» = bloques marcados como `reconocido` cuyo texto no es exacto: es el error más peligroso, porque el usuario confiaría en él sin revisar.
+
+| Muestra | CER | Bloques (rec./inc./no rec.) | Reconocidos con errores |
+|---|---|---|---|
+| Impresas (5 muestras) | 0.7 % cada una | todas reconocidas | 1 por muestra: la línea «f(x) = x²», leída «x?» (se resuelve en BACK-15) |
+| manuscrito_cuaderno (sintético regular) | 0.0 % | 2/0/0 | 0 |
+| manuscrito_dificil (sintético irregular) | 11.1 % → **5.6 %** con el segundo intento | 1/1/0 | **0** (antes de limitar la confianza: 2) |
+
+**Limitaciones declaradas:**
+- La escritura sintética (tipografías Hershey de OpenCV) es más regular que la real: con fotos reales de cuadernos el CER será mayor y habrá más bloques `incierto`/`no_reconocido`. Hay que evaluarlo con fotos reales cedidas con permiso (ver FULL-19).
+- **No se adoptaron motores específicos de manuscritos:** TrOCR (modelos públicos en inglés, 1.3 GB y PyTorch) y PaddleOCR (~500 MB). Se pueden añadir como otro `MotorOCR` sin cambiar este flujo.
+- El texto en cursiva muy unida o con mala letra quedará, en general, como recorte para transcribir a mano: es el comportamiento buscado frente a inventar texto.

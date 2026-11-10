@@ -71,6 +71,7 @@ class Bloque(Base):
     latex_valido: bool | None = None
     tabla: Tabla | None = None
     recorte: str | None = Field(default=None, pattern=ID)
+    palabras_dudosas: list[str] = Field(default_factory=list, max_length=200)
     conservar_imagen: bool = False
     editado: bool = False
 
@@ -150,7 +151,8 @@ def validar(datos: dict) -> Documento:
         raise ApiError(400, "DOCUMENTO_INVALIDO", "El documento no es válido: " + "; ".join(detalles)) from None
 
 
-INMUTABLES_OCR = ("pagina", "bbox", "origen", "confianza", "texto_original", "latex_original", "recorte")
+INMUTABLES_OCR = ("pagina", "bbox", "origen", "confianza", "texto_original", "latex_original", "recorte",
+                  "palabras_dudosas")
 
 
 def fusionar(anterior: Documento, nuevo: Documento) -> Documento:

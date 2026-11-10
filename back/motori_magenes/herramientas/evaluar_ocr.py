@@ -17,6 +17,18 @@ from herramientas.corpus import corpus
 from herramientas.metricas import cer, wer
 
 
+def _norm(t: str) -> str:
+    return " ".join(t.split())
+
+
+def reconocidos_con_errores(bloques, lineas_reales) -> int:
+    """Bloques marcados «reconocido» cuyo texto no coincide exactamente con el real:
+    es el error más peligroso, porque el usuario confiaría en él sin revisarlo."""
+    reales = {_norm(l) for l in lineas_reales}
+    return sum(1 for b in bloques if b.texto and b.estado == "reconocido"
+               and any(_norm(l) not in reales for l in b.texto.split("\n")))
+
+
 def preparar(muestra, preprocesar: bool):
     if not preprocesar:
         return muestra.imagen, 3
@@ -31,12 +43,16 @@ def evaluar(preprocesar: bool = True) -> list[dict]:
         inicio = time.perf_counter()
         imagen, psm = preparar(m, preprocesar)
         bloques = reconocer(imagen, psm=psm)
-        texto = "\n".join(b.texto for b in bloques)
+        if preprocesar:  # flujo de producción: con el respaldo de manuscritos (BACK-14)
+            from app.services.manuscrito import leer_con_respaldo
+            bloques = leer_con_respaldo(imagen, bloques, "spa+eng")
+        texto = "\n".join(b.texto for b in bloques if b.texto)
         real = "\n".join(m.lineas)
-        estados = [b.estado for b in bloques]
+        estados = [b.estado if b.texto else "no_reconocido" for b in bloques]
         filas.append({"muestra": m.nombre, "escritura": m.escritura, "cer": cer(texto, real), "wer": wer(texto, real),
                       "reconocidos": estados.count("reconocido"), "inciertos": estados.count("incierto"),
                       "no_reconocidos": estados.count("no_reconocido"),
+                      "falsos": reconocidos_con_errores(bloques, m.lineas),
                       "ms": (time.perf_counter() - inicio) * 1000, "texto": texto})
     return filas
 
@@ -56,11 +72,11 @@ def main() -> int:
         return 1
     modo = "sin preprocesar" if args.sin_preprocesar else "con preprocesado por perfil"
     print(f"OCR {motor_ocr().info().get('version', '')} — {modo}\n")
-    print("| Muestra | Escritura | CER | WER | Bloques (rec./inc./no rec.) | ms |")
-    print("|---|---|---|---|---|---|")
+    print("| Muestra | Escritura | CER | WER | Bloques (rec./inc./no rec.) | Reconocidos con errores | ms |")
+    print("|---|---|---|---|---|---|---|")
     for f in filas:
         print(f"| {f['muestra']} | {f['escritura']} | {f['cer']:.1%} | {f['wer']:.1%} | "
-              f"{f['reconocidos']}/{f['inciertos']}/{f['no_reconocidos']} | {f['ms']:.0f} |")
+              f"{f['reconocidos']}/{f['inciertos']}/{f['no_reconocidos']} | {f['falsos']} | {f['ms']:.0f} |")
         if args.texto:
             print("```\n" + f["texto"] + "\n```")
     return 0

@@ -125,6 +125,42 @@ def manuscrito_cuaderno(semilla=3) -> Muestra:
     return Muestra("manuscrito_cuaderno", "cuaderno", "manuscrito", img, TEXTO_MANUSCRITO)
 
 
+TEXTO_MANUSCRITO_DIFICIL = [
+    "Repasar integrales",
+    "Examen el viernes",
+]
+
+
+def manuscrito_dificil(semilla=5) -> Muestra:
+    """Escritura «a mano» más irregular: inclinación, tamaño variable, trazo
+    tembloroso y algo de desenfoque. Sigue siendo sintética."""
+    rng = np.random.default_rng(semilla)
+    img = _a_bgr(hoja_cuaderno())
+    y = 2 * 56 + 20
+    for linea in TEXTO_MANUSCRITO_DIFICIL:
+        capa = np.zeros_like(img)
+        x = 160
+        for palabra in linea.split():
+            escala = float(rng.uniform(1.1, 1.6))
+            cv2.putText(capa, palabra, (x, y + int(rng.integers(-8, 9))), cv2.FONT_HERSHEY_SCRIPT_COMPLEX,
+                        escala, (255, 255, 255), 2, cv2.LINE_AA)
+            (tw, _), _ = cv2.getTextSize(palabra + " ", cv2.FONT_HERSHEY_SCRIPT_COMPLEX, escala, 2)
+            x += tw + int(rng.integers(5, 25))
+        angulo = float(rng.uniform(-4, 4))
+        m = cv2.getRotationMatrix2D((700, y), angulo, 1.0)
+        capa = cv2.warpAffine(capa, m, (img.shape[1], img.shape[0]))
+        # trazo tembloroso: desplazamiento suave aleatorio
+        dx = cv2.GaussianBlur(rng.normal(0, 1, capa.shape[:2]).astype(np.float32), (0, 0), 6) * 25
+        dy = cv2.GaussianBlur(rng.normal(0, 1, capa.shape[:2]).astype(np.float32), (0, 0), 6) * 25
+        gx, gy = np.meshgrid(np.arange(capa.shape[1], dtype=np.float32), np.arange(capa.shape[0], dtype=np.float32))
+        capa = cv2.remap(capa, gx + dx, gy + dy, cv2.INTER_LINEAR)
+        tinta = capa[:, :, 0] > 60
+        img[tinta] = (100, 45, 25)
+        y += 168
+    img = cv2.GaussianBlur(img, (3, 3), 0.8)
+    return Muestra("manuscrito_dificil", "cuaderno", "manuscrito", img, TEXTO_MANUSCRITO_DIFICIL)
+
+
 def formulas_pizarron() -> Muestra:
     img = _lienzo(1300, 700, (245, 245, 242))
     d = ImageDraw.Draw(img)
@@ -166,7 +202,7 @@ def pizarron_con_ruido(semilla=11) -> Muestra:
 
 def corpus() -> list[Muestra]:
     return [impreso_cuaderno(), cuaderno_con_sombra(), impreso_pizarron(), pizarron_con_ruido(), pizarron_oscuro(),
-            manuscrito_cuaderno(), formulas_pizarron()]
+            manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron()]
 
 
 if __name__ == "__main__":

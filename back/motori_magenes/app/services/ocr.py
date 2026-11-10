@@ -53,7 +53,9 @@ class BloqueOCR:
     bbox: list[int]
     lineas: list[str] = field(default_factory=list)
     altura_linea: float = 0.0
-    tipo: str = "texto"       # titulo | texto | manuscrito | formula
+    tipo: str = "texto"       # titulo | texto | manuscrito | formula | imagen
+    dudosas: list[str] = field(default_factory=list)   # palabras con confianza < 0.80
+    recortar: bool = False    # conservar el recorte de la imagen para revisión manual
 
     @property
     def estado(self) -> str:
@@ -175,12 +177,19 @@ def agrupar(palabras: list[Palabra]) -> list[BloqueOCR]:
             lps.sort(key=lambda p: p.bbox[0])
             textos.append(" ".join(p.texto for p in lps))
             alturas.append(statistics.median(p.bbox[3] - p.bbox[1] for p in lps))
-        # Confianza ponderada por longitud: una palabra corta dudosa pesa menos.
+        # Confianza del bloque: la media ponderada por longitud, pero limitada por
+        # su palabra más dudosa. Se midió (BACK-14) que en escritura irregular
+        # Tesseract da medias altas (0.85) a bloques con palabras mal leídas
+        # (0.70): basta una palabra dudosa para que el bloque se revise.
         total = sum(len(p.texto) for p in ps)
-        conf = sum(p.confianza * len(p.texto) for p in ps) / total if total else 0.0
+        media = sum(p.confianza * len(p.texto) for p in ps) / total if total else 0.0
+        significativas = [p.confianza for p in ps if sum(c.isalnum() for c in p.texto) >= 2] or [media]
+        conf = min(media, min(significativas))
+        dudosas = [p.texto for p in ps if p.confianza < UMBRAL_RECONOCIDO]
         bbox = [min(p.bbox[0] for p in ps), min(p.bbox[1] for p in ps),
                 max(p.bbox[2] for p in ps), max(p.bbox[3] for p in ps)]
-        bloques.append(BloqueOCR("\n".join(textos), round(conf, 3), bbox, textos, statistics.median(alturas)))
+        bloques.append(BloqueOCR("\n".join(textos), round(conf, 3), bbox, textos, statistics.median(alturas),
+                                 dudosas=dudosas))
     marcar_titulos(bloques)
     return bloques
 

@@ -56,7 +56,8 @@ def test_agrupar_por_parrafo_y_linea():
     bloques = agrupar(palabras)
     assert [b.texto for b in bloques] == ["Hola mundo\notra", "Bloque"]
     assert bloques[0].bbox == [0, 0, 100, 50]
-    assert 0.4 < bloques[0].confianza < 0.9
+    # La confianza del bloque la limita su palabra más dudosa (BACK-14)
+    assert bloques[0].confianza == 0.4 and bloques[0].estado == "no_reconocido"
 
 
 def test_salud_conserva_v1_y_anade_ocr(client):

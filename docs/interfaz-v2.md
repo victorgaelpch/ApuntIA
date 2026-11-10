@@ -143,3 +143,21 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 - Sin proveedor o con la fuente caída se explica y se ofrece seguir al PDF sin complementos.
 - Pruebas con una Wikipedia simulada (`fullstack/tests/integracion/app_wikipedia_simulada.py`): el
   backend es el real y el proveedor también; solo se sustituye la red.
+
+## Editor: PDF (FRONT-16)
+
+- Pestaña «PDF»: versión (la actual o cualquiera del historial), nivel de detalle (completo o
+  básico), incluir los complementos aceptados y añadir las fotos originales. La portada y el
+  título usan el título del apunte. Antes de generar se avisa de cambios sin guardar (se guardan
+  primero), bloques inciertos sin revisar, fragmentos sin leer y fórmulas que irán como imagen,
+  y complementos sin revisar (no se incluyen).
+- Estado real del trabajo (`En cola…`, `Maquetando el PDF… n %`), «Cancelar» y «Reintentar». Solo se
+  dice «PDF listo» cuando la descarga autenticada devuelve `application/pdf` y empieza por `%PDF-`.
+- Vista previa en un `iframe` con una URL `blob:` temporal (liberada al cambiarla o al salir),
+  «Descargar PDF» con el nombre que da el servidor (`titulo-vN.pdf`) y «Abrir en otra pestaña».
+  No hay URL públicas de archivos privados.
+- Pedir el mismo PDF (misma versión y opciones) lo reutiliza. Si el apunte cambió, la vista previa
+  se marca como desactualizada y se ofrece «Generar con la versión actual»; la lista de PDF marca
+  los de versiones anteriores. «PDF de esta versión» desde el historial.
+- Al recargar con una exportación en curso, la pestaña PDF la retoma.
+- La foto mejorada en PNG sigue en «Mejorar una foto»: son dos cosas distintas.

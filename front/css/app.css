@@ -184,3 +184,8 @@ del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decor
 .complemento__cabecera h3 { margin: 0; font: 700 1.05rem var(--f-display); }
 .complemento__texto { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--line); background: var(--surface-2); border-radius: 0 10px 10px 0; }
 .complemento__fuente { font-size: .9rem; color: var(--ink-2); overflow-wrap: anywhere; }
+
+/* ---------- PDF (FRONT-16) ---------- */
+.avisos-previos { margin: 0 0 12px; padding-left: 20px; color: var(--yellow-ink); }
+.avisos-previos[hidden] { display: none; }
+.marco-pdf { width: 100%; height: min(80vh, 900px); border: 1px solid var(--line); border-radius: 12px; background: #fff; margin-top: 10px; }

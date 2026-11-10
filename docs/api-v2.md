@@ -88,7 +88,9 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
   "ampliaciones": [
     {"id": "x1", "concepto": "Derivada", "texto": "…", "estado": "propuesta",
      "fuente": {"titulo": "Derivada", "url": "https://es.wikipedia.org/wiki/Derivada",
-                "proveedor": "wikipedia", "consultado": "2026-11-10T12:00:00Z", "licencia": "CC BY-SA 4.0"}}
+                "proveedor": "wikipedia", "consultado": "2026-11-10", "licencia": "CC BY-SA 4.0",
+                "autor": "Colaboradores de Wikipedia"},
+     "discrepancia": null}
   ]
 }
 ```
@@ -101,6 +103,7 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
 | `bloques[].bbox` | `[x0, y0, x1, y1]` en píxeles de la página procesada | Permite resaltar la región en la foto |
 | `bloques[].editado` | bool | Si es `true`, el PDF usa `texto`/`latex` del usuario; `texto_original` se conserva |
 | `ampliaciones[].estado` | `propuesta`, `aceptada`, `rechazada` | Solo las `aceptadas` van al PDF, en una sección aparte y citadas |
+| `ampliaciones[].discrepancia` | texto o `null` | La fuente parece contradecir al apunte: se pide revisión, nunca se corrige el apunte |
 
 El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 
@@ -144,8 +147,9 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | `DELETE` | `/api/v2/apuntes/{id}` | Cancela sus trabajos en curso y borra el apunte, sus versiones, trabajos y archivos |
 | `GET` | `/api/v2/apuntes/{id}/estructura` | Apunte estructurado (BACK-19) de la versión actual o de `?version=n`: `{version, estructura: {titulo, secciones, resumen, conceptos, glosario, ejemplos, formulas, tablas, esquemas, pendientes, complementos, avisos}}`. Todo sale del documento: el resumen son frases **extraídas**, el glosario solo recoge definiciones escritas en el apunte, y lo investigado solo aparece en `complementos` (aceptado y con fuente) |
 | `GET` | `/api/v2/apuntes/{id}/archivos/{archivo_id}` | Imagen original, procesada o recorte. Solo el propietario |
-| `POST` | `/api/v2/apuntes/{id}/investigacion` | `{consentimiento: true, conceptos: [...]}` → `202 {trabajo}`. Sin `consentimiento: true` → `400 CONSENTIMIENTO_REQUERIDO` |
-| `PATCH` | `/api/v2/apuntes/{id}/ampliaciones/{aid}` | `{estado: "aceptada"|"rechazada"}` (crea una versión) |
+| `GET` | `/api/v2/apuntes/{id}/conceptos` | Conceptos del propio apunte que se podrían investigar (glosario, títulos, términos frecuentes) y `{disponible, proveedor}`. No consulta nada fuera |
+| `POST` | `/api/v2/apuntes/{id}/investigacion` | `{consentimiento: true, conceptos: [1–8 palabras clave], idioma: "es"\|"en"}` → `202 {trabajo}` (tipo `investigacion`). Sin `consentimiento: true` o sin la preferencia `investigacion_permitida` → `400 CONSENTIMIENTO_REQUERIDO`; proveedor desactivado → `503 INVESTIGACION_NO_DISPONIBLE`. Cada concepto: ≤ 80 caracteres, ≤ 6 palabras, sin URLs, emails ni rutas |
+| `PATCH` | `/api/v2/apuntes/{id}/ampliaciones/{aid}` | `{estado: "aceptada"\|"rechazada"\|"propuesta"}` (crea una versión; `If-Match` opcional). Solo cambia el estado: el texto y la fuente no se pueden editar |
 | `POST` | `/api/v2/apuntes/{id}/exportaciones` | `{version?}` → `202 {exportacion, trabajo}`. Si ya existe un PDF válido de esa versión, lo reutiliza (`200`) |
 | `GET` | `/api/v2/apuntes/{id}/exportaciones` | PDFs generados, con la versión de origen |
 | `GET` | `/api/v2/exportaciones/{id}/pdf` | Descarga (`application/pdf`, `Content-Disposition: attachment`). Solo el propietario |
@@ -207,7 +211,11 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 
 - Las fotos, el texto y los PDFs **no salen del servidor**, salvo en la investigación opcional.
 - La investigación solo envía **los conceptos** elegidos (palabras clave), nunca la foto ni el texto completo, y solo con `consentimiento: true` y la preferencia `investigacion_permitida` del perfil activada.
-- Cada ampliación guarda su URL, proveedor, fecha y licencia; si no hay fuente, no se incluye.
+- Cada ampliación guarda su URL, proveedor, autor, fecha y licencia; si no hay fuente, no se incluye.
+- Proveedor (BACK-18): `INVESTIGACION_PROVEEDOR=wikipedia` (API REST pública de es/en.wikipedia.org, CC BY-SA 4.0) o `ninguno`. El servidor solo consulta esos hosts fijos (sin SSRF), con `INVESTIGACION_TIMEOUT_S` (6 s) y una caché en memoria de 200 conceptos durante 24 h.
+- Lo externo es dato no confiable: se quita el HTML, se guarda solo un fragmento breve (≤ 600 caracteres, con atribución) y se descarta la página si contiene instrucciones dirigidas a un asistente.
+- Las ampliaciones nacen como `propuesta`; solo las `aceptada` salen en el apunte estructurado y el PDF, en una sección aparte. Si la fuente da cifras distintas de las del apunte, la ampliación lleva `discrepancia` y el apunte **no** se corrige.
+- Los logs de investigación guardan solo métricas (cuántos conceptos, resultados y fallos, y el tiempo), no los conceptos.
 - La generación del apunte y del PDF funciona **sin Internet**.
 
 ## 8. Diagnóstico (FULL-21)

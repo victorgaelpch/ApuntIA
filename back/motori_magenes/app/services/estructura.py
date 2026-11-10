@@ -124,7 +124,8 @@ def estructurar(doc: Documento, tipo_fuente: str = "") -> ApunteEstructurado:
         avisos.append(f"{inciertos} bloque(s) tienen reconocimiento incierto: revísalos antes de compartir el PDF.")
     if pendientes:
         avisos.append(f"{pendientes} fragmento(s) manuscritos no se pudieron leer y se incluyen como imagen.")
-    complementos = [{"concepto": a.concepto, "texto": a.texto, "fuente": a.fuente.model_dump()}
+    complementos = [{"concepto": a.concepto, "texto": a.texto, "fuente": a.fuente.model_dump(),
+                     "discrepancia": a.discrepancia}
                     for a in doc.ampliaciones if a.estado == "aceptada"]
     return ApunteEstructurado(
         titulo=doc.titulo, paginas=len(doc.paginas),

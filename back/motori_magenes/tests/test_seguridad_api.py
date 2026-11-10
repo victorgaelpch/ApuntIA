@@ -27,6 +27,9 @@ RUTAS_CON_RECURSO = [
     ("POST", "/api/v2/apuntes/{apunte_id}/versiones/{numero}/restaurar"),
     ("DELETE", "/api/v2/apuntes/{apunte_id}"),
     ("GET", "/api/v2/apuntes/{apunte_id}/estructura"),
+    ("GET", "/api/v2/apuntes/{apunte_id}/conceptos"),
+    ("POST", "/api/v2/apuntes/{apunte_id}/investigacion"),
+    ("PATCH", "/api/v2/apuntes/{apunte_id}/ampliaciones/{ampliacion_id}"),
     ("GET", "/api/v2/trabajos/{trabajo_id}"),
     ("DELETE", "/api/v2/trabajos/{trabajo_id}"),
     ("POST", "/api/v2/trabajos/{trabajo_id}/reintentar"),
@@ -54,9 +57,16 @@ def victima_y_atacante(con_apuntes, nuevo_cliente, datos_tmp):
     datos_tmp.bd.ejecutar("INSERT INTO trabajos (id, usuario_id, apunte_id, tipo, estado, parametros, creado, "
                           "actualizado) VALUES (?, ?, ?, 'analisis', 'fallido', '{}', ?, ?)",
                           (trabajo, usuario["id"], apunte, ahora(), ahora()))
+    from app.services.documento import Ampliacion, Fuente
+    doc = repo.documento(usuario["id"], apunte)
+    doc.ampliaciones.append(Ampliacion(id="a1", concepto="c", texto="t", fuente=Fuente(
+        titulo="t", url="https://es.wikipedia.org/wiki/C", proveedor="wikipedia", consultado="2026-11-10")))
+    repo.nueva_version(usuario["id"], apunte, doc, "investigacion")
     atacante = nuevo_cliente()
     atacante.registrar("intruso@example.com")
-    valores = {"apunte_id": apunte, "archivo_id": archivo, "numero": 1, "trabajo_id": trabajo}
+    atacante.patch("/api/v2/perfil", json={"preferencias": {"investigacion_permitida": True}})
+    valores = {"apunte_id": apunte, "archivo_id": archivo, "numero": 1, "trabajo_id": trabajo,
+               "ampliacion_id": "a1"}
     return duena, atacante, valores
 
 
@@ -65,7 +75,11 @@ def test_idor_otro_usuario_recibe_404(victima_y_atacante, metodo, ruta, datos_tm
     duena, atacante, valores = victima_y_atacante
     antes = datos_tmp.bd.uno("SELECT COUNT(*) AS n FROM versiones")["n"]
     url = ruta.format(**valores)
-    kw = {"headers": {"If-Match": "2"}, "json": {"titulo": "robado"}} if metodo == "PUT" else {}
+    cuerpos = {"PUT": {"titulo": "robado"}, "PATCH": {"estado": "aceptada"},
+               "POST": {"consentimiento": True, "conceptos": ["x"]}}
+    kw = {"headers": {"If-Match": "3"}, "json": cuerpos[metodo]} if metodo in ("PUT", "PATCH") else {}
+    if metodo == "POST" and ruta.endswith("investigacion"):
+        kw = {"json": cuerpos["POST"]}
     r = getattr(atacante, metodo.lower())(url, **kw)
     assert r.status_code == 404, (metodo, url, r.text)
     assert r.json()["error"]["codigo"] == "NO_ENCONTRADO"

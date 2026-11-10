@@ -53,6 +53,10 @@ class Settings:
     # Páginas por apunte en la API v2 (BACK-11).
     max_paginas: int = int(os.getenv("MAX_PAGINAS", "20"))
 
+    # Investigación opcional (BACK-18): "wikipedia" o "ninguno" (sin Internet).
+    investigacion_proveedor: str = os.getenv("INVESTIGACION_PROVEEDOR", "wikipedia").strip().lower()
+    investigacion_timeout_s: float = float(os.getenv("INVESTIGACION_TIMEOUT_S", "6"))
+
     # Endurecimiento (BACK-24): cuerpo JSON máximo y espacio por usuario.
     max_json_kb: int = int(os.getenv("MAX_JSON_KB", "4096"))
     cuota_mb_usuario: int = int(os.getenv("CUOTA_MB_USUARIO", "500"))

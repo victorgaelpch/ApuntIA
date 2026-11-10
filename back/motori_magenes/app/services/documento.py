@@ -97,6 +97,7 @@ class Fuente(Base):
     proveedor: str = Field(max_length=50)
     consultado: str = Field(max_length=40)
     licencia: str | None = Field(default=None, max_length=100)
+    autor: str | None = Field(default=None, max_length=200)
 
     @field_validator("url")
     @classmethod
@@ -112,6 +113,9 @@ class Ampliacion(Base):
     texto: str = Field(max_length=5000)
     estado: Literal["propuesta", "aceptada", "rechazada"] = "propuesta"
     fuente: Fuente
+    # Si la fuente parece contradecir al apunte, se explica aquí y se pide revisión:
+    # nunca se corrige el apunte en silencio (BACK-18).
+    discrepancia: str | None = Field(default=None, max_length=500)
 
 
 class Documento(Base):

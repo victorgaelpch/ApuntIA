@@ -351,3 +351,91 @@ que permite reutilizar la exportación por versión y opciones.
 
 Inspección visual: se revisaron las páginas renderizadas con `pdftoppm` (fórmula
 centrada, recortes a tamaño natural, tabla con encabezado, tildes y símbolos).
+
+## Reconocimiento adaptativo (BACK-28)
+
+`app/services/reconocimiento.py` reúne el flujo de una página; `app/services/calidad.py` y
+`app/services/adaptativo.py` son lo nuevo. No hay dependencias nuevas: todo usa Tesseract,
+OpenCV y NumPy, funciona en CPU y no envía nada fuera del servidor.
+
+```
+foto original (no se modifica)
+ ├─ calidad.diagnosticar ─────────────► nivel buena | aceptable | insuficiente + avisos
+ └─ preprocesado por perfil (BACK-12) + enderezar el texto girado
+     └─ OCR de la página (BACK-13)
+         └─ por cada bloque (adaptativo.leer_adaptativo):
+              reconocido → 1 relectura de consenso ─► ¿coinciden? sí: confirmado / no: revisar + alternativa
+              dudoso     → variantes del recorte ─► elegir (página primero; regla de BACK-14)
+              aspecto matemático → lectura de fórmula (psm 7, solo caracteres matemáticos) ─► LaTeX válido
+              ilegible   → vacío + recorte (nunca se inventa)
+         └─ fórmulas a LaTeX (BACK-15) → relectura de las fórmulas sin confirmar
+ └─ calidad insuficiente → ningún bloque queda «reconocido»
+```
+
+`RECONOCIMIENTO_MODO=clasico` vuelve al flujo anterior sin tocar nada más (para comparar, o si el
+adaptativo diera problemas en algún equipo).
+
+### Decisiones, con lo medido
+
+| Decisión | Por qué (corpus de casos difíciles, partición de desarrollo) |
+|----------|--------------------------------------------------------------|
+| **Enderezar** el texto con un perfil de proyección (±15°, solo si \|ángulo\| ≥ 0,7° y el perfil mejora ≥ 15 %) | Con la hoja girada 6–7° Tesseract no leía **nada** (CER 100 %); enderezada, 0–1,3 %. En las 33 fotos de los dos corpus no gira ninguna que no lo necesite (ni el diagrama). ~30 ms |
+| **Variantes por región** (ampliada, ampliada + Otsu, CLAHE, sombra compensada), sin erosiones ni aperturas | Un filtro global no sirve a todas las regiones; las operaciones morfológicas borran tildes, signos menos, barras de fracción y subíndices |
+| **No elegir por confianza** entre variantes | Las variantes ampliadas o binarizadas **inflan** la confianza: «Lasplantasnecesitanluzsolar.» (0,90) ganaba a «Las plantas necesitan luzsolar.» (0,69) y empeoraba el CER del 4,6 % al 9,2 % |
+| **No contar votos** entre variantes del mismo recorte | Comparten la segmentación de una línea y fallan juntas: dos variantes «confirmaron» el mismo texto erróneo |
+| La lectura de la **página** se conserva como principal; la regla de BACK-14 (recorte binarizado claramente mejor, +0,05) se mantiene, pero solo si no junta ni separa palabras, y lo sustituido queda **sin confirmar** | Sin esa regla, `manuscrito_dificil` del banco FULL-19 empeoraba del 5,6 % al 11,1 % |
+| **Consenso** en lo «reconocido»: una relectura; si no coincide, revisión con la otra lectura como alternativa | Tesseract da confianza alta a errores («eltema», 0,91; «x?» por «x²», 0,95). En el banco FULL-19 los textos falsos dados por seguros bajan de 6 a 3 |
+| **Fórmulas** por lectura especializada: una línea, solo caracteres matemáticos, y se aceptan si dan LaTeX válido con confianza ≥ 0,50; «reconocida» solo con **dos** lecturas iguales y confianza ≥ 0,85 | Una lectura con confianza 0,00 producía LaTeX «válido» sin sentido (`a w 2 + b 7 \cdot 2 = c^{2}`): ser LaTeX válido no prueba que sea lo escrito |
+| `F = ma`, `v = d/t` se detectan como fórmula (igualdad corta entre variables) | Antes quedaban como texto |
+| pix2tex **no** se integra | Ver `docs/evaluacion.md` §7: 4/10 fórmulas 2D, pero inventa símbolos y cambia números sin avisar; ~6 GB con PyTorch |
+
+### Diagnóstico de calidad
+
+| Métrica (solo números; se registra en el log sin contenido) | Aviso |
+|---|---|
+| Lado menor < 600 px (insuficiente < 300) | `BAJA_RESOLUCION` |
+| Varianza del laplaciano a 1000 px < 40 (insuficiente < 12, o < 40 con baja resolución) | `IMAGEN_BORROSA` |
+| Brillo medio < 60 | `IMAGEN_OSCURA` |
+| Papel − trazo más oscuro (percentil 10 de la tinta) < 90 | `BAJO_CONTRASTE` |
+| Altura mediana de la letra < 11 px | `TEXTO_PEQUENO` |
+| Iluminación desigual (BACK-12), medida en la hoja ya recortada | `ILUMINACION_DESIGUAL` (se corrige; informativo) |
+| Texto girado ≥ 3° (se endereza) | `IMAGEN_GIRADA` (informativo) |
+| Nivel «insuficiente» | `REPETIR_FOTO`: se procesa igual, pero **nada** queda «reconocido» |
+
+Brillo, contraste e iluminación se miden en la hoja o el pizarrón ya enderezado, no en la pared
+de alrededor; los pizarrones de tiza se invierten antes de medir.
+
+### Contrato (opcional y compatible)
+
+Cada bloque de OCR trae `procedencia` (motor, versión, `adaptativo/1`, variante elegida, modo de
+segmentación y lecturas comparadas), hasta 3 `alternativas` (lecturas reales del motor, nunca
+inventadas) y `revision` (`lecturas_distintas`, `sin_confirmar`, `formula_sin_confirmar`,
+`calidad_insuficiente`). Cada página trae `calidad` (nivel y métricas). Los tres campos de bloque
+son **inmutables** al guardar (`documento.fusionar`): elegir una alternativa en el editor es una
+corrección del usuario (`editado: true`, `texto_original` intacto). Los apuntes anteriores no
+tienen estos campos y siguen siendo válidos. Detalle en `docs/api-v2.md` §3.
+
+### Límites y rendimiento
+
+| Variable | Por defecto | Qué limita |
+|----------|-------------|------------|
+| `RECONOCIMIENTO_MAX_VARIANTES` | 4 | Variantes por bloque dudoso |
+| `RECONOCIMIENTO_MAX_BLOQUES` | 60 | Bloques que se releen por página (el resto se queda con la lectura de la página) |
+| `RECONOCIMIENTO_MAX_SEGUNDOS` | 30 | Tiempo de relecturas por página; al agotarse se sigue sin releer |
+
+Medido en un núcleo (el análisis corre como trabajo de BACK-27, sin bloquear la API): por foto,
+p50 1,0 s y p95 2,4 s (antes 0,37 s y 0,66 s); memoria máxima del proceso igual (306 MB en el
+corpus difícil). Sin GPU: no la usa ni la necesita.
+
+### Errores conocidos y mejoras futuras
+
+- **Errores que se siguen dando por seguros** cuando todas las lecturas coinciden en el mismo error
+  («eltema» por «el tema»; «x?» por «x²» en el pizarrón): el consenso no puede detectarlos.
+- **Palabras juntas** (espaciado mínimo) siguen con CER 10 %; las alternativas a veces las separan.
+- **Fórmulas en 2D** siguen sin reconocerse (0/6): se conservan como recorte y se escriben a mano en
+  el editor. Los subíndices escritos con `_` se pierden (`x1+x2` por `x_1 + x_2`) y quedan para revisar.
+- Todo se midió con **imágenes sintéticas**. Falta medir con fotos reales de cuadernos cedidas con
+  permiso y que el equipo acuerde el umbral realista que pide el issue.
+- Mejoras posibles: combinar lecturas palabra a palabra (no solo por bloque), un motor de
+  manuscritos en español entrenado para ello, y un motor matemático opcional cuyas fórmulas
+  queden siempre sin confirmar.

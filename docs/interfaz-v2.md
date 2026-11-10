@@ -107,3 +107,20 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 - **Esquemas y dibujos:** se muestran y se exportan como la imagen original, con descripción
   opcional. ApuntIA no los redibuja para no inventar relaciones.
 - Se pueden añadir fórmulas y tablas a mano. Todo se guarda con el mismo control de versiones.
+
+## Editor: versiones y guardado automático (FRONT-22)
+
+- «Guardar automáticamente» (activado por defecto) guarda 4 s después del último cambio con el
+  mismo `PUT` + `If-Match` del botón. El estado solo dice «Guardado · versión n» cuando el servidor
+  responde. Se pausa sin conexión («Sin conexión: los cambios solo están en esta pestaña»; guarda
+  al volver), con la sesión caducada y tras un conflicto 409, que siempre resuelve la persona.
+- Pestaña «Versiones»: lista de versiones del servidor (motivo y fecha), comparar cualquiera con
+  la actual —o con los cambios sin guardar— y restaurar con confirmación (crea una versión nueva;
+  nada se borra).
+- La comparación es por bloques y por palabras (tachado/rojo = quitado, subrayado/verde =
+  añadido), indica si el bloque viene de la foto, de la foto corregido o se añadió a mano, y lista
+  aparte los cambios de los complementos externos.
+- En un conflicto, «Comparar» muestra la versión guardada en otra pestaña frente a los cambios
+  locales; luego se elige ver la guardada, copiar los cambios o guardar encima.
+- No hay copia en el navegador (ni localStorage ni IndexedDB): lo no guardado solo vive en la pestaña,
+  y el aviso al salir lo recuerda. No hay edición simultánea en tiempo real.

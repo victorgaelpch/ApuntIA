@@ -17,6 +17,8 @@ describe("FRONT-13 editor de texto", () => {
         const creado = await crearApunte(contexto, backend.url, pagina, opciones);
         await pagina.goto(`${backend.url}/front/editor.html?id=${creado.id}`);
         if (opciones.esperar !== false) await pagina.waitForSelector(".bloque");
+        // Guardado explícito en estas pruebas (el automático se prueba en v2-versiones.test.js).
+        if (opciones.esperar !== false) await pagina.uncheck("#chkAutoguardado");
         return { contexto, pagina, errores, ...creado };
     }
     const documento = async (contexto, id) => (await (await contexto.request.get(`${backend.url}/api/v2/apuntes/${id}`)).json()).apunte;
@@ -71,7 +73,7 @@ describe("FRONT-13 editor de texto", () => {
         assert.equal(await pagina.inputValue(".bloque >> nth=0 >> textarea"), malicioso);
         assert.equal(await pagina.inputValue("#inpTituloApunte"), "<b>título</b>");
         assert.equal(await pagina.evaluate(() => window.__xss), undefined);
-        assert.equal(await pagina.locator("#main img[src=x], #main b").count(), 0);
+        assert.equal(await pagina.locator("#main img[src=x], #panel-transcripcion b, .editor-cabecera b").count(), 0);
         await contexto.close();
     });
 

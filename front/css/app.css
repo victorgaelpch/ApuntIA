@@ -157,3 +157,16 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-vi
 .tabla-editable th[scope=row] { white-space: nowrap; font-size: .85rem; color: var(--ink-2); }
 .tabla-editable .quitar { min-height: 28px; padding: 2px 8px; margin-left: 4px; }
 .bloque__recorte--grande { max-height: 320px; }
+
+/* ---------- versiones y comparación (FRONT-22) ---------- */
+.autoguardado { margin: 0; font-size: .9rem; }
+.versiones { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.version { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+.version[aria-current=true] { border-color: var(--brand); }
+.version__datos { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.version .botones { margin: 0; }
+.diferencias { padding-left: 20px; display: grid; gap: 10px; }
+.diferencia__cabecera { margin: 0 0 4px; font-size: .9rem; color: var(--ink-2); }
+.diferencia__texto { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+ins { background: color-mix(in srgb, var(--brand) 22%, transparent); text-decoration: underline; }
+del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decoration: line-through; }

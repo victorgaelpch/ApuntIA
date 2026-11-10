@@ -91,6 +91,7 @@
                 E.guardado = enviado;
                 E.guardadoEn = new Date().toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
                 E.sesionCaducada = false;
+                E.conflicto = false;
                 // El servidor marca «editado» según la procedencia: se copian sus marcas.
                 const marcas = new Map(r.apunte.documento.bloques.map((b) => [b.id, b.editado]));
                 E.doc.bloques.forEach((b) => { if (marcas.has(b.id)) b.editado = marcas.get(b.id); });
@@ -131,6 +132,7 @@
 
     function tratarErrorGuardado(err) {
         if (err.codigo === "CONFLICTO_VERSION") {
+            E.conflicto = true;  // el guardado automático se pausa hasta que la persona decida
             const acciones = [
                 { texto: "Ver la versión guardada (descarta mis cambios)", alHacer: () => recargar() },
                 { texto: "Copiar mis cambios", alHacer: copiarCambios },
@@ -160,6 +162,7 @@
 
     async function recargar() {
         avisar(aviso(), "info", "");
+        E.conflicto = false;
         await cargar();
         pintarTodo();
     }

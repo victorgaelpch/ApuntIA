@@ -28,6 +28,7 @@ describe("FRONT-14 fórmulas, tablas y esquemas", () => {
         const creado = await crearApunte(contexto, backend.url, pagina, opciones);
         await pagina.goto(`${backend.url}/front/editor.html?id=${creado.id}`);
         await pagina.waitForSelector(".bloque");
+        await pagina.uncheck("#chkAutoguardado");  // guardado explícito (el automático: v2-versiones)
         return { contexto, pagina, errores, ...creado };
     }
     async function guardar(pagina) {

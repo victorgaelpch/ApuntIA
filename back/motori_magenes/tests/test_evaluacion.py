@@ -18,7 +18,8 @@ pytestmark = [pytest.mark.evaluacion,
 
 UMBRAL_CER = {"impreso_cuaderno": 0.02, "cuaderno_con_sombra": 0.02, "impreso_pizarron": 0.02,
               "pizarron_con_ruido": 0.02, "pizarron_oscuro": 0.02, "manuscrito_cuaderno": 0.05,
-              "manuscrito_dificil": 0.12}
+              "manuscrito_dificil": 0.12, "cuaderno_cuadriculado": 0.02,
+              "diagrama": 0.10}   # un dibujo no debe generar texto inventado (FULL-19)
 
 
 @pytest.fixture(scope="module")

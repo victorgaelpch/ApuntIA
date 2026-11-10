@@ -70,6 +70,8 @@
         el.textContent = texto;
         $("#btGuardar").disabled = !cambios || Boolean(E.guardando) || !editable();
         document.title = `${cambios ? "• " : ""}${E.doc ? E.doc.titulo : "Editor"} — ApuntIA`;
+        const h1 = document.getElementById("tituloPagina");
+        if (h1 && E.doc) h1.textContent = `Editor del apunte «${E.doc.titulo}»`;
     }
 
     function editable() { return E.apunte && !["pendiente", "procesando"].includes(E.apunte.estado); }

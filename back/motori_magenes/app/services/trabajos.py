@@ -17,6 +17,7 @@ import json
 import logging
 import secrets
 import threading
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -89,6 +90,7 @@ class GestorTrabajos:
         self.al_cancelar: dict[str, Callable[[Trabajo], None]] = {}
         self.simultaneos = simultaneos or settings.max_trabajos_simultaneos
         self.intervalo = intervalo
+        self._inicio: dict[str, float] = {}
         self._pool: ThreadPoolExecutor | None = None
         self._hilo: threading.Thread | None = None
         self._parar = threading.Event()
@@ -210,6 +212,7 @@ class GestorTrabajos:
     def _ejecutar(self, fila) -> None:
         trabajo = Trabajo(fila["id"], fila["usuario_id"], fila["apunte_id"], fila["tipo"],
                           json.loads(fila["parametros"]), self)
+        self._inicio[trabajo.id] = time.monotonic()
         try:
             resultado = self.manejadores[trabajo.tipo](trabajo)
             self._terminar(trabajo.id, resultado.estado, resultado=resultado.datos,
@@ -235,6 +238,15 @@ class GestorTrabajos:
             self._despertar.set()
 
     def _terminar(self, tid, estado, resultado=None, codigo=None, mensaje=None, error_id=None):
+        # Correlación para diagnosticar (FULL-16, FULL-21): ids, estado, código y duración.
+        # Nunca texto del apunte, conceptos, nombres de archivo ni datos de la cuenta.
+        fila = self.bd.uno("SELECT tipo, apunte_id FROM trabajos WHERE id = ?", (tid,))
+        resumen = resultado or {}
+        inicio = self._inicio.pop(tid, None)
+        logger.info("trabajo=%s tipo=%s apunte=%s version=%s exportacion=%s estado=%s codigo=%s error_id=%s ms=%s",
+                    tid, fila["tipo"] if fila else "?", fila["apunte_id"] if fila else "?", resumen.get("version", "-"),
+                    resumen.get("exportacion_id", "-"), estado, codigo or "-", error_id or "-",
+                    round((time.monotonic() - inicio) * 1000) if inicio else "-")
         self.bd.ejecutar("UPDATE trabajos SET estado = ?, progreso = ?, resultado = ?, error_codigo = ?, error = ?, "
                          "error_id = ?, actualizado = ? WHERE id = ?",
                          (estado, 100 if estado in ("completado", "parcial") else 0,

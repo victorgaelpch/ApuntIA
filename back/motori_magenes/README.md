@@ -93,6 +93,18 @@ pip install -r requirements-dev.txt -c constraints.txt
 
 Las licencias y el mantenimiento de cada dependencia están en [`docs/dependencias.md`](../../docs/dependencias.md).
 
+### 2.4 bis Instalar Tesseract (OCR, para los apuntes con texto)
+
+El OCR usa **Tesseract 5** con el idioma español. Sin él, todo lo demás funciona (incluido `/analisis`), pero crear apuntes con texto responde `OCR_NO_DISPONIBLE`.
+
+| Sistema | Instalación |
+|---------|-------------|
+| Ubuntu/Debian | `sudo apt install tesseract-ocr tesseract-ocr-spa` |
+| macOS (Homebrew) | `brew install tesseract tesseract-lang` |
+| Windows | Instalador de UB Mannheim (github.com/UB-Mannheim/tesseract/wiki), marcando el idioma *Spanish*. Si no queda en el PATH, define `TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe` en `.env` |
+
+Comprueba con `tesseract --list-langs` que aparece `spa`.
+
 ### 2.5 Configurar las variables de entorno (opcional)
 
 Los valores por defecto sirven para desarrollo. Para cambiarlos, copia la plantilla:

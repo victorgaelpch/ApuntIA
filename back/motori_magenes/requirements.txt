@@ -10,3 +10,5 @@ pillow>=10.0,<14                 # MIT-CMU
 # y evita el error «libGL.so.1» en servidores Linux.
 opencv-python-headless>=4.8,<6   # Apache-2.0
 numpy>=1.26,<3                   # BSD-3-Clause
+# OCR (BACK-13): envoltorio de Tesseract. Tesseract (Apache-2.0) se instala aparte: ver README.
+pytesseract>=0.3.10,<1.0       # Apache-2.0

@@ -41,6 +41,12 @@ class Settings:
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
     max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 
+    # OCR (BACK-13): motor (tesseract | ninguno), idiomas de Tesseract y ruta
+    # opcional al ejecutable (en Windows, si no está en el PATH).
+    ocr_motor: str = os.getenv("OCR_MOTOR", "tesseract").strip().lower()
+    ocr_idiomas: str = os.getenv("OCR_IDIOMAS", "spa+eng")
+    tesseract_cmd: str = os.getenv("TESSERACT_CMD", "")
+
     # Trabajos largos ejecutados a la vez (BACK-27).
     max_trabajos_simultaneos: int = int(os.getenv("MAX_TRABAJOS_SIMULTANEOS", "2"))
 

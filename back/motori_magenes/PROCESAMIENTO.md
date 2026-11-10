@@ -173,3 +173,40 @@ Solo con el fondo a ¼, sin redimensionar, la foto de 12 MP pasa de 862 a 354 ms
 - `print` se sustituyó por `logging`.
 - Se completó `requirements.txt` (antes vacío) e incluye `python-multipart`, necesario para recibir archivos.
 - Se añadió `.gitignore` para no subir `__pycache__`, entornos virtuales, `.env` ni las imágenes generadas, y se quitó el `.pyc` que estaba versionado.
+
+## OCR por bloques (BACK-13)
+
+`app/services/ocr.py`. **No confundir** la limpieza de OpenCV (secciones anteriores) con el OCR: aquí se extrae el texto.
+
+### Elección del motor
+
+| Motor | Español | Licencia | Requisitos | Decisión |
+|-------|---------|----------|------------|----------|
+| **Tesseract 5** | Sí (`spa`, con tildes y ñ) | Apache-2.0 | Binario de ~30 MB, sin GPU; Windows, Linux, macOS y Docker | **Elegido** |
+| PaddleOCR | Sí | Apache-2.0 | PaddlePaddle (~500 MB) y modelos descargados en el primer uso | Descartado por tamaño |
+| EasyOCR | Sí | Apache-2.0 | PyTorch (~700 MB+); lento sin GPU | Descartado por tamaño y velocidad |
+| TrOCR | Inglés en los modelos públicos | MIT | PyTorch + 1.3 GB de modelo | Descartado (ver BACK-14) |
+
+El motor no está «cableado»: `OCR_MOTOR` lo elige (`tesseract` o `ninguno`) y otro motor puede implementar la clase `MotorOCR`.
+
+### Salida
+
+- Palabras → líneas → **bloques** (párrafos de Tesseract), en orden de lectura, con `bbox`, confianza ponderada por longitud y estado: `reconocido` (≥ 0.80), `incierto` (0.50–0.80) o `no_reconocido` (< 0.50).
+- Un bloque de una línea con letra al menos 1.25 veces mayor que la mediana se marca como `titulo`.
+- Texto normalizado en Unicode NFC: las tildes y la ñ llegan intactas al PDF.
+- Tres resultados distintos: **fallo técnico** → `ErrorOCR` con código (`OCR_NO_DISPONIBLE`, `OCR_TIEMPO_AGOTADO`, `OCR_IDIOMA_NO_DISPONIBLE`), nunca texto vacío; **sin texto** → lista vacía; **confianza baja** → bloques `incierto`/`no_reconocido`.
+- `GET /salud` añade `ocr: {disponible, motor, version, idiomas}`; los campos de la v1 no cambian.
+
+### Línea base (sin preprocesar), con el corpus sintético
+
+`python -m herramientas.evaluar_ocr --sin-preprocesar` (Tesseract 5.3.4, `spa+eng`). CER/WER: porcentaje de caracteres/palabras mal reconocidos (menor es mejor).
+
+| Muestra | Escritura | CER | WER | Bloques (rec./inc./no rec.) |
+|---|---|---|---|---|
+| impreso_cuaderno | impreso | 0.7 % | 3.8 % | 5/0/0 |
+| impreso_pizarron (inclinado) | impreso | **53.7 %** | 69.2 % | 3/1/0 |
+| pizarron_oscuro (tiza) | impreso | 0.7 % | 3.8 % | 5/0/0 |
+| manuscrito_cuaderno | manuscrito sintético | 0.0 % | 0.0 % | 3/0/0 |
+| formulas_pizarron | fórmula | 22.9 % | 64.7 % | 2/2/0 |
+
+El pizarrón fotografiado en ángulo pierde líneas enteras: es lo que corrige el preprocesado por perfil (BACK-12). La «escritura manuscrita» sintética es mucho más fácil que la real (ver BACK-14).

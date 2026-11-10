@@ -122,6 +122,7 @@ contraseñas ni claves; no la subas al repositorio. Variables principales:
 | `DATA_DIR` | `datos` | Base de datos y archivos privados |
 | `MAX_UPLOAD_MB`, `MAX_PAGINAS` | 10, 20 | Límites de subida |
 | `OCR_MOTOR`, `OCR_IDIOMAS` | `tesseract`, `spa+eng` | Reconocimiento de texto |
+| `RECONOCIMIENTO_MODO` | `adaptativo` | `clasico` vuelve al flujo anterior a BACK-28 ([PROCESAMIENTO.md](back/motori_magenes/PROCESAMIENTO.md#reconocimiento-adaptativo-back-28)) |
 | `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
 | `COOKIE_SEGURA`, `URL_PUBLICA` | 0, vacío | Solo si se publica por HTTPS |
 

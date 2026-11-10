@@ -1,6 +1,8 @@
 """Rutas de apuntes de la API v2. Contrato: docs/api-v2.md §5."""
 
-from fastapi import APIRouter, Depends, File, Form, Header, UploadFile
+from typing import Literal
+
+from fastapi import APIRouter, Body, Depends, File, Form, Header, Query, UploadFile
 from fastapi.responses import JSONResponse, Response
 
 from app.core import contexto
@@ -10,6 +12,7 @@ from app.datos.apuntes import RepositorioApuntes
 from app.services.cuentas import Sesion
 from app.core.errores import ApiError
 from app.services import analisis  # noqa: F401 — registra el manejador de trabajos «analisis»
+from app.services.documento import fusionar, validar
 from app.services.entrada import validar_paginas
 
 router = APIRouter(prefix="/api/v2", tags=["v2: apuntes"])
@@ -66,3 +69,70 @@ def ver_archivo(apunte_id: str, archivo_id: str, sesion: Sesion = Depends(sesion
         raise ApiError(404, "NO_ENCONTRADO", "No encontramos ese archivo.")
     return Response(archivo.ruta.read_bytes(), media_type=archivo.mime,
                     headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"})
+
+
+# ---------------------------------------------------------------- historial (BACK-26)
+
+@router.get("/apuntes")
+def listar_apuntes(
+    q: str = Query("", max_length=200, description="Busca en el título y en el texto del apunte"),
+    estado: Literal["pendiente", "procesando", "listo", "parcial", "fallido", "cancelado"] | None = None,
+    tipo_fuente: Literal["pizarron", "cuaderno", "mixto"] | None = None,
+    pagina: int = Query(1, ge=1, le=10000),
+    por_pagina: int = Query(20, ge=1, le=100),
+    orden: Literal["reciente", "antiguo", "titulo"] = "reciente",
+    sesion: Sesion = Depends(sesion_actual),
+):
+    return repositorio().listar(sesion.usuario.id, q.strip(), estado, tipo_fuente, pagina, por_pagina, orden)
+
+
+def _version_de(if_match: str | None) -> int:
+    if not if_match:
+        raise ApiError(428, "VERSION_REQUERIDA", "Falta la cabecera If-Match con la versión que editaste.")
+    try:
+        return int(if_match.strip().strip('"').removeprefix("W/").strip('"'))
+    except ValueError:
+        raise ApiError(400, "DATOS_INVALIDOS", "If-Match debe ser el número de versión.") from None
+
+
+@router.put("/apuntes/{apunte_id}/documento")
+def guardar_documento(apunte_id: str, documento: dict = Body(...), if_match: str | None = Header(None),
+                      sesion: Sesion = Depends(sesion_actual)):
+    esperada = _version_de(if_match)
+    repo = repositorio()
+    repo.comprobar_editable(sesion.usuario.id, apunte_id)
+    nuevo = validar(documento)  # si no valida, no se toca la versión anterior
+    anterior = repo.documento(sesion.usuario.id, apunte_id)
+    version = repo.nueva_version(sesion.usuario.id, apunte_id, fusionar(anterior, nuevo), "edicion",
+                                 version_esperada=esperada)
+    return {"apunte": repo.obtener(sesion.usuario.id, apunte_id), "version": version}
+
+
+@router.get("/apuntes/{apunte_id}/versiones")
+def listar_versiones(apunte_id: str, sesion: Sesion = Depends(sesion_actual)):
+    return {"versiones": repositorio().versiones(sesion.usuario.id, apunte_id)}
+
+
+@router.get("/apuntes/{apunte_id}/versiones/{numero}")
+def ver_version(apunte_id: str, numero: int, sesion: Sesion = Depends(sesion_actual)):
+    doc = repositorio().documento(sesion.usuario.id, apunte_id, numero)
+    return {"version": numero, "documento": doc.model_dump()}
+
+
+@router.post("/apuntes/{apunte_id}/versiones/{numero}/restaurar")
+def restaurar_version(apunte_id: str, numero: int, sesion: Sesion = Depends(sesion_actual)):
+    repo = repositorio()
+    repo.comprobar_editable(sesion.usuario.id, apunte_id)
+    doc = repo.documento(sesion.usuario.id, apunte_id, numero)
+    version = repo.nueva_version(sesion.usuario.id, apunte_id, doc, "restauracion")
+    return {"apunte": repo.obtener(sesion.usuario.id, apunte_id), "version": version}
+
+
+@router.delete("/apuntes/{apunte_id}", status_code=204)
+def borrar_apunte(apunte_id: str, sesion: Sesion = Depends(sesion_actual)):
+    repo = repositorio()
+    trabajos = contexto.obtener().trabajos
+    for fila in contexto.obtener().bd.todos("SELECT id FROM trabajos WHERE apunte_id = ? AND estado IN "
+                                            "('pendiente', 'procesando')", (apunte_id,)):
+        trabajos.cancelar(sesion.usuario.id, fila["id"])  # no deja trabajos sobre un apunte borrado
+    repo.borrar(sesion.usuario.id, apunte_id)

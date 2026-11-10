@@ -135,13 +135,13 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | `POST` | `/api/v2/apuntes` | Crea un apunte desde 1–20 fotos y lanza su trabajo de **análisis** (preprocesado → OCR → manuscritos → fórmulas). `multipart/form-data`: `paginas` (archivos, en orden), `tipos` (uno por página: `pizarron` o `cuaderno`), `titulo`. Cabecera opcional `Idempotency-Key`. → `202 {apunte, trabajo}` |
-| `GET` | `/api/v2/apuntes` | Lista paginada: `?q=&estado=&tipo_fuente=&pagina=1&por_pagina=20&orden=reciente` → `{elementos, total, pagina, por_pagina}` |
+| `GET` | `/api/v2/apuntes` | Lista paginada: `?q=&estado=&tipo_fuente=&pagina=1&por_pagina=20&orden=reciente\|antiguo\|titulo` → `{elementos, total, pagina, por_pagina}`. `q` busca en el título y en el texto (no en lo investigado); `%` y `_` se buscan literalmente |
 | `GET` | `/api/v2/apuntes/{id}` | Apunte con su documento actual, su `version` y `ultimo_trabajo` (estado del análisis, investigación o exportación más reciente) |
 | `PUT` | `/api/v2/apuntes/{id}/documento` | Guarda una versión nueva. Cabecera **`If-Match: <version>`** obligatoria; si otra edición se guardó antes → `409 CONFLICTO_VERSION` con la versión actual |
 | `GET` | `/api/v2/apuntes/{id}/versiones` | Historial de versiones |
 | `GET` | `/api/v2/apuntes/{id}/versiones/{n}` | Documento de una versión |
 | `POST` | `/api/v2/apuntes/{id}/versiones/{n}/restaurar` | Crea una versión nueva igual a la `n` (no borra nada) |
-| `DELETE` | `/api/v2/apuntes/{id}` | Borra el apunte, sus versiones, trabajos y archivos |
+| `DELETE` | `/api/v2/apuntes/{id}` | Cancela sus trabajos en curso y borra el apunte, sus versiones, trabajos y archivos |
 | `GET` | `/api/v2/apuntes/{id}/archivos/{archivo_id}` | Imagen original, procesada o recorte. Solo el propietario |
 | `POST` | `/api/v2/apuntes/{id}/investigacion` | `{consentimiento: true, conceptos: [...]}` → `202 {trabajo}`. Sin `consentimiento: true` → `400 CONSENTIMIENTO_REQUERIDO` |
 | `PATCH` | `/api/v2/apuntes/{id}/ampliaciones/{aid}` | `{estado: "aceptada"|"rechazada"}` (crea una versión) |
@@ -192,6 +192,7 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 | 404 | `NO_ENCONTRADO` | No existe **o no es tuyo** |
 | 409 | `EMAIL_EN_USO` | Registro con un email ya usado |
 | 409 | `CONFLICTO_VERSION` | `If-Match` no coincide con la versión actual |
+| 409 | `APUNTE_EN_PROCESO` | Editar o restaurar mientras el análisis está en marcha (al terminar pisaría la edición) |
 | 409 | `TRABAJO_NO_REINTENTABLE` | Reintentar un trabajo que no falló ni se canceló |
 | 428 | `VERSION_REQUERIDA` | Falta `If-Match` |
 | 429 | `DEMASIADOS_INTENTOS` / `DEMASIADOS_TRABAJOS` | Límites de abuso |

@@ -147,8 +147,26 @@ def pizarron_oscuro() -> Muestra:
     return Muestra("pizarron_oscuro", "pizarron", "impreso", _a_bgr(img), TEXTO_CLASE)
 
 
+def cuaderno_con_sombra() -> Muestra:
+    """Hoja fotografiada con la sombra del brazo: el lado derecho queda oscuro."""
+    m = impreso_cuaderno()
+    h, w = m.imagen.shape[:2]
+    grad = np.linspace(1.0, 0.35, w, dtype=np.float32)[None, :, None]
+    img = np.clip(m.imagen.astype(np.float32) * grad, 0, 255).astype(np.uint8)
+    return Muestra("cuaderno_con_sombra", "cuaderno", "impreso", img, m.lineas)
+
+
+def pizarron_con_ruido(semilla=11) -> Muestra:
+    """Foto con poca luz: ruido gaussiano de sensor."""
+    m = impreso_pizarron()
+    rng = np.random.default_rng(semilla)
+    img = np.clip(m.imagen.astype(np.float32) + rng.normal(0, 22, m.imagen.shape), 0, 255).astype(np.uint8)
+    return Muestra("pizarron_con_ruido", "pizarron", "impreso", img, m.lineas)
+
+
 def corpus() -> list[Muestra]:
-    return [impreso_cuaderno(), impreso_pizarron(), pizarron_oscuro(), manuscrito_cuaderno(), formulas_pizarron()]
+    return [impreso_cuaderno(), cuaderno_con_sombra(), impreso_pizarron(), pizarron_con_ruido(), pizarron_oscuro(),
+            manuscrito_cuaderno(), formulas_pizarron()]
 
 
 if __name__ == "__main__":

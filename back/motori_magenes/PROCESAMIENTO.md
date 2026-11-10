@@ -210,3 +210,39 @@ El motor no está «cableado»: `OCR_MOTOR` lo elige (`tesseract` o `ninguno`) y
 | formulas_pizarron | fórmula | 22.9 % | 64.7 % | 2/2/0 |
 
 El pizarrón fotografiado en ángulo pierde líneas enteras: es lo que corrige el preprocesado por perfil (BACK-12). La «escritura manuscrita» sintética es mucho más fácil que la real (ver BACK-14).
+
+## Preprocesado para OCR por perfil (BACK-12)
+
+`app/services/preprocesado_ocr.py`. Reutiliza la perspectiva (BACK-04) y la normalización de iluminación (BACK-05), pero con perfiles distintos:
+
+| Paso | Pizarrón | Cuaderno |
+|------|----------|----------|
+| Perspectiva | Sí | Sí (hoja sobre la mesa) |
+| Resolución para OCR | Lado entre 1400 y 2400 px (amplía las fotos pequeñas) | Igual |
+| Color → gris | Luminancia; **se invierte** si es de tiza (fondo oscuro) | **Canal rojo**: el rayado azul y el margen rojo casi desaparecen y la tinta oscura se mantiene |
+| Iluminación | Normalizar **solo si es desigual** (fondo con más de 45 niveles de diferencia) | Igual |
+| Ruido | Mediana 3×3 **solo si hay ruido** (estimación MAD del laplaciano > 6) | No |
+| Renglones | — | Se quitan solo las líneas que cruzan más del 60 % de la hoja **y** se repiten a intervalos regulares (≥ 4); `inpaint` rellena donde un trazo las cruza |
+| Segmentación de Tesseract | `psm 3` | `psm 4` |
+
+- **Trazos finos:** sin erosiones ni umbrales duros. Las líneas de tabla y las barras de fracción no son periódicas ni ocupan toda la hoja, así que se conservan (probado).
+- **Original intacto:** se guarda aparte; el OCR trabaja sobre una copia.
+- **Advertencias de calidad** en la página del documento: `BAJA_RESOLUCION` (lado menor < 600 px), `IMAGEN_BORROSA` (varianza del laplaciano < 40) e `IMAGEN_OSCURA`.
+
+**Por qué las etapas son adaptativas.** La primera versión las aplicaba siempre y se midió una regresión en las fotos limpias: la mediana borraba la tilde de «rápido» en el pizarrón de tiza (CER de 0.7 % a 1.4 %), y la normalización adelgazaba trazos en el cuaderno limpio (de 0.7 % a 1.4 %). Por eso ahora solo se aplican cuando la imagen las necesita.
+
+### Antes y después (`python -m herramientas.evaluar_ocr` con y sin `--sin-preprocesar`)
+
+| Muestra | CER sin preprocesar | CER con preprocesado |
+|---|---|---|
+| impreso_cuaderno | 0.7 % | 0.7 % |
+| cuaderno_con_sombra | 7.5 % | **0.7 %** |
+| impreso_pizarron (inclinado) | 53.7 % | **0.7 %** |
+| pizarron_con_ruido | 74.8 % | **0.7 %** |
+| pizarron_oscuro (tiza) | 0.7 % | 0.7 % |
+| manuscrito_cuaderno (sintético) | 0.0 % | 0.0 % |
+| formulas_pizarron | 22.9 % | 22.9 % (las fórmulas se tratan en BACK-15) |
+
+El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `tests/test_preprocesado_ocr.py` comprueba que ninguna muestra empeora frente a la línea base.
+
+**Limitación:** una tabla con 4 o más filas equiespaciadas que ocupen más del 60 % del ancho de la hoja se confundiría con el rayado.

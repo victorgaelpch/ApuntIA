@@ -44,6 +44,10 @@ class Settings:
     # Lado mayor con el que se procesa la imagen (BACK-09). 0 = sin límite.
     max_lado_procesamiento: int = int(os.getenv("MAX_LADO_PROCESAMIENTO", "2000"))
 
+    # Datos privados (BACK-22): base de datos SQLite y archivos de los usuarios.
+    # Las rutas relativas se resuelven respecto a back/motori_magenes.
+    data_dir: Path = (BASE_DIR / os.getenv("DATA_DIR", "datos")).resolve()
+
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [
         origen.strip()

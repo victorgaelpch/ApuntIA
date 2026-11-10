@@ -1,10 +1,12 @@
 """Punto de creación de la aplicación FastAPI."""
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core import contexto
 from app.core.config import settings
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
 from app.routers import general, imagenes
@@ -21,9 +23,16 @@ CABECERAS_EXPUESTAS = [
 ]
 
 
+@asynccontextmanager
+async def ciclo_de_vida(_app: FastAPI):
+    # Aplica las migraciones pendientes y limpia temporales antes de atender peticiones.
+    contexto.iniciar()
+    yield
+
+
 def create_app() -> FastAPI:
     """Construye la aplicación, registra middleware y rutas."""
-    app = FastAPI(title=settings.app_name, version=settings.version)
+    app = FastAPI(title=settings.app_name, version=settings.version, lifespan=ciclo_de_vida)
     registrar_manejadores(app)
 
     # Debe registrarse ANTES que CORS para quedar dentro de él (FULL-08, defecto D1).

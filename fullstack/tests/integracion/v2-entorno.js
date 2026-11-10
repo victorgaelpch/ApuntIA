@@ -7,12 +7,16 @@ const path = require("node:path");
 const { iniciarBackend } = require("./entorno");
 const { claveDePrueba } = require("../claves");
 
+// opciones.datos: reutiliza esa carpeta (p. ej. para reiniciar el servidor con los mismos
+// datos); en ese caso detener() no la borra.
 async function iniciarBackendV2(env = {}, opciones = {}) {
-    const datos = fs.mkdtempSync(path.join(os.tmpdir(), "apuntia-e2e-"));
+    const propia = !opciones.datos;
+    const datos = opciones.datos || fs.mkdtempSync(path.join(os.tmpdir(), "apuntia-e2e-"));
     const backend = await iniciarBackend({ DATA_DIR: datos, INVESTIGACION_PROVEEDOR: "ninguno", MAX_REGISTROS_HORA: "1000", ...env }, opciones);
     const detener = backend.detener;
     backend.datos = datos;
-    backend.detener = async () => { await detener(); fs.rmSync(datos, { recursive: true, force: true }); };
+    backend.parar = detener;  // detiene el proceso y conserva los datos (para reiniciar)
+    backend.detener = async () => { await detener(); if (propia) fs.rmSync(datos, { recursive: true, force: true }); };
     return backend;
 }
 

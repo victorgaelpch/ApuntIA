@@ -72,12 +72,14 @@ if [ "$MODO" = "completo" ]; then
     paso "Integración con el backend real (v1, v2, accesibilidad)" bash -c \
         "CAPTURAS='${INFORMES:+$INFORMES/capturas}' node --test --test-concurrency=1 $(junit_node integracion) 'fullstack/tests/integracion/'*.test.js"
     paso "Scripts de arranque y detención" bash -c "node --test $(junit_node scripts) fullstack/tests/scripts/*.test.js"
+    paso "Entrega: humo con scripts, reinicio y demostración (FULL-22)" bash -c "node --test --test-name-pattern='scripts|demostración' $(junit_node entrega) fullstack/tests/entrega/entrega.test.js"
 fi
 
 # ------------------------------------------------------------------ docker
 if [ "$DOCKER" = 1 ]; then
     if docker info >/dev/null 2>&1; then
         paso "Docker: construcción y prueba de humo" bash -c "node --test $(junit_node docker) fullstack/tests/docker/*.test.js"
+        paso "Entrega: el mismo humo con Docker, down + up (FULL-22)" bash -c "APUNTIA_DOCKER_SIN_BUILD=1 node --test --test-name-pattern='Docker' $(junit_node entrega-docker) fullstack/tests/entrega/entrega.test.js"
     else
         RESUMEN+=("✖ Docker pedido pero no disponible"); FALLOS=$((FALLOS + 1))
     fi

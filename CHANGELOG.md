@@ -1,0 +1,60 @@
+# Registro de cambios
+
+Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versiones
+[semánticas](https://semver.org/lang/es/). La versión se ve en `GET /salud` (`"version"`).
+Cómo se publica una versión: [docs/entrega.md](docs/entrega.md#6-lista-de-comprobación-de-la-versión).
+
+## [2.0.0] — 2026-11-10 (preparada, sin etiqueta publicada)
+
+Apuntes completos con cuenta: de varias fotos de pizarrón o cuaderno a un apunte editable y un PDF.
+Todo lo de la 1.0.0 sigue igual (**sin cambios incompatibles en `POST /analisis` ni en `/salud`**);
+el número mayor sube porque cambia el producto, no el contrato v1.
+
+### Añadido
+
+- **Cuentas** (registro, sesión con cookie HttpOnly y CSRF, recuperación de contraseña por buzón
+  local, perfil, preferencias, cerrar las demás sesiones, borrar la cuenta). BACK-23, FRONT-17, FRONT-19, FULL-18.
+- **Apuntes de 1 a 20 fotos** con trabajos durables (avance, cancelación, reintento). BACK-11, BACK-21, BACK-27, FRONT-12.
+- **OCR por bloques** con Tesseract 5 y preprocesado por tipo de fuente; **manuscrito** con respaldo
+  que no inventa texto; **fórmulas** a LaTeX verificable (las 2D se conservan como imagen). BACK-12 a BACK-15.
+- **Editor**: bloques junto a su región de la foto, fórmulas con vista previa, tablas, esquemas,
+  versiones, comparación y restauración. BACK-17, BACK-19, BACK-26, FRONT-13, FRONT-14, FRONT-22.
+- **Información complementaria** opcional de Wikipedia, con consentimiento y fuente citada. BACK-18, FRONT-15.
+- **PDF académico** (portada, índice, tablas, fórmulas, referencias), exportación idempotente. BACK-20, FRONT-16.
+- **Mis apuntes**: búsqueda, filtros por fecha, estado y tipo; historial. BACK-26, FRONT-18.
+- **Base de datos** SQLite con migraciones y almacenamiento privado; autorización por propietario. BACK-22, BACK-24.
+- **Arranque con scripts** (`iniciar`/`detener` en Linux, macOS y Windows) y con **Docker Compose**
+  (Nginx sin privilegios + backend). FULL-11, FULL-12, FULL-13.
+- **Diagnóstico** (`/api/v2/listo`, `/api/v2/diagnostico` local, id de petición, alertas) y **copias de
+  seguridad** verificadas con restauración. FULL-21, FULL-23.
+- **Banco de evaluación** sintético con línea base y comparación automática. FULL-19.
+- **Modo demostración** (`iniciar.sh --demo`): cuenta y apuntes sintéticos en una carpeta aparte. FULL-22.
+- Pruebas de punta a punta con el backend real, accesibilidad y diseño adaptable; CI con trabajos
+  rápido, interfaz, integración y Docker. BACK-25, FRONT-21, FULL-16, FULL-17.
+
+### Cambiado
+
+- La interfaz se sirve desde el backend en el mismo origen (`/inicio`, `/front/…`) con CSP estricta.
+- `GET /salud` informa de la versión 2.0.0 (antes 1.0.0); el resto de su respuesta no cambia.
+
+### Corregido (durante la preparación de la entrega)
+
+- El paquete `back/motori_magenes/app/datos/` no estaba en el repositorio por una regla demasiado
+  amplia del `.gitignore` (`datos/`): un clon limpio no arrancaba. Detectado al instalar desde cero.
+- Dos análisis simultáneos tardaban ~200 s en vez de ~2 s porque los hilos OpenMP de Tesseract
+  competían: ahora `OMP_THREAD_LIMIT=1` por defecto.
+- Nginx sobrescribe `X-Forwarded-For` (antes se podía falsear para saltarse los límites por IP).
+- Las bombas de descompresión se rechazan como `IMAGEN_DEMASIADO_GRANDE` (413), no como imagen corrupta.
+
+### Seguridad
+
+Auditoría completa (FULL-20) en [docs/seguridad.md](docs/seguridad.md), con los riesgos que siguen abiertos.
+
+## [1.0.0] — 2026-11-03
+
+Primera versión (commit `791290f`, rama `main`): «Mejorar una foto» sin cuenta.
+
+- `POST /analisis` (campo `file`, JPEG/PNG/WEBP hasta 10 MB) → PNG enderezado, sin ruido y con
+  contraste; `GET /salud`; errores `{error:{codigo,mensaje}}`.
+- Interfaz estática (`index.html` + `front/`) con cámara, arrastrar y soltar, diseño adaptable.
+- Pruebas del backend, de la interfaz y de integración; documentación de arquitectura y API.

@@ -68,6 +68,10 @@ opciones (`--puerto`, `--red` para el móvil…) y códigos de salida en [docs/a
 
 Para pararla: `./detener.sh` (o `detener.bat`).
 
+**Para una demostración** sin tocar tus datos: `./iniciar.sh --demo` crea una cuenta
+`demo@example.com` con apuntes de ejemplo sintéticos en una carpeta aparte; guía de ~10 minutos en
+[docs/entrega.md](docs/entrega.md#5-guía-de-demostración--10-minutos).
+
 ### Opción B: Docker
 
 ```bash
@@ -156,6 +160,7 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [docs/ci.md](docs/ci.m
 | Seguridad y privacidad | [auditoría](docs/seguridad.md) · [API](docs/seguridad-api.md) · [permisos](docs/permisos.md) · [privacidad](docs/privacidad.md) |
 | Operación | [diagnóstico](docs/diagnostico.md) · [copias de seguridad](docs/respaldo.md) |
 | Calidad | [evaluación del OCR y PDF](docs/evaluacion.md) · [pruebas del backend](docs/pruebas-backend.md) · [pruebas de interfaz](docs/pruebas-interfaz.md) · [CI](docs/ci.md) |
+| Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](docs/alcance.md) · [definición de hecho](docs/definicion-de-hecho.md) · [dependencias y licencias](docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 
 ## Datos de ejemplo y licencias

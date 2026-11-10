@@ -24,8 +24,10 @@ mismo origen que la API, que es lo que necesita la cookie de sesión. No hay que
 comunicación entre servicios ni un servidor web aparte.
 
 Opciones: `--puerto N`, `--red`, `--sin-navegador`, `--sin-venv` (usa el Python actual; CI),
-`--reinstalar`, `--comprobar` (solo revisa requisitos y configuración). En Windows: `-Puerto N`,
-`-Red`, `-SinNavegador`, `-SinVenv`, `-Reinstalar`, `-Comprobar`.
+`--reinstalar`, `--comprobar` (solo revisa requisitos y configuración), `--demo` (datos aparte en
+`fullstack/.demo/` con una cuenta y apuntes sintéticos) y `--demo-nueva` (lo mismo, empezando de cero:
+ver [entrega.md §5](entrega.md#5-guía-de-demostración--10-minutos)). En Windows: `-Puerto N`,
+`-Red`, `-SinNavegador`, `-SinVenv`, `-Reinstalar`, `-Comprobar` (sin modo demostración).
 
 Códigos de salida: `0` bien · `1` falta un requisito u opción no válida · `2` dependencias ·
 `3` puerto ocupado · `4` no arrancó.
@@ -63,7 +65,7 @@ cualquier carpeta y en cualquier equipo.
 
 | Sistema | Resultado |
 |---------|-----------|
-| Linux (Python 3.13, Tesseract 5.3.4) | `iniciar.sh` desde cero: crea el entorno, instala y arranca en ~20 s; `detener.sh` lo para. Pruebas automáticas: `npm run test:scripts` (5 casos: ayuda y comprobación, opciones y puertos no válidos, puerto ocupado, arrancar desde otra carpeta + no duplicar + detener, no matar un PID ajeno, detección de Spring Boot) |
+| Linux (Python 3.13, Tesseract 5.3.4) | `iniciar.sh` desde cero: crea el entorno, instala y arranca en ~40 s sin caché de pip (~16 s después; [clon limpio](evidencias/full-22-clon-limpio.md)); `detener.sh` lo para. Pruebas automáticas: `npm run test:scripts` (5 casos: ayuda y comprobación, opciones y puertos no válidos, puerto ocupado, arrancar desde otra carpeta + no duplicar + detener, no matar un PID ajeno, detección de Spring Boot) y `npm run test:entrega` (humo completo con reinicio y modo demostración) |
 | macOS | Mismo `iniciar.sh` (bash, `open` para el navegador). **No probado** en un Mac |
 | Windows | `iniciar.bat`/`detener.bat` → `iniciar.ps1`/`detener.ps1` (PowerShell 5.1+). **No se pudieron ejecutar en este entorno (sin Windows ni PowerShell)**: están escritos para ser equivalentes, pero falta probarlos en un equipo con Windows antes de la entrega |
 

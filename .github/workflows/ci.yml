@@ -122,6 +122,8 @@ jobs:
           CAPTURAS: informes/capturas
       - name: Scripts de arranque y detención
         run: npm run test:scripts
+      - name: "Entrega: humo con scripts, reinicio y demostración (FULL-22)"
+        run: node --test --test-name-pattern="scripts|demostración" fullstack/tests/entrega/entrega.test.js
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -142,6 +144,10 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Construir y probar con Docker Compose
         run: npm run test:docker
+      - name: "Entrega: el mismo humo con Docker, down + up (FULL-22)"
+        run: node --test --test-name-pattern="Docker" fullstack/tests/entrega/entrega.test.js
+        env:
+          APUNTIA_DOCKER_SIN_BUILD: "1"
       - name: Registros de los contenedores si falla
         if: failure()
         run: docker compose -f fullstack/compose.yaml -p apuntia-prueba logs --no-color > docker.log 2>&1 || true

@@ -27,6 +27,8 @@ back/motori_magenes/datos/
 *.db
 # Configuración local con valores reales
 fullstack/config/.env
+# Datos de la demostración (iniciar.sh --demo)
+fullstack/.demo/
 # Estado de los scripts de arranque (PIDs y logs)
 fullstack/.estado/
 # Copias de seguridad

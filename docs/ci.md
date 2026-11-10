@@ -8,9 +8,9 @@ fullstack/scripts/validar.sh
 
 | Modo | Qué ejecuta | Tiempo aprox. |
 |------|-------------|---------------|
-| `--rapido` (por defecto) | pytest del backend (368), evaluación real del OCR y las fórmulas y banco de evaluación contra la línea base (si hay Tesseract), búsqueda de secretos, enlaces de la documentación, catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1,5 min |
-| `--completo` | además: interfaz con API simulada (Playwright), integración v1/v2 con el backend real (incluida accesibilidad) y scripts de arranque | 6 min |
-| `--docker` | además: construir las imágenes y la prueba de humo de Docker Compose | +3 min |
+| `--rapido` (por defecto) | pytest del backend (370), evaluación real del OCR y las fórmulas y banco de evaluación contra la línea base (si hay Tesseract), búsqueda de secretos, enlaces de la documentación, catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1,5 min |
+| `--completo` | además: interfaz con API simulada (Playwright), integración v1/v2 con el backend real (incluida accesibilidad), scripts de arranque y humo de entrega con reinicio y demostración | 6,5 min |
+| `--docker` | además: construir las imágenes, la prueba de humo de Docker Compose y el humo de entrega con `down` + `up` | +3 min |
 
 `--informes CARPETA` guarda informes JUnit (y capturas de la interfaz). El script ejecuta todos los
 pasos aunque alguno falle, muestra un resumen y **sale con 1** si algo falló (comprobado
@@ -30,6 +30,7 @@ paso del workflow con «: » sin comillas, que hacía inválido el YAML.
 | Integración y E2E con backend real | `fullstack/tests/integracion/` | `npm run test:integracion` |
 | Scripts de arranque | `fullstack/tests/scripts/` | `npm run test:scripts` |
 | Humo de despliegue (Docker) | `fullstack/tests/docker/` | `npm run test:docker` |
+| Humo de entrega: el mismo en scripts y Docker, reinicio, demostración (FULL-22) | `fullstack/tests/entrega/` | `npm run test:entrega` |
 | Mutaciones (¿detecta regresiones?) | `back/motori_magenes/herramientas/mutaciones.py` | `python herramientas/mutaciones.py` |
 
 Detalle: [`docs/pruebas-backend.md`](pruebas-backend.md) y [`docs/pruebas-interfaz.md`](pruebas-interfaz.md).
@@ -44,8 +45,8 @@ la que se midió el OCR):
 | Mensajes de commit | commitlint (solo en PR) | — |
 | Backend, evaluación del OCR y reglas de la interfaz | `validar.sh --rapido`, cobertura, `pip-audit` | JUnit, `cobertura.xml` |
 | Interfaz (Playwright, API simulada) | `front/tests/*.test.js` | JUnit |
-| Integración y scripts | Todas las suites de `fullstack/tests/integracion/` (una a una) y `test:scripts` | JUnit y capturas |
-| Docker | Construir y prueba de humo | Registros de los contenedores si falla |
+| Integración y scripts | Todas las suites de `fullstack/tests/integracion/` (una a una), `test:scripts` y el humo de entrega con scripts | JUnit y capturas |
+| Docker | Construir, prueba de humo y humo de entrega (`down` + `up`) | Registros de los contenedores si falla |
 
 - **Sin secretos ni servicios personales:** las cuentas son sintéticas (`@example.com`), las fotos se
   generan en el navegador o son del corpus sintético, la investigación usa una Wikipedia simulada

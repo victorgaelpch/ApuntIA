@@ -40,7 +40,7 @@ class Settings:
 
     app_name: str = os.getenv("APP_NAME", "ApuntIA - Motor de imágenes")
 
-    version: str = "1.0.0"
+    version: str = "2.0.0"  # ver CHANGELOG.md
 
     # Límites de las imágenes recibidas (ver docs/api.md).
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))

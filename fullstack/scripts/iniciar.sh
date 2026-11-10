@@ -3,7 +3,7 @@
 # Python, instala dependencias, inicia el backend (que también sirve la interfaz) y
 # espera a que responda. Uso (desde cualquier carpeta):
 #
-#   ./iniciar.sh [--puerto N] [--red] [--sin-navegador] [--sin-venv] [--reinstalar] [--comprobar]
+#   ./iniciar.sh [--puerto N] [--red] [--sin-navegador] [--sin-venv] [--reinstalar] [--comprobar] [--demo]
 #
 #   --puerto N       puerto de la aplicación (por defecto APUNTIA_PUERTO o 8000)
 #   --red            escuchar en la red local (para abrirla desde el móvil); por defecto solo este equipo
@@ -11,6 +11,8 @@
 #   --sin-venv       usar el Python actual en vez de crear back/motori_magenes/.venv (CI, pruebas)
 #   --reinstalar     reinstalar las dependencias aunque no hayan cambiado
 #   --comprobar      solo comprobar requisitos y configuración, sin instalar ni arrancar
+#   --demo           modo demostración: datos APARTE en fullstack/.demo/ y una cuenta con apuntes sintéticos
+#   --demo-nueva     como --demo, pero borra antes fullstack/.demo/ (solo esa carpeta) para empezar de cero
 #
 # Códigos de salida: 0 bien · 1 requisito ausente · 2 dependencias · 3 puerto ocupado · 4 no arrancó
 set -euo pipefail
@@ -26,7 +28,7 @@ aviso() { printf '\033[1;33m⚠ %s\033[0m\n' "$*"; }
 error() { printf '\033[1;31m✖ %s\033[0m\n' "$*" >&2; }
 
 # ------------------------------------------------------------------ opciones
-PUERTO_ARG="" RED=0 NAVEGADOR=1 VENV=1 REINSTALAR=0 SOLO_COMPROBAR=0
+PUERTO_ARG="" RED=0 NAVEGADOR=1 VENV=1 REINSTALAR=0 SOLO_COMPROBAR=0 DEMO=0 DEMO_NUEVA=0
 while [ $# -gt 0 ]; do
     case "$1" in
         --puerto) PUERTO_ARG="${2:-}"; shift 2 ;;
@@ -35,6 +37,8 @@ while [ $# -gt 0 ]; do
         --sin-venv) VENV=0; shift ;;
         --reinstalar) REINSTALAR=1; shift ;;
         --comprobar) SOLO_COMPROBAR=1; shift ;;
+        --demo) DEMO=1; shift ;;
+        --demo-nueva) DEMO=1; DEMO_NUEVA=1; shift ;;
         -h|--help) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) error "Opción desconocida: $1 (usa --help)"; exit 1 ;;
     esac
@@ -42,6 +46,9 @@ done
 
 # ------------------------------------------------------------------ configuración
 mkdir -p "$ESTADO"
+# Demostración: SIEMPRE en su propia carpeta (manda sobre .env), nunca con los datos reales.
+DEMO_DIR="${APUNTIA_DEMO_DIR:-$RAIZ/fullstack/.demo}"
+[ "$DEMO" = 1 ] && export DATA_DIR="$DEMO_DIR/datos"
 if [ ! -f "$CONFIG" ]; then
     cp "$RAIZ/fullstack/config/.env.example" "$CONFIG"
     bien "Creada la configuración local fullstack/config/.env (puedes editarla)."
@@ -104,6 +111,10 @@ except Exception:
     sys.exit(1)
 PYEOF
 then
+    if [ "$DEMO" = 1 ]; then
+        error "Ya hay una ApuntIA en marcha en $URL. Detenla primero (./detener.sh) para no mezclar la demostración con tus datos."
+        exit 3
+    fi
     bien "ApuntIA ya está en marcha en $URL"
     [ "$SOLO_COMPROBAR" = 1 ] && exit 0
     echo "  Ábrela en: $URL/inicio"
@@ -118,6 +129,19 @@ bien "Puerto $PUERTO libre"
 if [ "$SOLO_COMPROBAR" = 1 ]; then
     bien "Comprobación terminada: se puede arrancar."
     exit 0
+fi
+
+if [ "$DEMO_NUEVA" = 1 ] && [ -d "$DEMO_DIR" ]; then
+    # Solo se borra una carpeta creada por el modo demostración (tiene su marca): nunca datos reales.
+    if [ ! -f "$DEMO_DIR/.apuntia-demo" ]; then
+        error "$DEMO_DIR no es una carpeta de demostración de ApuntIA (le falta .apuntia-demo): no se borra."
+        exit 1
+    fi
+    rm -rf -- "$DEMO_DIR"
+    bien "Borrados los datos de demostración anteriores"
+fi
+if [ "$DEMO" = 1 ]; then
+    mkdir -p "$DEMO_DIR" && : > "$DEMO_DIR/.apuntia-demo"
 fi
 
 # ------------------------------------------------------------------ entorno de Python
@@ -188,6 +212,10 @@ then
 fi
 
 bien "ApuntIA está lista"
+if [ "$DEMO" = 1 ]; then
+    azul "Preparando la demostración (datos sintéticos, aparte de los reales)"
+    (cd "$BACKEND" && "$PY" "$RAIZ/fullstack/scripts/demo.py" "$URL") || aviso "No se pudieron crear los datos de demostración: la aplicación sigue en marcha."
+fi
 echo
 echo "  Mejorar una foto (sin cuenta):  $URL/inicio"
 echo "  Apuntes con cuenta:             $URL/front/apuntes.html"

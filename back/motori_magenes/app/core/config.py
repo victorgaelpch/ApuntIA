@@ -59,6 +59,22 @@ class Settings:
     reconocimiento_max_bloques: int = int(os.getenv("RECONOCIMIENTO_MAX_BLOQUES", "60"))
     reconocimiento_max_segundos: float = float(os.getenv("RECONOCIMIENTO_MAX_SEGUNDOS", "30"))
 
+    # IA local opcional (FULL-30). Desactivada por defecto: el modo básico (OpenCV + Tesseract)
+    # no la necesita. Guía: docs/ia-local.md. Nombres del issue → aquí: APUNTIA_AI_ENABLED=IA_ACTIVADA,
+    # APUNTIA_OLLAMA_HOST=OLLAMA_HOST, APUNTIA_VLM_MODEL=VLM_MODELO, APUNTIA_RECOGNITION_MODE=RECONOCIMIENTO_PERFIL…
+    ia_activada: bool = os.getenv("IA_ACTIVADA", "false").strip().lower() in ("1", "true", "si", "sí", "yes")
+    ia_proveedor: str = os.getenv("IA_PROVEEDOR", "ollama").strip().lower()
+    ollama_host: str = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").strip().rstrip("/")
+    vlm_modelo: str = os.getenv("VLM_MODELO", "qwen3-vl:4b").strip()
+    ia_timeout_s: float = float(os.getenv("IA_TIMEOUT_S", "180"))
+    ia_max_inferencias: int = max(1, int(os.getenv("IA_MAX_INFERENCIAS", "1")))
+    ia_max_lado_px: int = int(os.getenv("IA_MAX_LADO_PX", "1600"))       # la imagen se reduce antes de enviarla
+    # Solo con «true» se permite un servidor fuera del equipo o de la red privada, o un modelo «-cloud»
+    # (Ollama Cloud procesa las imágenes en servidores ajenos). Nunca por defecto.
+    ia_permitir_externa: bool = os.getenv("IA_PERMITIR_EXTERNA", "false").strip().lower() in ("1", "true", "si", "sí", "yes")
+    # rapido | equilibrado | avanzado | automatico (elige según los motores y el equipo disponibles)
+    reconocimiento_perfil: str = os.getenv("RECONOCIMIENTO_PERFIL", "automatico").strip().lower()
+
     # Trabajos largos ejecutados a la vez (BACK-27).
     max_trabajos_simultaneos: int = int(os.getenv("MAX_TRABAJOS_SIMULTANEOS", "2"))
 

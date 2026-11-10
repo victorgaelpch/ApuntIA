@@ -212,6 +212,12 @@ def comprobar_dependencias() -> dict[str, dict]:
                         "detalle": (f"{info['motor']} {info.get('version', '')}".strip() if info["disponible"] else
                                     "Tesseract no responde: instálalo o define TESSERACT_CMD" if requerido else
                                     "desactivado (OCR_MOTOR=ninguno)")}
+    from app.services.ia import registro as ia
+    vlm = ia.registro().motores.get("ollama_vlm")
+    if vlm is not None:
+        ok, info = vlm.estado()
+        resultado["ia_local"] = {"ok": ok, "obligatoria": False,
+                                 "detalle": f"{info.modelo} en Ollama {info.version}" if ok else info.detalle}
     prov = investigacion.proveedor()
     resultado["investigacion"] = {"ok": prov.disponible(), "obligatoria": False,
                                   "detalle": f"proveedor {prov.nombre}" if prov.disponible() else "desactivada: opcional"}

@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse
 from app.core import diagnostico
 from app.core.config import settings
 from app.core.errores import ApiError
+from app.services.ia import registro as ia
 
 router = APIRouter(prefix="/api/v2", tags=["v2: diagnóstico"])
 LOCALES = {"127.0.0.1", "::1", "localhost"}
@@ -44,6 +45,7 @@ def diagnostico_local(request: Request):
         "dependencias": diagnostico.comprobar_dependencias(),
         "peticiones": diagnostico.metricas.resumen(),
         "trabajos": diagnostico.resumen_trabajos(),
+        "ia": {"equipo": ia.hardware(), **ia.perfiles(ia.registro())},
         "limites": {"alerta_peticion_ms": settings.alerta_peticion_ms, "alerta_trabajo_s": settings.alerta_trabajo_s,
                     "minimo_disco_mb": settings.minimo_disco_mb, "max_trabajos_simultaneos": settings.max_trabajos_simultaneos},
     }

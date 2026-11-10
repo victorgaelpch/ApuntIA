@@ -48,6 +48,9 @@ class Settings:
     # Las rutas relativas se resuelven respecto a back/motori_magenes.
     data_dir: Path = (BASE_DIR / os.getenv("DATA_DIR", "datos")).resolve()
 
+    # Cookie de sesión con el atributo Secure (actívalo detrás de HTTPS).
+    cookie_segura: bool = os.getenv("COOKIE_SEGURA", "0") == "1"
+
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [
         origen.strip()

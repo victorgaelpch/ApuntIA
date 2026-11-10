@@ -227,7 +227,15 @@
     }
 
     // ---------------------------------------------------------------- inicio
+    // Las fotos elegidas MIENTRAS la página aún se prepara (sesión, límites de /salud) no se pierden:
+    // el evento se escucha desde el principio y se procesan cuando todo está listo.
+    let marcarListo;
+    const listo = new Promise((r) => { marcarListo = r; });
+    const alElegir = (e) => { const archivos = [...e.target.files]; e.target.value = ""; listo.then(() => anadir(archivos)); };
+
     async function iniciar() {
+        $("#inpFotos").addEventListener("change", alElegir);
+        $("#inpCamaraNuevo").addEventListener("change", alElegir);
         const usuario = await requerirSesion();
         cabecera("nuevo");
         const preferido = (usuario.preferencias || {}).tipo_fuente;
@@ -244,8 +252,6 @@
             }
         } catch (_) { /* se usan los límites por defecto; el backend valida igualmente */ }
 
-        $("#inpFotos").addEventListener("change", (e) => { anadir([...e.target.files]); e.target.value = ""; });
-        $("#inpCamaraNuevo").addEventListener("change", (e) => { anadir([...e.target.files]); e.target.value = ""; });
         const visor = NS.camara.crearVisor({ dialogo: $("#dlgCamara"), video: $("#camVideo"), mensaje: $("#camMensaje"),
                                             btCapturar: $("#btCapturar"), btCerrar: $("#btCerrarCamara"), flash: $("#camFlash") });
         $("#btCamaraNuevo").addEventListener("click", () => {
@@ -265,6 +271,7 @@
         window.addEventListener("beforeunload", alSalir);
         window.addEventListener("pagehide", () => estado.paginas.forEach((p) => URL.revokeObjectURL(p.url)));
         pintar();
+        marcarListo();
     }
     iniciar();
 })();

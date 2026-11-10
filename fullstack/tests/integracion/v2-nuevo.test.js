@@ -47,6 +47,20 @@ describe("FRONT-12 varias fotos", () => {
         await contexto.close();
     });
 
+    test("una foto elegida mientras la página aún se prepara no se pierde", async () => {
+        // Antes, el evento se escuchaba tras esperar a la sesión y a /salud: con un servidor lento (la CI)
+        // la foto elegida en ese intervalo se perdía sin aviso.
+        const contexto = await navegador.newContext();
+        await registrar(contexto, backend.url);
+        const pagina = await contexto.newPage();
+        await pagina.route("**/salud", async (ruta) => { await new Promise((r) => setTimeout(r, 1500)); await ruta.continue(); });
+        await pagina.goto(`${backend.url}/front/nuevo.html`, { waitUntil: "domcontentloaded" });
+        const [foto] = await crearFotos(pagina, [{ texto: "rapida" }]);
+        await pagina.setInputFiles("#inpFotos", foto);
+        await pagina.waitForSelector("#listaPaginas li", { timeout: 15000 });
+        await contexto.close();
+    });
+
     test("añadir, sugerir tipo, reordenar, quitar, evitar duplicados y enviar en el orden elegido", async () => {
         const { contexto, pagina, errores } = await nueva();
         const fotos = await crearFotos(pagina, [{ texto: "uno", oscura: true }, { texto: "dos" }, { texto: "tres" }]);

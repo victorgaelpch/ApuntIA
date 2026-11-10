@@ -82,9 +82,11 @@
 
     async function opcionesVersion() {
         const sel = $("#selVersionPdf");
-        const previa = sel.value;
         let versiones = [];
         try { versiones = (await pedir(`/api/v2/apuntes/${encodeURIComponent(E.id)}/versiones`)).versiones; } catch (_) { /* solo la actual */ }
+        // La elección se lee DESPUÉS de la respuesta: si el usuario eligió una versión mientras
+        // tanto (o se pidió la lista dos veces a la vez), una respuesta tardía no la deshace.
+        const previa = sel.value;
         vaciar(sel).append(h("option", { value: "", text: `La actual (versión ${E.version})` }));
         versiones.filter((v) => v.numero !== E.version).forEach((v) => sel.append(h("option", { value: String(v.numero), text: `Versión ${v.numero} · ${fecha(v.creado)}` })));
         if ([...sel.options].some((o) => o.value === previa)) sel.value = previa;

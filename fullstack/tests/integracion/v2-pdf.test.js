@@ -95,6 +95,22 @@ describe("FRONT-16 PDF", () => {
         await contexto.close();
     });
 
+    test("la versión elegida no se pierde si la lista de versiones llega tarde", async () => {
+        // Antes, una respuesta tardía de /versiones devolvía la selección a «la actual» y se generaba
+        // el PDF de otra versión (lo destapó la CI, más lenta).
+        const { contexto, pagina } = await abrir();
+        await pagina.waitForSelector("#selVersionPdf option[value='1']", { state: "attached" });
+        await pagina.route("**/versiones", async (ruta) => { await new Promise((r) => setTimeout(r, 2000)); await ruta.continue(); });
+        const tardia = pagina.waitForResponse((r) => r.url().endsWith("/versiones"));
+        await pagina.click("#tab-transcripcion");
+        await pagina.click("#tab-pdf");                        // vuelve a pedir la lista, que tardará
+        await pagina.selectOption("#selVersionPdf", "1");      // el usuario elige mientras tanto
+        await tardia;
+        await pagina.waitForTimeout(200);
+        assert.equal(await pagina.$eval("#selVersionPdf", (s) => s.value), "1");
+        await contexto.close();
+    });
+
     test("cancelar, y recuperar la exportación en curso al recargar", async () => {
         const { contexto, pagina } = await abrir({ lento: true });
         await pagina.click("#btGenerarPdf");

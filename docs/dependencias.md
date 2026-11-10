@@ -81,6 +81,7 @@ Versiones probadas. Las dependencias «transitivas» son las que traen las direc
 |---------|----------|-----|
 | pytesseract | Apache-2.0 | OCR (BACK-13) |
 | **Tesseract 5** (programa del sistema, no de pip) | Apache-2.0 | Motor de OCR; idiomas `spa`/`eng` de tessdata (Apache-2.0) |
+| matplotlib (+ contourpy, cycler, fonttools, kiwisolver, pyparsing, python-dateutil, six) | Matplotlib License (tipo PSF), BSD, MIT | Dibujo seguro de fórmulas (mathtext) y fuentes DejaVu con Unicode completo (BACK-15, BACK-20) |
 
 ## 4. Inventario de Node (solo para pruebas; no se distribuye con la aplicación)
 

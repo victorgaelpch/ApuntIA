@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core import contexto
 from app.core.config import settings
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
-from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_trabajos
+from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_formulas, v2_trabajos
 
 logging.basicConfig(level=logging.INFO)
 
@@ -57,6 +57,7 @@ def create_app() -> FastAPI:
     app.include_router(v2_cuentas.router)
     app.include_router(v2_apuntes.router)
     app.include_router(v2_trabajos.router)
+    app.include_router(v2_formulas.router)
     return app
 
 

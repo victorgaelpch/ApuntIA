@@ -12,3 +12,5 @@ opencv-python-headless>=4.8,<6   # Apache-2.0
 numpy>=1.26,<3                   # BSD-3-Clause
 # OCR (BACK-13): envoltorio de Tesseract. Tesseract (Apache-2.0) se instala aparte: ver README.
 pytesseract>=0.3.10,<1.0       # Apache-2.0
+# Fórmulas (BACK-15): mathtext dibuja LaTeX sin motor TeX; también lo usa el PDF.
+matplotlib>=3.8,<4              # Matplotlib License (tipo PSF, permisiva)

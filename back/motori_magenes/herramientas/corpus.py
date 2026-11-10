@@ -171,6 +171,28 @@ def formulas_pizarron() -> Muestra:
                    [t for t, _ in FORMULAS], [l for _, l in FORMULAS])
 
 
+FORMULAS_2D = [r"x^{2} + 2 x + 1 = 0", r"\frac{a}{b} + \frac{c}{d}", r"\sqrt{x + 1}", r"E = m c^{2}"]
+
+
+def formulas_2d() -> Muestra:
+    """Fórmulas dibujadas como en un libro (superíndices, barras de fracción,
+    radicales), con mathtext de matplotlib. Más realistas que formulas_pizarron."""
+    from matplotlib import mathtext
+    from matplotlib.font_manager import FontProperties
+    import io
+    img = _lienzo(1300, 900, (245, 245, 242))
+    y = 60
+    for latex in FORMULAS_2D:
+        buf = io.BytesIO()
+        mathtext.math_to_image(f"${latex}$", buf, dpi=300, format="png", prop=FontProperties(size=14))
+        buf.seek(0)
+        f = Image.open(buf).convert("RGBA")
+        img.paste(f, (90, y), f)
+        y += max(170, f.height + 40)
+    return Muestra("formulas_2d", "pizarron", "formula", _a_bgr(img),
+                   ["x2 + 2x + 1 = 0", "a/b + c/d", "√(x + 1)", "E = mc2"], FORMULAS_2D)
+
+
 def pizarron_oscuro() -> Muestra:
     """Pizarrón verde de tiza: texto claro sobre fondo oscuro."""
     img = _lienzo(1300, 760, (30, 70, 55))
@@ -202,7 +224,7 @@ def pizarron_con_ruido(semilla=11) -> Muestra:
 
 def corpus() -> list[Muestra]:
     return [impreso_cuaderno(), cuaderno_con_sombra(), impreso_pizarron(), pizarron_con_ruido(), pizarron_oscuro(),
-            manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron()]
+            manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron(), formulas_2d()]
 
 
 if __name__ == "__main__":

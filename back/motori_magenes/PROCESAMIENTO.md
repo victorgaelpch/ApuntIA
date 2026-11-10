@@ -271,3 +271,25 @@ El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `test
 - La escritura sintética (tipografías Hershey de OpenCV) es más regular que la real: con fotos reales de cuadernos el CER será mayor y habrá más bloques `incierto`/`no_reconocido`. Hay que evaluarlo con fotos reales cedidas con permiso (ver FULL-19).
 - **No se adoptaron motores específicos de manuscritos:** TrOCR (modelos públicos en inglés, 1.3 GB y PyTorch) y PaddleOCR (~500 MB). Se pueden añadir como otro `MotorOCR` sin cambiar este flujo.
 - El texto en cursiva muy unida o con mala letra quedará, en general, como recorte para transcribir a mano: es el comportamiento buscado frente a inventar texto.
+
+## Fórmulas a LaTeX verificable (BACK-15)
+
+`app/services/formulas.py`.
+
+| Paso | Cómo |
+|------|------|
+| Detección | Una línea es fórmula si tiene muchos símbolos matemáticos (`= + - * / ^ √ ∫ Σ ²`…) y como mucho una palabra corta. «Si f(x) = x², entonces…» es una **frase** y se queda como texto |
+| Normalización del OCR | Comillas leídas en vez de `^` («c”2»), `*` entre letra y número sin espacios («x*2» → `x^2`), `-=` → `=`, `²`/`³`, letras griegas Unicode |
+| Conversión | Analizador sintáctico **propio** (descenso recursivo): sumas, productos implícitos, fracciones con `/` → `\frac`, potencias, subíndices, `sqrt`/`√`, funciones, `lim`, `Σ`, `∫`, relaciones (`≤`, `≠`…). **No usa `eval` ni `sympy.parse_expr`**: la entrada nunca se ejecuta |
+| Verificación | Lista blanca de comandos LaTeX (rechaza `\input`, `\write`, `\def`, `\href`…, además de `$`, `%` y saltos de línea; máximo 500 caracteres y llaves equilibradas) y dibujo con **mathtext** de matplotlib, que no es un motor TeX. Si no se dibuja → `latex_valido: false` |
+| Estado | Una fórmula es `reconocido` solo si se convirtió y ninguna palabra bajó de 0.90; si no, `incierto`. **Siempre** conserva su recorte para compararla con la foto |
+| Vista previa | `POST /api/v2/formulas/validar` (`{latex}` o `{texto}`) → PNG en base64, para corregir antes del PDF (FRONT-14) |
+
+### Evaluación (`python -m herramientas.evaluar_formulas`)
+
+| Muestra | Exactas | Fórmulas «reconocidas» incorrectas | Lo que no se reconoce |
+|---------|---------|------------------------------------|-----------------------|
+| `formulas_pizarron`: escritas **en línea** (`x^2 + 2x + 1 = 0`, `a/b + c/d`, `sqrt(x + 1)`, `E = m c^2`) | **3/4** (2 inciertas, 1 reconocida) | **0** | `E = m c^2` queda como recorte |
+| `formulas_2d`: dibujadas en 2D (superíndice, barra de fracción, radical) | **0/4** | **0** | Las 4 se conservan como recorte |
+
+**Limitación importante:** Tesseract es un OCR de texto, no matemático. Las fórmulas en 2D (fracciones con barra, radicales, superíndices pequeños) **no se convierten automáticamente**: se conservan como imagen con su ubicación y el usuario escribe el LaTeX con vista previa. Los motores de OCR matemático (pix2tex/LaTeX-OCR, ~100 MB con PyTorch; Mathpix, de pago y externo) no se adoptaron por tamaño y privacidad; se podrían añadir como un paso más para los recortes `incierto`.

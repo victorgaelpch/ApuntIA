@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core import contexto
 from app.core.config import settings
+from app.core.endurecimiento import CabecerasSeguridad, LimiteCuerpo
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
 from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_formulas, v2_trabajos
 
@@ -37,8 +38,12 @@ def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, version=settings.version, lifespan=ciclo_de_vida)
     registrar_manejadores(app)
 
+    # Orden (el último añadido es el más externo): LimiteCuerpo queda dentro de
+    # CapturarErroresInesperados para que su 413 no se convierta en un 500.
+    app.add_middleware(LimiteCuerpo)
     # Debe registrarse ANTES que CORS para quedar dentro de él (FULL-08, defecto D1).
     app.add_middleware(CapturarErroresInesperados)
+    app.add_middleware(CabecerasSeguridad)  # BACK-24: también en errores y 413
 
     # CORS (FULL-04): el frontend se sirve desde otro origen (file://, :5500, la IP
     # del PC...). Hay que exponer las cabeceras del contrato para que el navegador

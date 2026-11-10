@@ -1,8 +1,11 @@
 """Rutas de autenticación y perfil de la API v2 (BACK-23). Contrato: docs/api-v2.md §4."""
 
+import hashlib
+
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field
 
+from app.core.endurecimiento import limitar
 from app.core.seguridad import (COOKIE_SESION, comprobar_origen, cuentas, poner_cookie, quitar_cookie,
                                 sesion_actual)
 from app.services.cuentas import Sesion
@@ -55,6 +58,7 @@ def _respuesta_sesion(sesion: Sesion) -> dict:
 @router.post("/auth/registro", status_code=201)
 def registrar(datos: Registro, request: Request, response: Response):
     comprobar_origen(request)
+    limitar("registro", _ip(request))
     servicio = cuentas()
     usuario = servicio.registrar(datos.email, datos.nombre, datos.password)
     sesion = servicio.crear_sesion(usuario.id)
@@ -84,6 +88,8 @@ def cerrar_sesion(request: Request, response: Response, sesion: Sesion = Depends
 @router.post("/auth/recuperacion", status_code=202)
 def solicitar_recuperacion(datos: SolicitudRecuperacion, request: Request):
     comprobar_origen(request)
+    limitar("recuperacion_ip", _ip(request))
+    limitar("recuperacion_email", hashlib.sha256(datos.email.strip().lower().encode()).hexdigest())
     cuentas().solicitar_recuperacion(datos.email, str(request.base_url) + "app/cuenta.html")
     return {"mensaje": "Si existe una cuenta con ese email, recibirás un enlace para recuperarla."}
 

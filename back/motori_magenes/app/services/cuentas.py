@@ -146,7 +146,9 @@ class Cuentas:
         with self.bd.transaccion() as con:
             con.execute("INSERT INTO intentos_login VALUES (?, ?)", ("email:" + _sha(email.lower()), ahora_s))
             con.execute("INSERT INTO intentos_login VALUES (?, ?)", ("ip:" + ip, ahora_s))
-            con.execute("DELETE FROM intentos_login WHERE momento < ?", (ahora_s - VENTANA_INTENTOS_S,))
+            # Solo los intentos de inicio de sesión: los límites de BACK-24 («lim:») tienen otras ventanas.
+            con.execute("DELETE FROM intentos_login WHERE momento < ? AND clave NOT LIKE 'lim:%'",
+                        (ahora_s - VENTANA_INTENTOS_S,))
 
     def iniciar_sesion(self, email: str, password: str, ip: str) -> Sesion:
         email = (email or "").strip()

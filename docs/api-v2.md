@@ -190,13 +190,16 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 | 401 | `NO_AUTENTICADO` | Sin sesión o sesión caducada |
 | 401 | `CREDENCIALES_INVALIDAS` | Email o contraseña incorrectos (mismo mensaje en ambos casos) |
 | 403 | `CSRF_INVALIDO` | Falta o no coincide `X-CSRF-Token` |
+| 403 | `ORIGEN_NO_PERMITIDO` | La cabecera `Origin` es de otro sitio |
 | 404 | `NO_ENCONTRADO` | No existe **o no es tuyo** |
 | 409 | `EMAIL_EN_USO` | Registro con un email ya usado |
 | 409 | `CONFLICTO_VERSION` | `If-Match` no coincide con la versión actual |
 | 409 | `APUNTE_EN_PROCESO` | Editar o restaurar mientras el análisis está en marcha (al terminar pisaría la edición) |
 | 409 | `TRABAJO_NO_REINTENTABLE` | Reintentar un trabajo que no falló ni se canceló |
+| 413 | `CARGA_DEMASIADO_GRANDE` | El cuerpo supera `MAX_JSON_KB` (JSON) o `MAX_UPLOAD_MB × MAX_PAGINAS` (fotos) |
+| 413 | `CUOTA_EXCEDIDA` | El usuario superó `CUOTA_MB_USUARIO` |
 | 428 | `VERSION_REQUERIDA` | Falta `If-Match` |
-| 429 | `DEMASIADOS_INTENTOS` / `DEMASIADOS_TRABAJOS` | Límites de abuso |
+| 429 | `DEMASIADOS_INTENTOS` / `DEMASIADOS_TRABAJOS` / `DEMASIADAS_PETICIONES` | Límites de abuso (ver docs/seguridad-api.md) |
 | 503 | `OCR_NO_DISPONIBLE` | Tesseract no está instalado: el análisis falla con este código, no con texto vacío |
 | 503 | `INVESTIGACION_NO_DISPONIBLE` | Sin conexión con el proveedor o deshabilitado |
 

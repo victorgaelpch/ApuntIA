@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.core.errores import ApiError
+from app.core.endurecimiento import limitar
 from app.core.seguridad import sesion_actual
 from app.services.cuentas import Sesion
 from app.services.formulas import convertir, renderizar_png
@@ -19,7 +20,8 @@ class PeticionFormula(BaseModel):
 
 
 @router.post("/formulas/validar")
-def validar_formula(datos: PeticionFormula, _sesion: Sesion = Depends(sesion_actual)):
+def validar_formula(datos: PeticionFormula, sesion: Sesion = Depends(sesion_actual)):
+    limitar("formulas", sesion.usuario.id)
     latex = datos.latex
     if latex is None and datos.texto is not None:
         latex, _ = convertir(datos.texto)

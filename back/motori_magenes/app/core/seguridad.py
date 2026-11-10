@@ -13,7 +13,7 @@ from fastapi import Request, Response
 from app.core import contexto
 from app.core.config import settings
 from app.core.errores import ApiError
-from app.services.cuentas import DURACION_MAXIMA_S, Cuentas, Sesion
+from app.services.cuentas import DURACION_MAXIMA_S, Cuentas, Sesion, Usuario
 
 COOKIE_SESION = "apuntia_sesion"
 METODOS_SEGUROS = {"GET", "HEAD", "OPTIONS"}
@@ -40,6 +40,17 @@ def sesion_actual(request: Request) -> Sesion:
         if not hmac.compare_digest(enviado, sesion.csrf):
             raise ApiError(403, "CSRF_INVALIDO", "La página caducó. Recárgala e inténtalo de nuevo.")
     return sesion
+
+
+def usuario_actual(request: Request) -> Usuario:
+    """Usuario autenticado (con las mismas comprobaciones de CSRF y origen que `sesion_actual`).
+
+    Regla de autorización (BACK-24): toda consulta de un recurso privado filtra por
+    `usuario_id = usuario.id` en el servidor. Si el recurso existe pero es de otro
+    usuario se responde 404 NO_ENCONTRADO, igual que si no existiera, para no
+    revelar qué identificadores existen.
+    """
+    return sesion_actual(request).usuario
 
 
 def poner_cookie(response: Response, token: str) -> None:

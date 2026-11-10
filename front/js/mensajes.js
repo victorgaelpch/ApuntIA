@@ -56,6 +56,8 @@
 
         // --- errores de configuración o de la aplicación (no causados por el usuario)
         PARAMETRO_INVALIDO: { texto: "La aplicación envió una petición incorrecta. Recarga la página y vuelve a intentarlo.", acciones: ["recargar"] },
+        DATOS_INVALIDOS: { texto: "Algunos datos no son válidos. Revísalos y vuelve a intentarlo.", acciones: ["reintentar"] },
+        CARGA_DEMASIADO_GRANDE: { texto: "Lo que intentas enviar es demasiado grande. Prueba con menos fotos o fotos más ligeras.", acciones: ["elegirOtra"] },
         RUTA_NO_ENCONTRADA: { texto: "La dirección del servidor no es la correcta. Revisa la configuración de la API.", acciones: ["reintentar"] },
         METODO_NO_PERMITIDO: { texto: "La dirección del servidor no es la correcta. Revisa la configuración de la API.", acciones: ["reintentar"] },
     };

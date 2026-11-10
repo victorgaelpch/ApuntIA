@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Depends, File, Form, Header, Query, UploadF
 from fastapi.responses import JSONResponse, Response
 
 from app.core import contexto
+from app.core.endurecimiento import comprobar_cuota, limitar
 from app.core.seguridad import sesion_actual
 from app.datos.almacen import ArchivoNoEncontrado
 from app.datos.apuntes import RepositorioApuntes
@@ -33,6 +34,8 @@ def crear_apunte(
     sesion: Sesion = Depends(sesion_actual),
 ):
     recibidas = validar_paginas(paginas, tipos)
+    limitar("subida", sesion.usuario.id)
+    comprobar_cuota(sesion.usuario.id, sum(len(p.imagen.datos) for p in recibidas))
     repo = repositorio()
     trabajos = contexto.obtener().trabajos
     apunte, creado = repo.crear(sesion.usuario.id, titulo, recibidas, idempotency_key)

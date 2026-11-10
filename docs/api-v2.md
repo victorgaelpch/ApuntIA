@@ -176,13 +176,14 @@ stateDiagram-v2
 
 ## 6. Errores nuevos
 
-Misma estructura `{"error": {"codigo", "mensaje"}}`. Los mensajes son textos en español para el usuario; el frontend puede traducirlos por `codigo`.
+Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `detalles` cuando hay varios fallos. Los mensajes son textos en español para el usuario; el frontend puede traducirlos por `codigo`.
 
 | HTTP | `codigo` | Cuándo |
 |------|----------|--------|
 | 400 | `DATOS_INVALIDOS` | Cuerpo JSON o formulario con campos inválidos |
 | 400 | `DOCUMENTO_INVALIDO` | El documento no cumple el esquema (la versión anterior queda intacta) |
 | 400 | `DEMASIADAS_PAGINAS` | Más de `MAX_PAGINAS` (20) |
+| 400 | `PAGINAS_INVALIDAS` (o el código de la única página que falla) | Alguna foto no es válida. No se guarda nada y `error.detalles` lista `{pagina, codigo, mensaje}` de cada una |
 | 400 | `CONSENTIMIENTO_REQUERIDO` | Investigación sin consentimiento explícito |
 | 400 | `LATEX_INVALIDO` / `LATEX_NO_PERMITIDO` | LaTeX que no se puede dibujar / con comandos peligrosos |
 | 401 | `NO_AUTENTICADO` | Sin sesión o sesión caducada |

@@ -52,7 +52,14 @@ def respuesta_error(status_code: int, codigo: str, mensaje: str,
 
 async def manejar_api_error(_: Request, exc: ApiError) -> JSONResponse:
     logger.info("Petición rechazada: %s %s", exc.status_code, exc.codigo)
-    return respuesta_error(exc.status_code, exc.codigo, exc.mensaje)
+    respuesta = respuesta_error(exc.status_code, exc.codigo, exc.mensaje)
+    detalles = getattr(exc, "detalles", None)
+    if detalles:  # campo adicional (p. ej. qué páginas fallaron); la estructura base no cambia
+        import json
+        cuerpo = json.loads(respuesta.body)
+        cuerpo["error"]["detalles"] = detalles
+        respuesta = JSONResponse(status_code=exc.status_code, content=cuerpo)
+    return respuesta
 
 
 async def manejar_validacion(request: Request, exc: RequestValidationError) -> JSONResponse:

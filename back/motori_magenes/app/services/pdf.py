@@ -288,8 +288,9 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
             elif b["texto"].strip():
                 h.append(Paragraph(texto_seguro(b["texto"]), e["cuerpo"]))
             elif b["recorte"]:
-                pie = ("Esquema o dibujo del apunte" if b["tipo"] == "imagen"
-                       else "Fragmento manuscrito no transcrito (imagen original)")
+                pie = {"imagen": "Esquema o dibujo del apunte",
+                       "manuscrito": "Fragmento manuscrito no transcrito (imagen original)"}.get(
+                    b["tipo"], "Fragmento no transcrito (imagen original)")
                 h += imagen_o_aviso(b["recorte"], pie)
 
     # ---------------------------------------------------------------- extendido (todo sale del apunte)

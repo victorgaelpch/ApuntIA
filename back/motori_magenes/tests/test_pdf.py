@@ -101,6 +101,18 @@ def test_formula_peligrosa_o_invalida_no_rompe_y_usa_recorte():
     assert "passwd" not in texto and "Fórmula conservada como imagen" in texto
 
 
+def test_pie_de_lo_no_transcrito_segun_su_tipo():
+    """FULL-24: una fórmula impresa sin leer salía rotulada como «fragmento manuscrito»."""
+    antes = texto_de(pdf()[0])[1].count("Fragmento manuscrito no transcrito")
+    doc = doc_ejemplo()
+    doc.bloques += [Bloque(id="nt1", pagina="p1", orden=50, tipo="texto", origen="ocr", estado="no_reconocido", recorte="r1"),
+                    Bloque(id="nt2", pagina="p1", orden=51, tipo="manuscrito", origen="ocr", estado="no_reconocido", recorte="r2")]
+    _, texto = texto_de(pdf(doc)[0])
+    assert texto.count("Fragmento manuscrito no transcrito") == antes + 1  # solo el manuscrito
+    assert "Fragmento no transcrito (imagen original)" in texto
+    assert "manuscritos no se pudieron leer" not in texto
+
+
 def test_imagen_danada_o_enorme_se_sustituye_por_aviso(monkeypatch):
     from app.services import pdf as modulo
     _, texto = texto_de(pdf(leer=lambda _a: b"no es una imagen")[0])

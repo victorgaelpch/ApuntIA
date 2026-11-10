@@ -193,3 +193,13 @@ def test_estado_de_sesion_sin_error(nuevo_cliente):
     u = c.registrar()
     r = c.get("/api/v2/auth/estado").json()
     assert r["autenticado"] is True and r["usuario"]["id"] == u["id"] and r["csrf"] == c.csrf
+
+
+def test_enlace_de_recuperacion_usa_url_publica(nuevo_cliente, datos_tmp, monkeypatch):
+    from app.core.config import settings
+    c = nuevo_cliente()
+    c.registrar("rec@example.com")
+    monkeypatch.setattr(settings, "url_publica", "https://apuntia.ejemplo.edu")
+    c.http.post("/api/v2/auth/recuperacion", json={"email": "rec@example.com"}, headers={"Host": "malicioso.example"})
+    mensaje = next((datos_tmp.data_dir / "buzon").glob("*.txt")).read_text(encoding="utf-8")
+    assert "https://apuntia.ejemplo.edu/front/cuenta.html#recuperar=" in mensaje and "malicioso" not in mensaje

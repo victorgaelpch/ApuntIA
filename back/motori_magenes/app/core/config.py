@@ -62,6 +62,10 @@ class Settings:
     front_dir: str = os.getenv("FRONT_DIR", str(BASE_DIR.parents[1] / "front"))
     pagina_inicio: str = os.getenv("PAGINA_INICIO", str(BASE_DIR.parents[1] / "index.html"))
 
+    # URL pública del servidor (p. ej. https://apuntia.ejemplo.edu) para los enlaces
+    # de recuperación de contraseña. Recomendado en producción.
+    url_publica: str = os.getenv("URL_PUBLICA", "").strip()
+
     # Endurecimiento (BACK-24): cuerpo JSON máximo y espacio por usuario.
     max_json_kb: int = int(os.getenv("MAX_JSON_KB", "4096"))
     cuota_mb_usuario: int = int(os.getenv("CUOTA_MB_USUARIO", "500"))

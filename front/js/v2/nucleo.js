@@ -152,10 +152,14 @@
     }
 
     // ------------------------------------------------------------------ mensajes
+    // Los mensajes 4xx de la API v2 son textos en español pensados para el usuario y más
+    // precisos que el catálogo (p. ej. qué campo falla); los 5xx y los errores del cliente
+    // (sin conexión, tiempo agotado…) salen del catálogo común de mensajes.js.
     function textoDeError(error) {
+        if (error.mensaje && error.status >= 400 && error.status < 500) return error.mensaje;
         const m = NS.mensajes && NS.mensajes.CATALOGO && NS.mensajes.CATALOGO[error.codigo];
         if (m) return typeof m.texto === "function" ? m.texto(error) : m.texto;
-        if (error.mensaje) return error.mensaje;   // mensajes del servidor: en español y para el usuario
+        if (error.mensaje && error.status < 500) return error.mensaje;
         return "Algo salió mal. Vuelve a intentarlo.";
     }
 

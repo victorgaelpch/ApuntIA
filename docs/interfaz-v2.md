@@ -37,3 +37,19 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 
 `fullstack/tests/integracion/v2-*.test.js` abren las páginas en Chromium contra el backend real
 (carpeta de datos temporal, investigación desactivada) — `npm run test:integracion`.
+
+## Cuenta (FRONT-17)
+
+- Pestañas accesibles (flechas ←/→) para iniciar sesión, crear cuenta y pedir el enlace de
+  recuperación. Validación junto a cada campo (`aria-invalid`, mensaje enlazado) antes de
+  enviar; el backend sigue siendo la autoridad.
+- Las contraseñas se borran de los campos tras cada envío y nunca se guardan. La sesión es la
+  cookie HttpOnly del servidor; el token CSRF solo vive en memoria.
+- «Email ya usado» no confirma de quién es la cuenta: ofrece iniciar sesión o recuperarla.
+- `?volver=` solo acepta rutas propias (`/front/…` o `/inicio`): sin redirecciones abiertas.
+- El enlace de recuperación lleva el token en el fragmento (`#recuperar=…`), que no viaja al
+  servidor ni en el Referer; la página lo quita de la barra al leerlo. Con `URL_PUBLICA`
+  configurada, el enlace no depende de la cabecera `Host` de la petición.
+- `?motivo=expirada` y `?motivo=salida` explican por qué se volvió a esta página.
+- Decisión: la mejora de una foto (`/inicio`) **sigue sin cuenta**; solo los apuntes guardados
+  la necesitan.

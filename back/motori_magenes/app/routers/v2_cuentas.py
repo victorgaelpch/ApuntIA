@@ -5,6 +5,7 @@ import hashlib
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field
 
+from app.core.config import settings
 from app.core.endurecimiento import limitar
 from app.core.seguridad import (COOKIE_SESION, comprobar_origen, cuentas, poner_cookie, quitar_cookie,
                                 sesion_actual)
@@ -103,7 +104,10 @@ def solicitar_recuperacion(datos: SolicitudRecuperacion, request: Request):
     comprobar_origen(request)
     limitar("recuperacion_ip", _ip(request))
     limitar("recuperacion_email", hashlib.sha256(datos.email.strip().lower().encode()).hexdigest())
-    cuentas().solicitar_recuperacion(datos.email, str(request.base_url) + "app/cuenta.html")
+    # Con URL_PUBLICA configurada el enlace no depende de la cabecera Host de la petición
+    # (evita que alguien envíe enlaces de recuperación que apunten a su dominio).
+    base = settings.url_publica.rstrip("/") + "/" if settings.url_publica else str(request.base_url)
+    cuentas().solicitar_recuperacion(datos.email, base + "front/cuenta.html")
     return {"mensaje": "Si existe una cuenta con ese email, recibirás un enlace para recuperarla."}
 
 

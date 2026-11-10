@@ -8,7 +8,7 @@ fullstack/scripts/validar.sh
 
 | Modo | Qué ejecuta | Tiempo aprox. |
 |------|-------------|---------------|
-| `--rapido` (por defecto) | pytest del backend (344), evaluación real del OCR y las fórmulas (si hay Tesseract), catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1 min |
+| `--rapido` (por defecto) | pytest del backend (368), evaluación real del OCR y las fórmulas y banco de evaluación contra la línea base (si hay Tesseract), búsqueda de secretos, enlaces de la documentación, catálogo y reglas de seguridad de la interfaz, sintaxis de scripts, workflows y `compose.yaml` | 1,5 min |
 | `--completo` | además: interfaz con API simulada (Playwright), integración v1/v2 con el backend real (incluida accesibilidad) y scripts de arranque | 6 min |
 | `--docker` | además: construir las imágenes y la prueba de humo de Docker Compose | +3 min |
 

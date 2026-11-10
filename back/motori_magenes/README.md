@@ -217,7 +217,7 @@ curl -X POST "http://127.0.0.1:8000/analisis" -F "file=@README.md"
 python -m pytest
 ```
 
-Resultado esperado: `338 passed, 13 deselected` (las 13 excluidas son la evaluación real del OCR y las de rendimiento, que se lanzan aparte). Las pruebas cubren todas las rutas v1 y v2, los errores del contrato, la seguridad y el pipeline. Guía completa (cobertura, mutaciones, evaluación y rendimiento): [`docs/pruebas-backend.md`](../../docs/pruebas-backend.md).
+Resultado esperado (noviembre de 2026): `368 passed, 15 deselected` (las 15 excluidas son la evaluación real del OCR y las de rendimiento, que se lanzan aparte). Las pruebas cubren todas las rutas v1 y v2, los errores del contrato, la seguridad y el pipeline. Guía completa (cobertura, mutaciones, evaluación y rendimiento): [`docs/pruebas-backend.md`](../../docs/pruebas-backend.md).
 
 ```bash
 python -m pytest -m evaluacion

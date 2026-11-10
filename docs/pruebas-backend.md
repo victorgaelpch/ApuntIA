@@ -11,7 +11,7 @@ Desde `back/motori_magenes`, con el entorno de `requirements-dev.txt`:
 
 | Qué | Comando | Duración (equipo de desarrollo) |
 |-----|---------|---------------------------------|
-| Suite rápida (la de CI) | `pytest` | ~30 s, 338 pruebas |
+| Suite rápida (la de CI) | `pytest` | ~45 s, 368 pruebas |
 | Con cobertura | `pytest --cov=app --cov-report=term-missing` | ~35 s |
 | Evaluación real de OCR y fórmulas (opt-in) | `pytest -m evaluacion` | ~5 s, necesita Tesseract |
 | Tiempos y memoria (opt-in) | `pytest -m rendimiento -s` | ~8 s |
@@ -49,7 +49,7 @@ en la v2: sigue pasando igual, lo que garantiza el contrato de `POST /analisis`,
 | `test_estructura.py` | 8 | Apunte estructurado sin contenido inventado |
 | `test_investigacion.py` | 20 | Consentimiento, privacidad, fuentes, inyección, discrepancias, caídas |
 | `test_pdf.py` | 16 | PDF legible, Unicode, tablas largas, imágenes dañadas, exportación idempotente |
-| `test_evaluacion.py` | 10 | (opt-in) CER del corpus real y fórmulas |
+| `test_evaluacion.py` | 12 | (opt-in) CER del corpus real y fórmulas |
 | `test_rendimiento.py` | 3 | (opt-in) tiempos y memoria |
 
 ## 3. Cobertura
@@ -99,7 +99,7 @@ dejar de reducir las imágenes), no como prueba de velocidad.
 Usa el corpus etiquetado de `herramientas/corpus.py` y Tesseract 5.3.4. Umbrales (línea
 base de PROCESAMIENTO.md con margen): CER ≤ 2 % en impresos de cuaderno y pizarrón,
 ≤ 5 % en manuscrito claro, ≤ 12 % en manuscrito difícil, 0 manuscritos «reconocidos con
-errores», 0 fórmulas 2D inventadas y ≥ 3/4 fórmulas en línea exactas. Resultado: 10/10.
+errores», 0 fórmulas 2D inventadas, ≥ 3/4 fórmulas en línea exactas, cuadrícula ≤ 2 % y diagrama ≤ 10 %. Resultado: 12/12. El banco completo de punta a punta está en `fullstack/evaluacion/` (docs/evaluacion.md).
 
 ## 7. Fallos de infraestructura cubiertos
 

@@ -64,3 +64,27 @@ def test_salud_conserva_v1_y_anade_ocr(client):
     datos = client.get("/salud").json()
     assert {"estado", "version", "formatos", "max_mb", "max_megapixeles"} <= set(datos)
     assert set(datos["ocr"]) >= {"disponible", "motor", "idiomas"}
+
+
+def test_tesseract_en_paralelo_usa_un_hilo_por_proceso(monkeypatch):
+    """FULL-22: con OpenMP en todos los núcleos, dos análisis simultáneos tardaban 209 s en vez de 2 s."""
+    monkeypatch.delenv("OMP_THREAD_LIMIT", raising=False)
+    ocr.MotorTesseract()
+    assert ocr.os.environ["OMP_THREAD_LIMIT"] == "1"
+    monkeypatch.setenv("OMP_THREAD_LIMIT", "2")  # quien administra el servidor puede cambiarlo
+    ocr.MotorTesseract()
+    assert ocr.os.environ["OMP_THREAD_LIMIT"] == "2"
+
+
+@requiere_tesseract
+def test_dos_reconocimientos_simultaneos_no_se_estorban():
+    from concurrent.futures import ThreadPoolExecutor
+    import time
+    img = impreso_cuaderno().imagen
+    t = time.perf_counter(); reconocer(img); solo = time.perf_counter() - t
+    t = time.perf_counter()
+    with ThreadPoolExecutor(2) as pool:
+        list(pool.map(lambda _: reconocer(img), range(2)))
+    a_la_vez = time.perf_counter() - t
+    # Sin el límite de hilos esto era decenas de veces más lento; se deja margen amplio para la CI.
+    assert a_la_vez < solo * 6 + 2, f"solo {solo:.1f}s, a la vez {a_la_vez:.1f}s"

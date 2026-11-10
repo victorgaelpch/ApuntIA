@@ -14,6 +14,7 @@ La salida distingue tres situaciones distintas (criterio de BACK-13):
 """
 
 import logging
+import os
 import shutil
 import statistics
 import unicodedata
@@ -94,6 +95,12 @@ class MotorTesseract(MotorOCR):
 
     def __init__(self, ejecutable: str | None = None):
         import pytesseract
+        # Tesseract usa OpenMP con todos los núcleos. Con varios análisis a la vez (hasta
+        # TRABAJOS_SIMULTANEOS), sus hilos compiten y el conjunto se vuelve ~100 veces más lento
+        # (medido en FULL-22: dos apuntes de 3 fotos, 209 s frente a 2 s). Un hilo por proceso es
+        # lo que recomienda la documentación de Tesseract para instancias en paralelo; se puede
+        # cambiar definiendo OMP_THREAD_LIMIT antes de arrancar.
+        os.environ.setdefault("OMP_THREAD_LIMIT", "1")
         self.pt = pytesseract
         if ejecutable:
             pytesseract.pytesseract.tesseract_cmd = ejecutable

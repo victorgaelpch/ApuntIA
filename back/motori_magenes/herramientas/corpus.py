@@ -252,6 +252,27 @@ def diagrama() -> Muestra:
     return Muestra("diagrama", "cuaderno", "diagrama", _a_bgr(img), ["Ciclo del agua"])
 
 
+CELDAS_TABLA = [["Magnitud", "Unidad"], ["Fuerza", "newton"], ["Energía", "joule"], ["Potencia", "watt"]]
+
+
+def tabla_cuaderno() -> Muestra:
+    """Hoja de cuaderno con un título y una tabla con cuadrícula (FULL-24). No está en corpus():
+    la tabla fotografiada se evalúa en los escenarios de aceptación (fullstack/evaluacion/aceptacion.py)."""
+    img = hoja_cuaderno()
+    d = ImageDraw.Draw(img)
+    d.text((150, 60), "Unidades del SI", font=ImageFont.truetype(str(FUENTE_NEGRITA), 46), fill=(25, 30, 60))
+    x0, y0, ancho, alto = 200, 200, 900, 130
+    for i, fila in enumerate(CELDAS_TABLA):
+        fuente = ImageFont.truetype(str(FUENTE_NEGRITA if i == 0 else FUENTE), 38)
+        for j, celda in enumerate(fila):
+            d.text((x0 + 30 + j * ancho // 2, y0 + 40 + i * alto), celda, font=fuente, fill=(25, 30, 60))
+    for i in range(len(CELDAS_TABLA) + 1):
+        d.line([(x0, y0 + i * alto), (x0 + ancho, y0 + i * alto)], fill=(25, 30, 60), width=4)
+    for j in range(3):
+        d.line([(x0 + j * ancho // 2, y0), (x0 + j * ancho // 2, y0 + len(CELDAS_TABLA) * alto)], fill=(25, 30, 60), width=4)
+    return Muestra("tabla_cuaderno", "cuaderno", "tabla", _a_bgr(img), ["Unidades del SI"] + [" ".join(f) for f in CELDAS_TABLA])
+
+
 def corpus() -> list[Muestra]:
     return [impreso_cuaderno(), cuaderno_con_sombra(), cuaderno_cuadriculado(), impreso_pizarron(), pizarron_con_ruido(),
             pizarron_oscuro(), manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron(), formulas_2d(), diagrama()]

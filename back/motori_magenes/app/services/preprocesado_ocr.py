@@ -11,6 +11,14 @@ que el marcador de un pizarrón:
             [normalizar iluminación si es desigual] → quitar solo los renglones
             (líneas largas y equiespaciadas), conservando tablas y fracciones
 
+En los dos perfiles, la copia para el OCR (no la vista) pierde además la cuadrícula de
+las tablas (rectas largas horizontales y verticales): Tesseract las confundía con texto o descartaba
+las filas enteras (FULL-24: de 8 celdas de una tabla fotografiada leía 0).
+
+La perspectiva solo se corrige si el cuadrilátero detectado es de verdad el borde del
+pizarrón o de la hoja: si fuera de él queda el mismo papel con tinta, es una tabla o un
+recuadro DENTRO de la hoja y recortar perdería lo de alrededor (FULL-24: se perdía el título).
+
 Las etapas entre corchetes son ADAPTATIVAS: se midió que en una foto limpia
 empeoran el OCR (la mediana borraba tildes; la normalización adelgazaba trazos),
 así que solo se aplican cuando la imagen lo necesita.
@@ -27,7 +35,7 @@ import cv2
 import numpy as np
 
 from app.services.mejora import normalizar_iluminacion
-from app.services.perspectiva import corregir_perspectiva
+from app.services.perspectiva import detectar_pizarron, rectificar
 from app.services.procesamiento import a_bgr, redimensionar
 
 LADO_MAX_OCR = 2400       # más resolución que la vista: el OCR la aprovecha
@@ -120,10 +128,53 @@ def quitar_renglones(gris: np.ndarray) -> np.ndarray:
     return cv2.inpaint(gris, mascara, 2, cv2.INPAINT_TELEA)
 
 
+def _contenido_fuera(gris: np.ndarray, esquinas: np.ndarray) -> bool:
+    """¿Hay papel con tinta FUERA del cuadrilátero? Entonces es una figura dentro de la hoja
+    (tabla, recuadro), no su borde: un pizarrón o una hoja sobre la mesa tienen alrededor
+    otro fondo (pared, mesa), no el mismo papel escrito."""
+    dentro = np.zeros(gris.shape, np.uint8)
+    cv2.fillConvexPoly(dentro, esquinas.astype(np.int32), 255)
+    fuera = dentro == 0
+    if fuera.mean() < 0.05:
+        return False
+    papel_dentro, papel_fuera = np.percentile(gris[~fuera], 75), np.percentile(gris[fuera], 75)
+    if abs(float(papel_dentro) - float(papel_fuera)) > 30:
+        return False  # otro fondo alrededor: es el borde de verdad
+    tinta = cv2.adaptiveThreshold(gris, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 31, 15)
+    tinta = cv2.morphologyEx(tinta, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+    return float((tinta[fuera] > 0).mean()) > 0.003
+
+
+def corregir_perspectiva_hoja(original: np.ndarray) -> tuple[np.ndarray, str]:
+    deteccion = detectar_pizarron(original)
+    if deteccion.esquinas is None:
+        return original, "no_detectada"
+    if _contenido_fuera(cv2.cvtColor(original, cv2.COLOR_BGR2GRAY), deteccion.esquinas):
+        return original, "figura_interior"
+    return rectificar(original, deteccion.esquinas), "corregida"
+
+
+def quitar_lineas_largas(gris: np.ndarray) -> np.ndarray:
+    """Borra de la copia para el OCR la cuadrícula de una tabla (rectas horizontales y verticales
+    largas). Las barras de fracción y los trazos de letra son mucho más cortos."""
+    alto, ancho = gris.shape
+    tinta = cv2.adaptiveThreshold(gris, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 31, 10)
+    horizontales = cv2.morphologyEx(tinta, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (max(40, ancho // 4), 1)))
+    verticales = cv2.morphologyEx(tinta, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(40, alto // 6))))
+    # Solo una CUADRÍCULA (≥ 3 rectas horizontales y ≥ 2 verticales): un recuadro suelto o las
+    # figuras de un diagrama se dejan, porque sin sus lados Tesseract lee los trozos como letras.
+    n_h = cv2.connectedComponents(horizontales)[0] - 1
+    n_v = cv2.connectedComponents(verticales)[0] - 1
+    if n_h < 3 or n_v < 2:
+        return gris
+    mascara = cv2.dilate(cv2.bitwise_or(horizontales, verticales), np.ones((3, 3), np.uint8))
+    return cv2.inpaint(gris, mascara, 2, cv2.INPAINT_TELEA)
+
+
 def preprocesar_para_ocr(imagen: np.ndarray, tipo_fuente: str) -> Preprocesado:
     original = a_bgr(imagen)
     avisos = advertencias_calidad(original)
-    vista, estado = corregir_perspectiva(original)
+    vista, estado = corregir_perspectiva_hoja(original)
     vista = _escalar_para_ocr(vista)
 
     if tipo_fuente == "cuaderno":
@@ -143,4 +194,4 @@ def preprocesar_para_ocr(imagen: np.ndarray, tipo_fuente: str) -> Preprocesado:
         if ruido_estimado(gris) > UMBRAL_RUIDO:
             gris = cv2.medianBlur(gris, 3)
         psm = 3
-    return Preprocesado(gris, vista, psm, estado, avisos)
+    return Preprocesado(quitar_lineas_largas(gris), vista, psm, estado, avisos)

@@ -8,6 +8,14 @@ Cómo se publica una versión: [docs/entrega.md](docs/entrega.md#6-lista-de-comp
 
 ### Añadido
 
+- **Base de la IA multimodal** (FULL-30, PR 1 de 8, `docs/arquitectura-ia.md`): auditoría del
+  repositorio, interfaz común de motores (`services/ia/`), adaptador opcional de un **VLM local por
+  Ollama** (desactivado por defecto, solo en el equipo o la red privada, sin descargas ni modelos
+  `-cloud`), registro de motores con perfiles `rapido` / `equilibrado` / `avanzado` / `automatico`,
+  diagnóstico de RAM/GPU, `GET /api/v2/reconocimiento/motores` y `/perfiles`, dependencia opcional
+  `ia_local` en `/api/v2/listo` y `fullstack/scripts/diagnostico_ia.py`. El análisis de apuntes **no
+  cambia** todavía; el VLM no se ha evaluado con un modelo real (`docs/ia-local.md`).
+
 - **Reconocimiento adaptativo** (BACK-28, `RECONOCIMIENTO_MODO=adaptativo` por defecto): diagnóstico
   de calidad de cada foto con avisos concretos y nivel `insuficiente` (se pide repetir la foto y
   nada queda como seguro); el texto girado se endereza; las regiones dudosas se releen con

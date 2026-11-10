@@ -256,3 +256,38 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 | Tesseract | PaddleOCR, EasyOCR, TrOCR | Apache-2.0, buen español, sin GPU ni descargas de cientos de MB; ver `PROCESAMIENTO.md` |
 | Hilos + SQLite para trabajos | Celery + Redis | Sin servicios extra; durable y funciona igual en local y en Docker |
 | ReportLab + mathtext | WeasyPrint, LaTeX | ReportLab no necesita librerías del sistema; mathtext dibuja LaTeX **sin ejecutar** un motor TeX |
+
+## 10. Motores y perfiles de reconocimiento (FULL-30)
+
+Requieren sesión. No exponen datos del equipo (RAM, GPU): eso solo aparece en `/api/v2/diagnostico`,
+que responde únicamente desde el propio servidor. Guía: [`ia-local.md`](ia-local.md).
+
+`GET /api/v2/reconocimiento/motores` → `200`
+
+```json
+{"motores": [
+  {"nombre": "tesseract", "modelo": "LSTM (spa+eng)", "version": "5.3.4", "licencia": "Apache-2.0",
+   "local": true, "detalle": "", "disponible": true,
+   "capacidades": ["formula", "layout", "texto_impreso", "texto_manuscrito"]},
+  {"nombre": "ollama_vlm", "modelo": "qwen3-vl:4b", "version": "", "licencia": "según el modelo (Qwen3-VL: Apache-2.0)",
+   "local": true, "detalle": "desactivado (IA_ACTIVADA=false): opcional", "disponible": false,
+   "capacidades": ["diagrama", "formula", "layout", "tabla", "texto_impreso", "texto_manuscrito"]}
+]}
+```
+
+`GET /api/v2/reconocimiento/perfiles` → `200`
+
+```json
+{"configurado": "automatico", "aplicado_en_analisis": false,
+ "perfiles": {
+   "rapido":      {"disponible": true,  "motores": ["tesseract"], "flujo": "clasico", "detalle": ""},
+   "equilibrado": {"disponible": true,  "motores": ["tesseract"], "flujo": "adaptativo", "detalle": ""},
+   "avanzado":    {"disponible": false, "motores": ["tesseract", "ollama_vlm"], "flujo": "adaptativo+vlm",
+                   "detalle": "desactivado (IA_ACTIVADA=false): opcional"},
+   "automatico":  {"disponible": true, "elige": "equilibrado", "motores": ["tesseract"], "flujo": "adaptativo", "detalle": ""}},
+ "memoria_vlm": "necesita ~6 GB (estimado); hay 7.4 GB libres"}
+```
+
+`aplicado_en_analisis: false`: el análisis de apuntes todavía sigue el flujo de BACK-28 sea cual sea
+el perfil (se conecta en el siguiente PR). `/api/v2/listo` incluye la dependencia `ia_local`, que es
+**opcional**: no cambia el estado «listo».

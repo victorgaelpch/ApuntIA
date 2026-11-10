@@ -55,6 +55,7 @@ repositorio: no hace falta Java».
 | `DATA_DIR` | `datos` (en `back/motori_magenes`) | Base de datos y archivos privados |
 | `OCR_MOTOR`, `OCR_IDIOMAS` | `tesseract`, `spa+eng` | Reconocimiento de texto |
 | `RECONOCIMIENTO_MODO` | `adaptativo` | `clasico` vuelve al flujo anterior a BACK-28 ([PROCESAMIENTO.md](../back/motori_magenes/PROCESAMIENTO.md#reconocimiento-adaptativo-back-28)) |
+| `IA_ACTIVADA`, `VLM_MODELO` | `false`, `qwen3-vl:4b` | Modelo visual local opcional por Ollama ([ia-local.md](ia-local.md)) |
 | `COOKIE_SEGURA` | `0` | `1` solo detrás de HTTPS |
 | `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
 

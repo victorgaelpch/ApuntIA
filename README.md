@@ -123,6 +123,7 @@ contraseñas ni claves; no la subas al repositorio. Variables principales:
 | `MAX_UPLOAD_MB`, `MAX_PAGINAS` | 10, 20 | Límites de subida |
 | `OCR_MOTOR`, `OCR_IDIOMAS` | `tesseract`, `spa+eng` | Reconocimiento de texto |
 | `RECONOCIMIENTO_MODO` | `adaptativo` | `clasico` vuelve al flujo anterior a BACK-28 ([PROCESAMIENTO.md](back/motori_magenes/PROCESAMIENTO.md#reconocimiento-adaptativo-back-28)) |
+| `IA_ACTIVADA`, `VLM_MODELO` | `false`, `qwen3-vl:4b` | Modelo visual local opcional por Ollama ([ia-local.md](docs/ia-local.md)) |
 | `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
 | `COOKIE_SEGURA`, `URL_PUBLICA` | 0, vacío | Solo si se publica por HTTPS |
 
@@ -164,6 +165,7 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [docs/ci.md](docs/ci.m
 | Arranque | [scripts](docs/arranque.md) · [Docker](docs/docker.md) · [carpeta fullstack](fullstack/README.md) |
 | Seguridad y privacidad | [auditoría](docs/seguridad.md) · [API](docs/seguridad-api.md) · [permisos](docs/permisos.md) · [privacidad](docs/privacidad.md) |
 | Operación | [diagnóstico](docs/diagnostico.md) · [copias de seguridad](docs/respaldo.md) |
+| IA multimodal (en desarrollo) | [arquitectura y plan](docs/arquitectura-ia.md) · [modelo visual local opcional](docs/ia-local.md) |
 | Calidad | [evaluación del OCR y PDF](docs/evaluacion.md) · [pruebas del backend](docs/pruebas-backend.md) · [pruebas de interfaz](docs/pruebas-interfaz.md) · [CI](docs/ci.md) |
 | Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [aceptación y evidencias](docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](docs/alcance.md) · [definición de hecho](docs/definicion-de-hecho.md) · [dependencias y licencias](docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |

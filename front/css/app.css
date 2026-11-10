@@ -170,3 +170,17 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-vi
 .diferencia__texto { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
 ins { background: color-mix(in srgb, var(--brand) 22%, transparent); text-decoration: underline; }
 del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decoration: line-through; }
+
+/* ---------- complementos externos (FRONT-15) ---------- */
+.conceptos { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin: 0 0 14px; }
+.conceptos legend { font-weight: 600; padding: 0 6px; }
+.conceptos__lista { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-bottom: 8px; }
+.concepto { margin: 4px 0; }
+.complementos { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.complemento { border: 1.5px solid var(--line); border-left: 5px solid #8c9aa6; border-radius: 14px; padding: 12px 14px; }
+.estado-borde-aceptada { border-left-color: var(--brand); }
+.estado-borde-rechazada { opacity: .75; }
+.complemento__cabecera { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.complemento__cabecera h3 { margin: 0; font: 700 1.05rem var(--f-display); }
+.complemento__texto { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--line); background: var(--surface-2); border-radius: 0 10px 10px 0; }
+.complemento__fuente { font-size: .9rem; color: var(--ink-2); overflow-wrap: anywhere; }

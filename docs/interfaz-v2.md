@@ -124,3 +124,22 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
   locales; luego se elige ver la guardada, copiar los cambios o guardar encima.
 - No hay copia en el navegador (ni localStorage ni IndexedDB): lo no guardado solo vive en la pestaña,
   y el aviso al salir lo recuerda. No hay edición simultánea en tiempo real.
+
+## Editor: información complementaria (FRONT-15)
+
+- Pestaña «Complementos», separada de la transcripción. «Buscar información complementaria» está
+  **desactivada por defecto**; requiere la preferencia del perfil (se puede activar desde aquí,
+  con confirmación) y una casilla de consentimiento en **cada** búsqueda.
+- Antes de buscar se explica la fuente (Wikipedia), qué se envía (solo las palabras clave
+  marcadas; nunca fotos ni texto del apunte) y la licencia. Los conceptos sugeridos salen del
+  propio apunte y se pueden añadir otros (palabras clave, sin URL ni emails).
+- Progreso real con «Cancelar búsqueda». Al terminar se resume: complementos nuevos, conceptos sin
+  fuentes fiables (no se añade nada), resultados descartados por instrucciones incrustadas y
+  posibles contradicciones.
+- Cada complemento muestra el texto citado, la fuente (título enlazado con `rel="noopener noreferrer"`,
+  autor, proveedor, fecha de consulta y licencia) y, si la hay, la contradicción con el apunte.
+  «Aceptar» lo incluye en el PDF (sección aparte y citada); «Descartar» lo deja fuera. El texto del
+  apunte nunca se modifica.
+- Sin proveedor o con la fuente caída se explica y se ofrece seguir al PDF sin complementos.
+- Pruebas con una Wikipedia simulada (`fullstack/tests/integracion/app_wikipedia_simulada.py`): el
+  backend es el real y el proveedor también; solo se sustituye la red.

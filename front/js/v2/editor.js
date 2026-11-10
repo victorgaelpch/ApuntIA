@@ -248,6 +248,7 @@
     }
 
     function mostrarPestana(id) {
+        if (!E.pestanas.some((p) => p.id === id)) return;
         E.pestanas.forEach((p) => {
             const activa = p.id === id;
             const tab = $(`#tab-${p.id}`);

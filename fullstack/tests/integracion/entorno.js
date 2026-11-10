@@ -24,11 +24,13 @@ async function esperar(url, ms = 20000) {
 }
 
 // fallo: "" | "procesamiento" | "inesperado" | "lento" (ver app_con_fallos.py)
-async function iniciarBackend(env = {}, { fallo = "" } = {}) {
+// modulo: app de pruebas de esta carpeta (p. ej. "app_wikipedia_simulada").
+async function iniciarBackend(env = {}, { fallo = "", modulo = "" } = {}) {
     const puerto = await puertoLibre();
     const python = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
-    const args = fallo
-        ? ["-m", "uvicorn", "app_con_fallos:app", "--app-dir", __dirname, "--port", String(puerto)]
+    const prueba = modulo || (fallo ? "app_con_fallos" : "");
+    const args = prueba
+        ? ["-m", "uvicorn", `${prueba}:app`, "--app-dir", __dirname, "--port", String(puerto)]
         : ["-m", "uvicorn", "main:app", "--port", String(puerto)];
     const proceso = spawn(python, args, {
         cwd: BACKEND, env: { ...process.env, ...env, APUNTIA_FALLO: fallo }, stdio: ["ignore", "pipe", "pipe"],

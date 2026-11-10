@@ -35,6 +35,8 @@
         ed.pintarTodo();
         ed.E.alCargar.forEach((fn) => fn(apunte));
         ed.pintarTodo();  // con lo que añadieron las extensiones
+        const pestana = location.hash.slice(1);  // #pdf, #versiones o #complementos desde «Mis apuntes»
+        if (pestana) ed.mostrarPestana(pestana);
         const t = apunte.ultimo_trabajo;
         if (t && t.tipo === "analisis" && ["pendiente", "procesando"].includes(t.estado)) ed.seguirAnalisis(t);
         else if (t && t.tipo === "analisis" && ["fallido", "cancelado", "parcial"].includes(t.estado)) ed.informarAnalisis(t);

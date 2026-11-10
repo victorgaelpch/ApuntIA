@@ -139,7 +139,7 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | Método | Ruta | Descripción |
 |--------|------|-------------|
 | `POST` | `/api/v2/apuntes` | Crea un apunte desde 1–20 fotos y lanza su trabajo de **análisis** (preprocesado → OCR → manuscritos → fórmulas). `multipart/form-data`: `paginas` (archivos, en orden), `tipos` (uno por página: `pizarron` o `cuaderno`), `titulo`. Cabecera opcional `Idempotency-Key`. → `202 {apunte, trabajo}` |
-| `GET` | `/api/v2/apuntes` | Lista paginada: `?q=&estado=&tipo_fuente=&pagina=1&por_pagina=20&orden=reciente\|antiguo\|titulo` → `{elementos, total, pagina, por_pagina}`. `q` busca en el título y en el texto (no en lo investigado); `%` y `_` se buscan literalmente |
+| `GET` | `/api/v2/apuntes` | Lista paginada: `?q=&estado=&tipo_fuente=&desde=AAAA-MM-DD&hasta=AAAA-MM-DD&pagina=1&por_pagina=20&orden=reciente\|antiguo\|titulo` → `{elementos, total, pagina, por_pagina}`. `q` busca en el título y en el texto (no en lo investigado); `%` y `_` se buscan literalmente |
 | `GET` | `/api/v2/apuntes/{id}` | Apunte con su documento actual, su `version` y `ultimo_trabajo` (estado del análisis, investigación o exportación más reciente) |
 | `PUT` | `/api/v2/apuntes/{id}/documento` | Guarda una versión nueva. Cabecera **`If-Match: <version>`** obligatoria; si otra edición se guardó antes → `409 CONFLICTO_VERSION` con la versión actual |
 | `GET` | `/api/v2/apuntes/{id}/versiones` | Historial de versiones |

@@ -161,3 +161,16 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
   los de versiones anteriores. «PDF de esta versión» desde el historial.
 - Al recargar con una exportación en curso, la pestaña PDF la retoma.
 - La foto mejorada en PNG sigue en «Mejorar una foto»: son dos cosas distintas.
+
+## Mis apuntes (FRONT-18)
+
+- Lista paginada (12 por página) solo con los apuntes de la sesión: título, estado, fuente,
+  páginas, número de PDF y fechas. No se cargan imágenes privadas en la lista.
+- Búsqueda en el título y en el texto, filtros de estado, fuente y fechas (`desde`/`hasta`,
+  añadidos a `GET /api/v2/apuntes`) y orden. Los filtros quedan en la URL, así que al volver del
+  editor la lista sigue igual; la posición de desplazamiento se recuerda en la pestaña.
+- Acciones según el estado: «Abrir y editar», «Ver progreso» (en cola o procesando), «Revisar y
+  reintentar» (falló o cancelado), «Exportar PDF» (abre el editor en la pestaña PDF), «Descargar
+  último PDF» (si hay alguno; avisa si es de una versión anterior) y «Eliminar» con confirmación.
+- Estados vacíos (sin apuntes: «Crear mi primer apunte»; sin coincidencias: «Limpiar filtros»),
+  esqueletos mientras carga y «Reintentar» si falla la red.

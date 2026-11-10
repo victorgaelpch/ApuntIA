@@ -189,3 +189,18 @@ del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decor
 .avisos-previos { margin: 0 0 12px; padding-left: 20px; color: var(--yellow-ink); }
 .avisos-previos[hidden] { display: none; }
 .marco-pdf { width: 100%; height: min(80vh, 900px); border: 1px solid var(--line); border-radius: 12px; background: #fff; margin-top: 10px; }
+
+/* ---------- Mis apuntes (FRONT-18) ---------- */
+.cabecera-lista { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.filtros { display: grid; gap: 0 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); align-items: end; margin-bottom: 16px; }
+.filtros__busqueda { grid-column: 1 / -1; }
+.filtros__botones { grid-column: 1 / -1; margin: 0 0 4px; }
+.lista-apuntes { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.apunte { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 8px; box-shadow: var(--shadow); }
+.apunte h2 { margin: 0; font: 700 1.1rem var(--f-display); overflow-wrap: anywhere; }
+.apunte h2 a { color: inherit; }
+.apunte__datos { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--ink-2); font-size: .88rem; align-items: center; }
+.apunte .botones { margin: 0; }
+.apunte .btn { min-height: 38px; padding: 6px 12px; }
+.paginacion { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+.paginacion[hidden] { display: none; }

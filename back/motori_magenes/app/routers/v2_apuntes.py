@@ -85,9 +85,11 @@ def listar_apuntes(
     pagina: int = Query(1, ge=1, le=10000),
     por_pagina: int = Query(20, ge=1, le=100),
     orden: Literal["reciente", "antiguo", "titulo"] = "reciente",
+    desde: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="Creados desde este día (AAAA-MM-DD)"),
+    hasta: str | None = Query(None, pattern=r"^\d{4}-\d{2}-\d{2}$", description="Creados hasta este día, incluido"),
     sesion: Sesion = Depends(sesion_actual),
 ):
-    return repositorio().listar(sesion.usuario.id, q.strip(), estado, tipo_fuente, pagina, por_pagina, orden)
+    return repositorio().listar(sesion.usuario.id, q.strip(), estado, tipo_fuente, pagina, por_pagina, orden, desde, hasta)
 
 
 def _version_de(if_match: str | None) -> int:

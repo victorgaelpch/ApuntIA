@@ -131,3 +131,13 @@ def test_persisten_tras_reiniciar(con_apuntes, datos_tmp):
     c, ids, *_ = con_apuntes
     contexto.reiniciar(datos_tmp.data_dir)  # «reinicio» del servidor con la misma carpeta
     assert c.get("/api/v2/apuntes").json()["total"] == 3
+
+
+def test_filtro_por_fechas(con_apuntes, datos_tmp):
+    c, ids, *_ = con_apuntes
+    datos_tmp.bd.ejecutar("UPDATE apuntes SET creado = '2026-01-15T10:00:00+00:00' WHERE id = ?", (ids[0],))
+    datos_tmp.bd.ejecutar("UPDATE apuntes SET creado = '2026-03-01T23:59:00+00:00' WHERE id = ?", (ids[1],))
+    r = c.get("/api/v2/apuntes?desde=2026-01-01&hasta=2026-03-01").json()
+    assert {e["id"] for e in r["elementos"]} == {ids[0], ids[1]}
+    assert c.get("/api/v2/apuntes?hasta=2026-01-15").json()["total"] == 1
+    assert c.get("/api/v2/apuntes?desde=2026-13-99x").status_code == 400

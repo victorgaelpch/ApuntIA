@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from app.core.config import settings
+from app.services import investigacion
 from app.services.ocr import motor_ocr
 from app.services.validacion import FORMATOS_PERMITIDOS
 
@@ -26,4 +27,7 @@ def salud():
         "max_megapixeles": settings.max_megapixeles,
         # Campos añadidos en la v2 (el contrato v1 se conserva):
         "ocr": motor_ocr().info(),
+        "max_paginas": settings.max_paginas,
+        "investigacion": {"proveedor": investigacion.proveedor().nombre,
+                          "disponible": investigacion.proveedor().disponible()},
     }

@@ -20,7 +20,7 @@
 
     const CATALOGO = {
         // --- selección y validación (navegador y API)
-        ARCHIVO_AUSENTE: { texto: "Primero elige una imagen del pizarrón.", acciones: ["cargar", "camara"] },
+        ARCHIVO_AUSENTE: { texto: "Primero elige una foto del pizarrón o del cuaderno.", acciones: ["cargar", "camara"] },
         ARCHIVO_VACIO: { texto: "El archivo está vacío. Elige otra imagen.", acciones: ["elegirOtra"] },
         TIPO_NO_PERMITIDO: {
             texto: () => `Ese archivo no es una imagen admitida. Usa una foto ${formatos()}. (Las fotos HEIC del iPhone se pueden exportar como JPEG.)`,

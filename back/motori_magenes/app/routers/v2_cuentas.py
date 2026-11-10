@@ -79,6 +79,19 @@ def sesion_vigente(request: Request):
     return _respuesta_sesion(cuentas().sesion(request.cookies.get(COOKIE_SESION)))
 
 
+@router.get("/auth/estado")
+def estado_sesion(request: Request):
+    """Como GET /auth/sesion, pero sin error si no hay sesión (FRONT-11): la interfaz
+    pregunta en cada página y un 401 esperado ensuciaría la consola del navegador."""
+    from app.core.errores import ApiError
+    try:
+        return {"autenticado": True, **_respuesta_sesion(cuentas().sesion(request.cookies.get(COOKIE_SESION)))}
+    except ApiError as exc:
+        if exc.status_code != 401:
+            raise
+        return {"autenticado": False, "usuario": None, "csrf": None}
+
+
 @router.delete("/auth/sesion", status_code=204)
 def cerrar_sesion(request: Request, response: Response, sesion: Sesion = Depends(sesion_actual)):
     cuentas().cerrar_sesion(sesion.token)

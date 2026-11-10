@@ -162,7 +162,7 @@
 
     const TEXTO_PERSPECTIVA = {
         corregida: "✓ Pizarrón detectado y enderezado",
-        no_detectada: "Pizarrón no detectado: se mejoró la imagen sin enderezarla (para enderezarla, fotografía el pizarrón completo)",
+        no_detectada: "Bordes no detectados: se mejoró la imagen sin enderezarla (para enderezarla, fotografía el pizarrón o la hoja completos)",
         desactivada: "Corrección de perspectiva desactivada",
     };
 
@@ -398,7 +398,7 @@
 
     // ---------------------------------------------------------------- navegación
 
-    const enlaces = [...document.querySelectorAll(".site-nav a")];
+    const enlaces = [...document.querySelectorAll(".site-nav a[href^=\"#\"]")]; // solo anclas de esta página
     const secciones = enlaces.map((a) => document.querySelector(a.getAttribute("href")));
     if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver((entradas) => {

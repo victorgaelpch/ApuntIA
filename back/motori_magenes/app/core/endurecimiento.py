@@ -27,6 +27,12 @@ CABECERAS_API_PRIVADA = {
     b"cache-control": b"private, no-store",
     b"content-security-policy": b"default-src 'none'; frame-ancestors 'none'; sandbox",
 }
+# Páginas de la interfaz (FRONT-11/FRONT-20): solo scripts propios, sin estilos ni
+# scripts en línea; fuentes de Google; imágenes y PDF propios o blob: (vista previa).
+CSP_INTERFAZ = (b"default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+                b"font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; "
+                b"connect-src 'self'; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; "
+                b"form-action 'self'; frame-ancestors 'none'")
 METODOS_CON_CUERPO = {"POST", "PUT", "PATCH", "DELETE"}
 
 
@@ -41,6 +47,7 @@ class CabecerasSeguridad:
             await self.app(scope, receive, send)
             return
         privada = scope["path"].startswith("/api/v2/")
+        interfaz = scope["path"] == "/inicio" or scope["path"].startswith("/front")
 
         async def enviar(mensaje):
             if mensaje["type"] == "http.response.start":
@@ -48,6 +55,8 @@ class CabecerasSeguridad:
                 extra = dict(CABECERAS_COMUNES)
                 if privada:
                     extra.update(CABECERAS_API_PRIVADA)
+                elif interfaz:
+                    extra[b"content-security-policy"] = CSP_INTERFAZ
                 if settings.cookie_segura:  # solo detrás de HTTPS
                     extra[b"strict-transport-security"] = b"max-age=31536000"
                 mensaje["headers"] = list(mensaje.get("headers", [])) + \

@@ -184,3 +184,12 @@ def test_borrar_cuenta_exige_password(nuevo_cliente, datos_tmp):
 
 def test_contrato_v1_intacto(client):
     assert client.get("/salud").json()["estado"] == "ok"
+
+
+def test_estado_de_sesion_sin_error(nuevo_cliente):
+    c = nuevo_cliente()
+    r = c.get("/api/v2/auth/estado")
+    assert r.status_code == 200 and r.json() == {"autenticado": False, "usuario": None, "csrf": None}
+    u = c.registrar()
+    r = c.get("/api/v2/auth/estado").json()
+    assert r["autenticado"] is True and r["usuario"]["id"] == u["id"] and r["csrf"] == c.csrf

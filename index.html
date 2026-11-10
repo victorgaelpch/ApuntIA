@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>APUNTIA — Apuntes Inteligentes</title>
-<meta name="description" content="ApuntIA: convierte la foto de un pizarrón en una imagen enderezada, nítida y fácil de leer.">
+<meta name="description" content="ApuntIA convierte fotos de pizarrones o cuadernos en apuntes digitales y PDF. Sin cuenta, también endereza y aclara una foto.">
 <meta name="theme-color" content="#0f332d">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%230a7d62'/%3E%3Cpath d='M14 35 24 12l10 23M18.5 28h11' stroke='%23fff' stroke-width='3.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='24' cy='12' r='3' fill='%23ffd666'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,10 +25,11 @@
       <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
       <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
     </a>
-    <nav class="site-nav" aria-label="Navegación principal">
+    <!-- Los enlaces de la cuenta los completa front/js/v2/inicio.js según haya sesión (FRONT-11) -->
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal">
       <a href="#inicio" aria-current="page">Inicio</a>
       <a href="#como-funciona">Cómo funciona</a>
-      <a href="#resultados">Resultados</a>
+      <a href="front/ayuda.html" data-enlace-app="/front/ayuda.html">Ayuda</a>
     </nav>
   </div>
 </header>
@@ -42,7 +43,7 @@
       <h1 id="titulo" class="wordmark">APUNTIA</h1>
       <p class="subtitle">Apuntes Inteligentes</p>
 
-      <div class="cta" role="group" aria-label="Elige cómo agregar la imagen del pizarrón">
+      <div class="cta" role="group" aria-label="Elige cómo agregar la foto del pizarrón o del cuaderno">
         <!-- «Cargar imagen» es un <label> de un input de archivo (enfocable con teclado). El input va
              justo antes para que el orden de tabulación coincida con el visual (FRONT-09). -->
         <input class="sr-only" type="file" id="inpImagen" accept="image/jpeg,image/png,image/webp" aria-describedby="formatos">
@@ -52,13 +53,14 @@
         </label>
         <button type="button" class="cta-btn cta-photo" id="btCamara">
           <span class="cta-ic" aria-hidden="true">📷</span>
-          <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón al instante</small></span>
+          <span class="cta-tx"><b>Tomar foto</b><small>Fotografía el pizarrón o la hoja al instante</small></span>
         </button>
       </div>
       <!-- Alternativa cuando no hay cámara en vivo (getUserMedia): abre la app de cámara del móvil -->
       <input class="sr-only" type="file" id="inpCamara" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
 
-      <p class="tagline">Convierte la foto del pizarrón en una imagen enderezada, nítida y fácil de leer.</p>
+      <p class="tagline">Convierte la foto de un pizarrón o de un cuaderno en una imagen enderezada y nítida, o en un apunte completo en PDF.</p>
+      <p class="alt" id="enlaceApuntes"><a href="front/nuevo.html" data-enlace-app="/front/nuevo.html">Crear un apunte en PDF con texto, fórmulas y tablas →</a> <small>(con cuenta)</small></p>
       <p class="alt" id="formatos">JPEG, PNG o WEBP de hasta 10 MB · también puedes arrastrar la imagen aquí</p>
     </div>
     <div class="drop-hint" aria-hidden="true">Suelta tu imagen aquí</div>
@@ -68,12 +70,16 @@
   <!-- ===== Cómo funciona ===== -->
   <section id="como-funciona" aria-labelledby="como-titulo">
     <h2 id="como-titulo" class="sr-only">Cómo funciona</h2>
+    <p class="como-modo"><b>Mejorar una foto</b> (aquí mismo, sin cuenta; no se guarda nada):</p>
     <ol class="how">
-      <li><span class="n">1</span><div><b>Captura</b><span>Toma o sube la foto del pizarrón.</span></div></li>
+      <li><span class="n">1</span><div><b>Captura</b><span>Toma o sube la foto del pizarrón o del cuaderno.</span></div></li>
       <li><span class="n">2</span><div><b>Revisa</b><span>Comprueba la vista previa.</span></div></li>
-      <li><span class="n">3</span><div><b>Procesa</b><span>El servidor mejora la imagen.</span></div></li>
-      <li><span class="n">4</span><div><b>Compara</b><span>Mira el resultado junto al original.</span></div></li>
+      <li><span class="n">3</span><div><b>Procesa</b><span>El servidor endereza y aclara la imagen.</span></div></li>
+      <li><span class="n">4</span><div><b>Compara</b><span>Mira el resultado junto al original y descarga el PNG.</span></div></li>
     </ol>
+    <p class="como-modo"><b>Crear un apunte en PDF</b> (con cuenta; se guarda en «Mis apuntes»):
+      elige la fuente → procesa → revisa y corrige → amplía con fuentes (opcional) → genera el PDF → guarda las versiones.
+      <a href="front/ayuda.html" data-enlace-app="/front/ayuda.html">Ver la ayuda</a></p>
   </section>
 
   <!-- ===== Zona de resultados ===== -->
@@ -145,7 +151,7 @@
 </dialog>
 
 <footer class="site-footer">
-  <p>ApuntIA · Proyecto académico</p>
+  <p>ApuntIA · Proyecto académico · La foto que mejoras aquí no se guarda en el servidor.</p>
 </footer>
 
 <script src="front/js/config.js"></script>
@@ -155,5 +161,6 @@
 <script src="front/js/camara.js"></script>
 <script src="front/js/api-mock.js"></script>
 <script src="front/js/app.js"></script>
+<script src="front/js/v2/inicio.js"></script>
 </body>
 </html>

@@ -119,6 +119,7 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | `POST` | `/api/v2/auth/registro` | `{email, nombre, password}` | `201 {usuario, csrf}` + cookie de sesión |
 | `POST` | `/api/v2/auth/sesion` | `{email, password}` | `200 {usuario, csrf}` + cookie |
 | `GET` | `/api/v2/auth/sesion` | — | `200 {usuario, csrf}` o `401` |
+| `GET` | `/api/v2/auth/estado` | — | Siempre `200 {autenticado, usuario, csrf}` (`usuario` y `csrf` son `null` sin sesión). La interfaz lo usa para decidir qué mostrar sin provocar errores 401 |
 | `DELETE` | `/api/v2/auth/sesion` | — | `204`, borra la sesión en el servidor |
 | `POST` | `/api/v2/auth/recuperacion` | `{email}` | `202` **siempre** (no revela si la cuenta existe) |
 | `POST` | `/api/v2/auth/recuperacion/confirmar` | `{token, password}` | `204`; invalida todas las sesiones |

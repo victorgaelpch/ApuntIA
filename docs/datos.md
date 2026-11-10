@@ -29,7 +29,9 @@ erDiagram
 | `exportaciones` | PDF generado a partir de una versión concreta (una por versión) |
 | `schema_migraciones` | migraciones aplicadas, con su SHA-256 |
 
-Las tablas de sesiones (BACK-23) y de trabajos (BACK-27) llegan en migraciones posteriores. Borrar un usuario borra en cascada sus apuntes, versiones y metadatos de archivos.
+| `sesiones`, `tokens_recuperacion`, `intentos_login` | Migración 0002 (BACK-23): sesiones (solo el hash del token), recuperación de contraseña y control de fuerza bruta |
+| `trabajos` | Migración 0003 (BACK-27): procesos largos con estado, etapa, progreso, intentos, resultado y error |
+ Borrar un usuario borra en cascada sus apuntes, versiones y metadatos de archivos.
 
 ## Migraciones
 

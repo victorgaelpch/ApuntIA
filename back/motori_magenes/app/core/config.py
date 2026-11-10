@@ -41,6 +41,9 @@ class Settings:
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
     max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 
+    # Trabajos largos ejecutados a la vez (BACK-27).
+    max_trabajos_simultaneos: int = int(os.getenv("MAX_TRABAJOS_SIMULTANEOS", "2"))
+
     # Páginas por apunte en la API v2 (BACK-11).
     max_paginas: int = int(os.getenv("MAX_PAGINAS", "20"))
 

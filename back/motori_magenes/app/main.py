@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core import contexto
 from app.core.config import settings
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
-from app.routers import general, imagenes, v2_apuntes, v2_cuentas
+from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_trabajos
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,8 +26,10 @@ CABECERAS_EXPUESTAS = [
 @asynccontextmanager
 async def ciclo_de_vida(_app: FastAPI):
     # Aplica las migraciones pendientes y limpia temporales antes de atender peticiones.
-    contexto.iniciar()
+    ctx = contexto.iniciar()
+    ctx.trabajos.iniciar()  # recupera los trabajos interrumpidos y empieza a procesar
     yield
+    contexto.detener()
 
 
 def create_app() -> FastAPI:
@@ -54,6 +56,7 @@ def create_app() -> FastAPI:
     app.include_router(imagenes.router)
     app.include_router(v2_cuentas.router)
     app.include_router(v2_apuntes.router)
+    app.include_router(v2_trabajos.router)
     return app
 
 

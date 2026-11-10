@@ -85,3 +85,18 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-vi
   .funciones td { border: 0; padding: 0; }
   .botones .btn { flex: 1 1 auto; }
 }
+
+/* ---------- páginas de un apunte nuevo (FRONT-12) ---------- */
+.paginas { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.pagina { position: relative; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 10px; display: grid; gap: 8px; }
+.pagina[data-error] { border-color: var(--danger); }
+.pagina.arrastrando { opacity: .5; }
+.pagina.destino { outline: 3px dashed var(--brand); outline-offset: 2px; }
+.pagina__num { position: absolute; top: 14px; left: 14px; background: var(--brand); color: #fff; border-radius: 999px; min-width: 28px; height: 28px; display: grid; place-items: center; font-weight: 700; }
+.pagina img { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #0f332d; border-radius: 10px; }
+.pagina__nombre { font-size: .85rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.pagina__error { color: var(--danger); font-size: .86rem; }
+.pagina__aviso { color: var(--yellow-ink); font-size: .86rem; }
+.pagina__acciones { display: flex; gap: 6px; flex-wrap: wrap; }
+.pagina__acciones .btn { min-height: 36px; padding: 6px 10px; }
+.zona-soltar { outline: 3px dashed var(--brand); outline-offset: 6px; }

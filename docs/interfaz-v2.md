@@ -53,3 +53,21 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 - `?motivo=expirada` y `?motivo=salida` explican por qué se volvió a esta página.
 - Decisión: la mejora de una foto (`/inicio`) **sigue sin cuenta**; solo los apuntes guardados
   la necesitan.
+
+## Crear apuntes (FRONT-12)
+
+- Añadir fotos desde el dispositivo (varias a la vez), arrastrándolas o con la cámara (el mismo
+  visor que la página de inicio; sin cámara en vivo se usa la app de cámara del móvil).
+- Cada foto muestra miniatura, número, nombre y tamaño, su tipo (Automático, Pizarrón o
+  Cuaderno; «Automático» sugiere pizarrón para fotos oscuras y cuaderno para claras) y botones
+  ↑ ↓ y Quitar; también se reordena arrastrando.
+- Se valida con las reglas del backend y los límites de `GET /salud` (formato real, MB,
+  megapíxeles y número de fotos). Las fotos repetidas (mismo contenido, SHA-256) no se añaden.
+  Una foto inválida queda marcada y bloquea el envío hasta quitarla; los errores del servidor
+  por página (`PAGINAS_INVALIDAS`) se muestran en su foto.
+- Avisos locales de resolución baja o foto muy oscura (el análisis añade después los del servidor).
+- Las fotos solo viven en memoria (las miniaturas son URL `blob:` que se liberan); al salir con
+  fotos sin enviar el navegador pide confirmación.
+- Envío con barra de progreso real, botón «Cancelar envío» y «Reintentar»; la cabecera
+  `Idempotency-Key` hace que un reintento tras un corte no cree dos apuntes.
+- Al aceptarse, se abre el editor del apunte, que muestra el avance del análisis.

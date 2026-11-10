@@ -124,7 +124,7 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | `POST` | `/api/v2/auth/recuperacion` | `{email}` | `202` **siempre** (no revela si la cuenta existe) |
 | `POST` | `/api/v2/auth/recuperacion/confirmar` | `{token, password}` | `204`; invalida todas las sesiones |
 | `PUT` | `/api/v2/auth/password` | `{actual, nueva}` | `204`; invalida las **demás** sesiones |
-| `GET` / `PATCH` | `/api/v2/perfil` | `{nombre?, preferencias?}` | `200 {usuario}` |
+| `GET` / `PATCH` | `/api/v2/perfil` | `{nombre?, preferencias?}` | `200 {usuario}`. Preferencias: `tipo_fuente` (`auto` por defecto, `pizarron` o `cuaderno`: tipo propuesto al subir fotos), `idioma_ocr` (`spa+eng`, `spa`, `eng`), `investigacion_permitida` (`false` por defecto) |
 | `DELETE` | `/api/v2/perfil` | `{password}` | `204`; borra la cuenta, sus apuntes y sus archivos |
 
 - **Contraseñas:** `scrypt` (N=2¹⁴, r=8, p=1) con sal aleatoria; mínimo 10 caracteres.

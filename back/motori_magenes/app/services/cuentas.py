@@ -36,7 +36,7 @@ RECUPERACION_S = 30 * 60
 EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,255}\.[^@\s]{2,}$")
 
 PREFERENCIAS_POR_DEFECTO = {
-    "tipo_fuente": "cuaderno",          # tipo propuesto al subir fotos
+    "tipo_fuente": "auto",               # auto: la interfaz sugiere pizarrón o cuaderno por foto
     "investigacion_permitida": False,   # la investigación externa requiere activarla
     "idioma_ocr": "spa+eng",   # eng ayuda con símbolos y fórmulas
 }
@@ -242,8 +242,8 @@ class Cuentas:
         for clave, valor in (preferencias or {}).items():
             if clave not in PREFERENCIAS_POR_DEFECTO:
                 raise ApiError(400, "DATOS_INVALIDOS", f"Preferencia desconocida: {clave}.")
-            if clave == "tipo_fuente" and valor not in ("pizarron", "cuaderno"):
-                raise ApiError(400, "DATOS_INVALIDOS", "El tipo de fuente debe ser pizarron o cuaderno.")
+            if clave == "tipo_fuente" and valor not in ("auto", "pizarron", "cuaderno"):
+                raise ApiError(400, "DATOS_INVALIDOS", "El tipo de fuente debe ser auto, pizarron o cuaderno.")
             if clave == "investigacion_permitida" and not isinstance(valor, bool):
                 raise ApiError(400, "DATOS_INVALIDOS", "investigacion_permitida debe ser verdadero o falso.")
             if clave == "idioma_ocr" and valor not in ("spa", "eng", "spa+eng"):

@@ -15,8 +15,8 @@ npx playwright install chromium
 npm run test:integracion
 ```
 
-- Las pruebas levantan **ellas mismas** los dos servicios en puertos libres ([`tests/integracion/entorno.js`](../tests/integracion/entorno.js)). Si el backend está en un entorno virtual, indica su Python: `PYTHON=back/motori_magenes/.venv/bin/python npm run test:integracion` (en Windows, `.venv\Scripts\python.exe`).
-- Los errores del servidor se provocan con [`tests/integracion/app_con_fallos.py`](../tests/integracion/app_con_fallos.py): la misma app con un fallo inyectado mediante `APUNTIA_FALLO`, sin tocar el código de producción.
+- Las pruebas levantan **ellas mismas** los dos servicios en puertos libres ([`fullstack/tests/integracion/entorno.js`](../fullstack/tests/integracion/entorno.js)). Si el backend está en un entorno virtual, indica su Python: `PYTHON=back/motori_magenes/.venv/bin/python npm run test:integracion` (en Windows, `.venv\Scripts\python.exe`).
+- Los errores del servidor se provocan con [`fullstack/tests/integracion/app_con_fallos.py`](../fullstack/tests/integracion/app_con_fallos.py): la misma app con un fallo inyectado mediante `APUNTIA_FALLO`, sin tocar el código de producción.
 - Para guardar evidencias: `CAPTURAS=docs/evidencias npm run test:integracion`.
 
 ## Escenarios y resultados
@@ -48,7 +48,7 @@ Evidencias: [válida](evidencias/full-07-valida.jpg) · [sin red](evidencias/ful
   1. Desde `back/motori_magenes`, levanta un backend con un fallo inesperado:
 
      ```bash
-     APUNTIA_FALLO=inesperado python -m uvicorn app_con_fallos:app --app-dir ../../tests/integracion --port 8123
+     APUNTIA_FALLO=inesperado python -m uvicorn app_con_fallos:app --app-dir ../../fullstack/tests/integracion --port 8123
      ```
 
   2. Abre `index.html?api=http://localhost:8123`, elige cualquier imagen y pulsa «Procesar».

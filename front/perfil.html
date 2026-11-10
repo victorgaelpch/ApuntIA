@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Perfil — ApuntIA</title>
+<meta name="description" content="Tu cuenta de ApuntIA: datos, preferencias, privacidad, contraseña y sesiones.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <h1>Perfil</h1>
+  <p class="lead" id="altaCuenta"></p>
+
+  <section class="tarjeta" aria-labelledby="tituloDatos">
+    <h2 id="tituloDatos">Tus datos</h2>
+    <form id="formDatos" novalidate>
+      <div class="campo">
+        <label for="perfilNombre">Nombre visible</label>
+        <input type="text" id="perfilNombre" autocomplete="name" maxlength="80" required aria-describedby="perfilNombreError">
+        <span class="error-campo" id="perfilNombreError"></span>
+      </div>
+      <div class="campo">
+        <label for="perfilEmail">Email</label>
+        <input type="email" id="perfilEmail" readonly aria-describedby="perfilEmailAyuda">
+        <small id="perfilEmailAyuda">Es tu usuario para iniciar sesión; no se puede cambiar desde aquí.</small>
+      </div>
+      <div class="botones"><button type="submit" class="btn primary">Guardar datos</button><span class="estado-guardado" id="estadoDatos" role="status"></span></div>
+    </form>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloPreferencias">
+    <h2 id="tituloPreferencias">Preferencias de tus apuntes</h2>
+    <form id="formPreferencias" novalidate>
+      <div class="columnas">
+        <div class="campo">
+          <label for="prefFuente">Tipo de fuente al subir fotos</label>
+          <select id="prefFuente">
+            <option value="auto">Automático (sugerido por foto)</option>
+            <option value="pizarron">Pizarrón</option>
+            <option value="cuaderno">Cuaderno</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="prefIdioma">Idioma del texto de las fotos</label>
+          <select id="prefIdioma">
+            <option value="spa+eng">Español con símbolos en inglés (recomendado)</option>
+            <option value="spa">Solo español</option>
+            <option value="eng">Inglés</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="prefEstiloPdf">Nivel de detalle del PDF</label>
+          <select id="prefEstiloPdf">
+            <option value="extendido">Completo (con resumen, conceptos y glosario)</option>
+            <option value="basico">Básico (solo la transcripción)</option>
+          </select>
+        </div>
+      </div>
+      <div class="casilla"><input type="checkbox" id="prefComplementosPdf"><label for="prefComplementosPdf">Incluir en el PDF los complementos aceptados, con sus fuentes</label></div>
+      <div class="casilla"><input type="checkbox" id="prefOriginalesPdf"><label for="prefOriginalesPdf">Añadir al PDF las fotos originales</label></div>
+      <fieldset class="conceptos">
+        <legend>Privacidad</legend>
+        <div class="casilla"><input type="checkbox" id="prefInvestigacion" aria-describedby="prefInvestigacionAyuda"><label for="prefInvestigacion">Permitir buscar información complementaria en fuentes externas</label></div>
+        <small id="prefInvestigacionAyuda" class="ayuda">Si lo permites, cada búsqueda te pedirá confirmación y solo enviará a la fuente (Wikipedia) las palabras clave que elijas. Tus fotos y el texto de tus apuntes nunca salen del servidor de ApuntIA y solo tú puedes verlos.</small>
+      </fieldset>
+      <div class="botones"><button type="submit" class="btn primary">Guardar preferencias</button><span class="estado-guardado" id="estadoPreferencias" role="status"></span></div>
+    </form>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloPassword">
+    <h2 id="tituloPassword">Cambiar contraseña</h2>
+    <form id="formPassword" novalidate>
+      <div class="campo">
+        <label for="passActual">Contraseña actual</label>
+        <div class="con-boton">
+          <input type="password" id="passActual" autocomplete="current-password" required maxlength="256" aria-describedby="passActualError">
+          <button type="button" class="btn sm ver-password" aria-controls="passActual" aria-pressed="false">Mostrar</button>
+        </div>
+        <span class="error-campo" id="passActualError"></span>
+      </div>
+      <div class="campo">
+        <label for="passNueva">Contraseña nueva</label>
+        <div class="con-boton">
+          <input type="password" id="passNueva" autocomplete="new-password" required minlength="10" maxlength="256" aria-describedby="passNuevaAyuda passNuevaError">
+          <button type="button" class="btn sm ver-password" aria-controls="passNueva" aria-pressed="false">Mostrar</button>
+        </div>
+        <small id="passNuevaAyuda">Al menos 10 caracteres. Se cerrará la sesión en los demás navegadores.</small>
+        <span class="error-campo" id="passNuevaError"></span>
+      </div>
+      <div class="campo">
+        <label for="passConfirmar">Repite la contraseña nueva</label>
+        <input type="password" id="passConfirmar" autocomplete="new-password" required maxlength="256" aria-describedby="passConfirmarError">
+        <span class="error-campo" id="passConfirmarError"></span>
+      </div>
+      <div class="botones"><button type="submit" class="btn primary">Cambiar contraseña</button><span class="estado-guardado" id="estadoClave" role="status"></span></div>
+    </form>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloSesiones">
+    <h2 id="tituloSesiones">Sesiones</h2>
+    <p id="textoSesiones">Comprobando…</p>
+    <div class="botones">
+      <button type="button" class="btn" id="btCerrarOtras" disabled>Cerrar la sesión en los demás navegadores</button>
+      <button type="button" class="btn" id="btCerrarSesion">Cerrar sesión aquí</button>
+    </div>
+    <span class="estado-guardado" id="estadoSesiones" role="status"></span>
+  </section>
+
+  <section class="tarjeta zona-peligro" aria-labelledby="tituloBorrar">
+    <h2 id="tituloBorrar">Borrar la cuenta</h2>
+    <p>Se borrarán tu cuenta y <b>todos</b> tus apuntes, fotos, versiones y PDF. No se puede deshacer.</p>
+    <form id="formBorrar" novalidate>
+      <div class="campo">
+        <label for="borrarPassword">Tu contraseña</label>
+        <input type="password" id="borrarPassword" autocomplete="current-password" required maxlength="256" aria-describedby="borrarPasswordError">
+        <span class="error-campo" id="borrarPasswordError"></span>
+      </div>
+      <div class="botones"><button type="submit" class="btn danger">Borrar mi cuenta</button></div>
+    </form>
+  </section>
+  <div class="aviso" id="avisoPerfil" hidden></div>
+</main>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/formularios.js"></script>
+<script src="js/v2/perfil.js"></script>
+</body>
+</html>

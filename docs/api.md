@@ -111,7 +111,7 @@ El frontend lo usa para saber si el servidor está activo y para conocer los lí
 ```json
 {
   "estado": "ok",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "formatos": ["image/jpeg", "image/png", "image/webp"],
   "max_mb": 10,
   "max_megapixeles": 50

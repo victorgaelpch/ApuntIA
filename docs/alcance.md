@@ -47,7 +47,7 @@ Leyenda: ✅ cumplido y verificado · ⏳ depende de una persona o de un disposi
 | FULL-04 #25 | Integrar el frontend con FastAPI | CORS en `app/main.py`, `docs/ejecutar.md` | `test_cors_*` · I01–I09 | ✅ |
 | FULL-05 #26 | Flujo de extremo a extremo | `app.js` (reintentos, correspondencia) | I01, I02, I06 | ✅ |
 | FULL-06 #27 | Compatibilidad de datos | sincronización con `/salud` | `compatibilidad.test.js` → 10 passed | ✅ |
-| FULL-07 #28 | Pruebas de integración | `tests/integracion/flujo.test.js` | `npm run test:integracion` → 19 passed | ✅ |
+| FULL-07 #28 | Pruebas de integración | `fullstack/tests/integracion/flujo.test.js` | `npm run test:integracion` → 19 passed | ✅ |
 | FULL-08 #29 | Errores entre capas | `CapturarErroresInesperados` | `docs/incidencias.md` · I08 | ✅ |
 | FULL-09 #30 | Validación de la experiencia | `docs/validacion-ux.md` | Dispositivos emulados | ✅ (⏳ celulares reales) |
 | FULL-10 #31 | Documentación de arquitectura | `docs/arquitectura.md`, `README.md` | 74 enlaces verificados | ✅ |

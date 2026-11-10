@@ -11,7 +11,7 @@ const http = require("node:http");
 const { chromium } = require("playwright");
 const { iniciarBackend, iniciarEstatico } = require("./entorno");
 
-const RAIZ = path.resolve(__dirname, "..", "..");
+const RAIZ = path.resolve(__dirname, "..", "..", "..");
 
 function partesMultipart(cuerpo, contentType) {
     const limite = contentType.match(/boundary=(.+)$/)[1];

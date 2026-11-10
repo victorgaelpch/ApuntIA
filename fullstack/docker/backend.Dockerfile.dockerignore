@@ -1,0 +1,8 @@
+# Contexto mínimo para el backend: todo fuera salvo lo que copia el Dockerfile.
+**
+!back/motori_magenes/requirements.txt
+!back/motori_magenes/constraints.txt
+!back/motori_magenes/main.py
+!back/motori_magenes/app/
+**/__pycache__
+**/*.pyc

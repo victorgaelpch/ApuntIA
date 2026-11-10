@@ -14,7 +14,7 @@ Los commits usan el prefijo del issue en el que se corrigieron.
 
 ## D1: un 500 por excepción no prevista llega como «sin conexión»
 
-**Reproducción:** prueba I08 de `tests/integracion/flujo.test.js` y pasos manuales en [`pruebas-integracion.md`](pruebas-integracion.md#d1-un-500-por-excepción-no-prevista-llega-al-navegador-como-sin-conexión).
+**Reproducción:** prueba I08 de `fullstack/tests/integracion/flujo.test.js` y pasos manuales en [`pruebas-integracion.md`](pruebas-integracion.md#d1-un-500-por-excepción-no-prevista-llega-al-navegador-como-sin-conexión).
 
 **Investigación por capa:**
 
@@ -75,4 +75,46 @@ Los commits usan el prefijo del issue en el que se corrigieron.
 
 ## Fallos pendientes
 
-No hay fallos abiertos de varias capas. Siguen abiertas las validaciones que requieren personas o dispositivos (Firefox, Safari y celulares reales: ver FULL-09).
+No hay fallos abiertos de varias capas en la versión 1 (los de la versión 2, abajo). Siguen abiertas las validaciones que requieren personas o dispositivos (Firefox, Safari y celulares reales: ver FULL-09).
+
+## Versión 2: defectos encontrados al preparar la entrega
+
+Encontrados con la instalación desde un clon limpio (FULL-22), los escenarios de aceptación y la
+inspección manual (FULL-24). Prioridad: **P1** impide usar o entregar · **P2** resultado incorrecto
+con salida · **P3** detalle de presentación.
+
+| Id | Defecto | Prioridad | Estado |
+|----|---------|-----------|--------|
+| D2 | El paquete `app/datos` no estaba en el repositorio | P1 | ✅ Corregido (`500acb7`) |
+| D3 | Dos análisis simultáneos ~100 veces más lentos | P1 | ✅ Corregido (`d48cefe`) |
+| D4 | Una tabla en la hoja se tomaba por el borde de la hoja; sus celdas no se leían | P2 | ✅ Corregido (`e695e38`) |
+| D5 | Lo no transcrito del PDF se rotulaba siempre como «manuscrito» | P3 | ✅ Corregido (`bded4b4`) |
+| D6 | «x²» se lee como «x?» y se marca como reconocido | P2 | ⏳ Abierto |
+| D7 | En el móvil, la última pestaña del editor se ve cortada | P3 | ⏳ Abierto |
+
+**D2. Un clon limpio no arranca.** Reproducir: `git clone` → `./iniciar.sh` → «ModuleNotFoundError:
+No module named 'app.datos'». Causa: la regla `datos/` del `.gitignore` también ignoraba el paquete de
+código. En el equipo de desarrollo el paquete existía, así que todas las pruebas pasaban.
+
+**D3. Análisis simultáneos lentísimos.** Reproducir: con `iniciar.sh`, crear dos apuntes de 3 fotos a la
+vez → 209 s (uno solo: 2 s). Causa: los hilos OpenMP de dos procesos de Tesseract compiten por los
+núcleos. Arreglo: `OMP_THREAD_LIMIT=1` por defecto → 1,9 s.
+
+**D4. Tablas fotografiadas.** Reproducir: `herramientas.corpus.tabla_cuaderno()` como apunte de
+cuaderno → se perdía el título de encima de la tabla y se leían 0 de 8 celdas. Causa: la detección
+de perspectiva tomaba la cuadrícula por el borde de la hoja, y la cuadrícula confundía a Tesseract.
+Ahora: título y 7/8 celdas.
+
+**D5. Rótulo falso en el PDF.** Reproducir: apunte con `formulas_pizarron()` → PDF → «E = m c^2» aparece
+como «Fragmento manuscrito no transcrito». Ahora el rótulo depende del tipo de bloque.
+
+**D6. Un superíndice mal leído pasa por seguro.** Reproducir: apunte con `impreso_cuaderno()` → el
+bloque «Si f(x) = x?, entonces…» queda «reconocido» al 92 %. Es el único «reconocido con errores» del
+banco de evaluación ([evaluacion.md](evaluacion.md)), donde se vigila para que no aumente. Arreglo
+posible: marcar como incierta la palabra que contenga «?» pegado a una letra cuando Tesseract dé
+alternativas, o reconocer superíndices con el detector de fórmulas. Mientras tanto: la foto está al
+lado en el editor para corregirlo.
+
+**D7. Pestañas del editor en el móvil.** Reproducir: abrir el editor a 412 px de ancho → «Versiones»
+se ve cortada. La barra se desplaza y se llega con el teclado (no se pierde la función), pero no hay
+indicio visual. Arreglo posible: sombra en el borde o pestañas en dos líneas.

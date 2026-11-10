@@ -1,7 +1,7 @@
 # Compatibilidad de datos frontend ↔ backend (FULL-06)
 
 Comparación de las **peticiones reales del navegador** y las **respuestas reales de FastAPI** con el contrato
-([`api.md`](api.md)). Automatizada en [`tests/integracion/compatibilidad.test.js`](../tests/integracion/compatibilidad.test.js):
+([`api.md`](api.md)). Automatizada en [`fullstack/tests/integracion/compatibilidad.test.js`](../fullstack/tests/integracion/compatibilidad.test.js):
 
 ```bash
 npm run test:integracion

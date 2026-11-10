@@ -173,3 +173,181 @@ Solo con el fondo a ¼, sin redimensionar, la foto de 12 MP pasa de 862 a 354 ms
 - `print` se sustituyó por `logging`.
 - Se completó `requirements.txt` (antes vacío) e incluye `python-multipart`, necesario para recibir archivos.
 - Se añadió `.gitignore` para no subir `__pycache__`, entornos virtuales, `.env` ni las imágenes generadas, y se quitó el `.pyc` que estaba versionado.
+
+## OCR por bloques (BACK-13)
+
+`app/services/ocr.py`. **No confundir** la limpieza de OpenCV (secciones anteriores) con el OCR: aquí se extrae el texto.
+
+### Elección del motor
+
+| Motor | Español | Licencia | Requisitos | Decisión |
+|-------|---------|----------|------------|----------|
+| **Tesseract 5** | Sí (`spa`, con tildes y ñ) | Apache-2.0 | Binario de ~30 MB, sin GPU; Windows, Linux, macOS y Docker | **Elegido** |
+| PaddleOCR | Sí | Apache-2.0 | PaddlePaddle (~500 MB) y modelos descargados en el primer uso | Descartado por tamaño |
+| EasyOCR | Sí | Apache-2.0 | PyTorch (~700 MB+); lento sin GPU | Descartado por tamaño y velocidad |
+| TrOCR | Inglés en los modelos públicos | MIT | PyTorch + 1.3 GB de modelo | Descartado (ver BACK-14) |
+
+El motor no está «cableado»: `OCR_MOTOR` lo elige (`tesseract` o `ninguno`) y otro motor puede implementar la clase `MotorOCR`.
+
+### Salida
+
+- Palabras → líneas → **bloques** (párrafos de Tesseract), en orden de lectura, con `bbox`, confianza ponderada por longitud y estado: `reconocido` (≥ 0.80), `incierto` (0.50–0.80) o `no_reconocido` (< 0.50).
+- Un bloque de una línea con letra al menos 1.25 veces mayor que la mediana se marca como `titulo`.
+- Texto normalizado en Unicode NFC: las tildes y la ñ llegan intactas al PDF.
+- Tres resultados distintos: **fallo técnico** → `ErrorOCR` con código (`OCR_NO_DISPONIBLE`, `OCR_TIEMPO_AGOTADO`, `OCR_IDIOMA_NO_DISPONIBLE`), nunca texto vacío; **sin texto** → lista vacía; **confianza baja** → bloques `incierto`/`no_reconocido`.
+- `GET /salud` añade `ocr: {disponible, motor, version, idiomas}`; los campos de la v1 no cambian.
+
+### Línea base (sin preprocesar), con el corpus sintético
+
+`python -m herramientas.evaluar_ocr --sin-preprocesar` (Tesseract 5.3.4, `spa+eng`). CER/WER: porcentaje de caracteres/palabras mal reconocidos (menor es mejor).
+
+| Muestra | Escritura | CER | WER | Bloques (rec./inc./no rec.) |
+|---|---|---|---|---|
+| impreso_cuaderno | impreso | 0.7 % | 3.8 % | 5/0/0 |
+| impreso_pizarron (inclinado) | impreso | **53.7 %** | 69.2 % | 3/1/0 |
+| pizarron_oscuro (tiza) | impreso | 0.7 % | 3.8 % | 5/0/0 |
+| manuscrito_cuaderno | manuscrito sintético | 0.0 % | 0.0 % | 3/0/0 |
+| formulas_pizarron | fórmula | 22.9 % | 64.7 % | 2/2/0 |
+
+El pizarrón fotografiado en ángulo pierde líneas enteras: es lo que corrige el preprocesado por perfil (BACK-12). La «escritura manuscrita» sintética es mucho más fácil que la real (ver BACK-14).
+
+## Preprocesado para OCR por perfil (BACK-12)
+
+`app/services/preprocesado_ocr.py`. Reutiliza la perspectiva (BACK-04) y la normalización de iluminación (BACK-05), pero con perfiles distintos:
+
+| Paso | Pizarrón | Cuaderno |
+|------|----------|----------|
+| Perspectiva | Sí | Sí (hoja sobre la mesa) |
+| Resolución para OCR | Lado entre 1400 y 2400 px (amplía las fotos pequeñas) | Igual |
+| Color → gris | Luminancia; **se invierte** si es de tiza (fondo oscuro) | **Canal rojo**: el rayado azul y el margen rojo casi desaparecen y la tinta oscura se mantiene |
+| Iluminación | Normalizar **solo si es desigual** (fondo con más de 45 niveles de diferencia) | Igual |
+| Ruido | Mediana 3×3 **solo si hay ruido** (estimación MAD del laplaciano > 6) | No |
+| Renglones | — | Se quitan solo las líneas que cruzan más del 60 % de la hoja **y** se repiten a intervalos regulares (≥ 4); `inpaint` rellena donde un trazo las cruza |
+| Segmentación de Tesseract | `psm 3` | `psm 4` |
+
+- **Trazos finos:** sin erosiones ni umbrales duros. Las líneas de tabla y las barras de fracción no son periódicas ni ocupan toda la hoja, así que se conservan (probado).
+- **Original intacto:** se guarda aparte; el OCR trabaja sobre una copia.
+- **Advertencias de calidad** en la página del documento: `BAJA_RESOLUCION` (lado menor < 600 px), `IMAGEN_BORROSA` (varianza del laplaciano < 40) e `IMAGEN_OSCURA`.
+
+**Por qué las etapas son adaptativas.** La primera versión las aplicaba siempre y se midió una regresión en las fotos limpias: la mediana borraba la tilde de «rápido» en el pizarrón de tiza (CER de 0.7 % a 1.4 %), y la normalización adelgazaba trazos en el cuaderno limpio (de 0.7 % a 1.4 %). Por eso ahora solo se aplican cuando la imagen las necesita.
+
+### Antes y después (`python -m herramientas.evaluar_ocr` con y sin `--sin-preprocesar`)
+
+| Muestra | CER sin preprocesar | CER con preprocesado |
+|---|---|---|
+| impreso_cuaderno | 0.7 % | 0.7 % |
+| cuaderno_con_sombra | 7.5 % | **0.7 %** |
+| impreso_pizarron (inclinado) | 53.7 % | **0.7 %** |
+| pizarron_con_ruido | 74.8 % | **0.7 %** |
+| pizarron_oscuro (tiza) | 0.7 % | 0.7 % |
+| manuscrito_cuaderno (sintético) | 0.0 % | 0.0 % |
+| formulas_pizarron | 22.9 % | 22.9 % (las fórmulas se tratan en BACK-15) |
+
+El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `tests/test_preprocesado_ocr.py` comprueba que ninguna muestra empeora frente a la línea base.
+
+**Limitación:** una tabla con 4 o más filas equiespaciadas que ocupen más del 60 % del ancho de la hoja se confundiría con el rayado.
+
+## Escritura a mano con alternativa segura (BACK-14)
+
+`app/services/manuscrito.py`. Estrategia híbrida sobre Tesseract, **sin transcribir por imaginación**:
+
+1. **Una palabra dudosa vuelve `incierto` el bloque.** Se midió que, en escritura irregular, Tesseract daba una media alta (0.85) a bloques con palabras mal leídas («inte grates», confianza 0.70) y los marcaba como `reconocido`. Ahora basta una palabra por debajo de 0.80 para que el bloque sea `incierto`, y esas palabras se listan en `palabras_dudosas`. Para que el bloque sea `no_reconocido` (y se descarte su texto) hace falta que la **media** sea baja: en BACK-21 se detectó que, si la palabra más dudosa decidía también eso, un símbolo mal leído («f'(x)», 0.45) vaciaba un párrafo de tres líneas correctas.
+2. **Segundo intento** para lo que no quedó reconocido: recorte ampliado ×2, binarizado con Otsu y `psm 6`. Se queda la lectura con más confianza.
+3. **Ilegible = sin texto:** un bloque `no_reconocido` queda vacío, de tipo `manuscrito`, y conserva su **recorte** con la ubicación, para transcribirlo a mano. Los `inciertos` conservan su texto y también el recorte, para comparar.
+4. **Tinta no detectada por el OCR:** se conserva como `manuscrito` (trazos del tamaño del texto) o `imagen` (dibujos y esquemas, más altos y poco densos), siempre como recorte.
+5. Los bloques `reconocidos` **no se tocan**, y las fórmulas se tratan aparte (BACK-15).
+
+### Evaluación por tipo de escritura (`python -m herramientas.evaluar_ocr`)
+
+«Reconocidos con errores» = bloques marcados como `reconocido` cuyo texto no es exacto: es el error más peligroso, porque el usuario confiaría en él sin revisar.
+
+| Muestra | CER | Bloques (rec./inc./no rec.) | Reconocidos con errores |
+|---|---|---|---|
+| Impresas (5 muestras) | 0.7 % cada una | todas reconocidas | 1 por muestra: la línea «f(x) = x²», leída «x?» (se resuelve en BACK-15) |
+| manuscrito_cuaderno (sintético regular) | 0.0 % | 2/0/0 | 0 |
+| manuscrito_dificil (sintético irregular) | 11.1 % → **5.6 %** con el segundo intento | 1/1/0 | **0** (antes de limitar la confianza: 2) |
+
+**Limitaciones declaradas:**
+- La escritura sintética (tipografías Hershey de OpenCV) es más regular que la real: con fotos reales de cuadernos el CER será mayor y habrá más bloques `incierto`/`no_reconocido`. Hay que evaluarlo con fotos reales cedidas con permiso (ver FULL-19).
+- **No se adoptaron motores específicos de manuscritos:** TrOCR (modelos públicos en inglés, 1.3 GB y PyTorch) y PaddleOCR (~500 MB). Se pueden añadir como otro `MotorOCR` sin cambiar este flujo.
+- El texto en cursiva muy unida o con mala letra quedará, en general, como recorte para transcribir a mano: es el comportamiento buscado frente a inventar texto.
+
+## Fórmulas a LaTeX verificable (BACK-15)
+
+`app/services/formulas.py`.
+
+| Paso | Cómo |
+|------|------|
+| Detección | Una línea es fórmula si tiene muchos símbolos matemáticos (`= + - * / ^ √ ∫ Σ ²`…) y como mucho una palabra corta. «Si f(x) = x², entonces…» es una **frase** y se queda como texto |
+| Normalización del OCR | Comillas leídas en vez de `^` («c”2»), `*` entre letra y número sin espacios («x*2» → `x^2`), `-=` → `=`, `²`/`³`, letras griegas Unicode |
+| Conversión | Analizador sintáctico **propio** (descenso recursivo): sumas, productos implícitos, fracciones con `/` → `\frac`, potencias, subíndices, `sqrt`/`√`, funciones, `lim`, `Σ`, `∫`, relaciones (`≤`, `≠`…). **No usa `eval` ni `sympy.parse_expr`**: la entrada nunca se ejecuta |
+| Verificación | Lista blanca de comandos LaTeX (rechaza `\input`, `\write`, `\def`, `\href`…, además de `$`, `%` y saltos de línea; máximo 500 caracteres y llaves equilibradas) y dibujo con **mathtext** de matplotlib, que no es un motor TeX. Si no se dibuja → `latex_valido: false` |
+| Estado | Una fórmula es `reconocido` solo si se convirtió y ninguna palabra bajó de 0.90; si no, `incierto`. **Siempre** conserva su recorte para compararla con la foto |
+| Vista previa | `POST /api/v2/formulas/validar` (`{latex}` o `{texto}`) → PNG en base64, para corregir antes del PDF (FRONT-14) |
+
+### Evaluación (`python -m herramientas.evaluar_formulas`)
+
+| Muestra | Exactas | Fórmulas «reconocidas» incorrectas | Lo que no se reconoce |
+|---------|---------|------------------------------------|-----------------------|
+| `formulas_pizarron`: escritas **en línea** (`x^2 + 2x + 1 = 0`, `a/b + c/d`, `sqrt(x + 1)`, `E = m c^2`) | **3/4** (2 inciertas, 1 reconocida) | **0** | `E = m c^2` queda como recorte |
+| `formulas_2d`: dibujadas en 2D (superíndice, barra de fracción, radical) | **0/4** | **0** | Las 4 se conservan como recorte |
+
+**Limitación importante:** Tesseract es un OCR de texto, no matemático. Las fórmulas en 2D (fracciones con barra, radicales, superíndices pequeños) **no se convierten automáticamente**: se conservan como imagen con su ubicación y el usuario escribe el LaTeX con vista previa. Los motores de OCR matemático (pix2tex/LaTeX-OCR, ~100 MB con PyTorch; Mathpix, de pago y externo) no se adoptaron por tamaño y privacidad; se podrían añadir como un paso más para los recortes `incierto`.
+
+## Apunte estructurado (BACK-19)
+
+`app/services/estructura.py` convierte el documento editado en un apunte organizado
+(portada, índice por títulos, secciones, resumen, conceptos clave, glosario, ejemplos,
+fórmulas, tablas y esquemas). Es una función pura que se recalcula para cualquier
+versión, así que regenerar nunca pierde contenido.
+
+Regla de fidelidad, verificada en `tests/test_estructura.py`:
+
+| Parte | De dónde sale | Lo que NO hace |
+|-------|---------------|----------------|
+| Secciones | Bloques de tipo `titulo` | No inventa títulos (sin títulos → una sección «Contenido») |
+| Resumen | Hasta 3 frases **del apunte**, elegidas por frecuencia de términos | No redacta frases nuevas |
+| Conceptos clave | Palabras que se repiten (≥ 2 veces, sin palabras vacías) | — |
+| Glosario | Líneas «Concepto: definición» / «X es …» escritas en el apunte | No define nada que el apunte no defina |
+| Tabla comparativa | Tablas del apunte, o el glosario si define ≥ 2 conceptos | No rellena celdas |
+| Fórmulas | LaTeX solo si es válido; si no, el recorte | No presenta LaTeX inválido como bueno |
+| Manuscrito ilegible | Se cuenta en `pendientes` y va como imagen, con aviso | No se transcribe |
+| Complementos | Solo ampliaciones **aceptadas**, con su fuente | No se mezclan con el resumen |
+
+Limitación conocida: el resumen es extractivo (no reescribe); en apuntes muy cortos
+coincide con el texto completo.
+
+## PDF académico (BACK-20)
+
+`app/services/pdf.py` maqueta el apunte con **ReportLab** y fuentes **DejaVu Sans**
+(texto Unicode seleccionable). Se descartó WeasyPrint porque interpreta HTML/CSS y puede
+descargar recursos remotos (riesgo de inyección y SSRF) y necesita Pango/Cairo en Windows.
+
+Contenido: portada (título, fecha, origen, páginas, versión y avisos) → índice con
+marcadores → «Transcripción del apunte» por secciones (con etiquetas «corregido por ti»
+y «reconocimiento incierto») → resumen, conceptos, glosario, tabla comparativa y ejemplos
+(estilo `extendido`) → «Información complementaria» y «Fuentes» (solo ampliaciones
+aceptadas, numeradas y con URL, autor, licencia y fecha) → anexo opcional con las fotos.
+
+Seguridad: todo texto del usuario se escapa (el marcado de ReportLab no se interpreta);
+las fórmulas pasan por la lista blanca de BACK-15 y se dibujan con mathtext (una fórmula
+peligrosa o inválida se sustituye por su recorte); las imágenes se leen del almacén
+privado **comprobando el propietario** (un `recorte` que apunte a un archivo ajeno sale
+como «no disponible»); no se generan archivos temporales.
+
+Medición (`tests/test_pdf.py` y prueba manual, Python 3.13):
+
+| Caso | Resultado |
+|------|-----------|
+| Apunte de ejemplo (títulos, fórmula, tabla, esquema, manuscrito, ampliación) | 4 páginas, abre con pypdf y `pdftotext` |
+| Tabla de 150 filas | Se reparte en ≥ 3 páginas con el encabezado repetido; no se pierde ninguna fila |
+| 60 párrafos largos | ≥ 8 páginas numeradas sin solapes |
+| 20 fotos de 2400×1800 en el anexo + 20 recortes + 120 párrafos | 38 páginas, 1,0 MB, 2,5 s, pico de memoria del proceso 227 MB |
+
+La última fila se midió primero sin reducir las imágenes (4,5 MB y 826 MB de memoria);
+ahora cada imagen se reescala a la resolución con la que se imprime (150 ppp) antes de
+incrustarla. El mismo contenido produce el mismo PDF byte a byte (modo `invariant`), lo
+que permite reutilizar la exportación por versión y opciones.
+
+Inspección visual: se revisaron las páginas renderizadas con `pdftoppm` (fórmula
+centrada, recortes a tamaño natural, tabla con encabezado, tildes y símbolos).

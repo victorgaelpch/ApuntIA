@@ -72,7 +72,9 @@
         if (detalle) {
             const det = document.createElement("details");
             det.className = "status__detalle";
-            det.innerHTML = "<summary>Detalles técnicos</summary>";
+            const resumen = document.createElement("summary");
+            resumen.textContent = "Detalles técnicos";
+            det.appendChild(resumen);
             const p = document.createElement("p");
             p.textContent = detalle;
             det.appendChild(p);
@@ -162,7 +164,7 @@
 
     const TEXTO_PERSPECTIVA = {
         corregida: "✓ Pizarrón detectado y enderezado",
-        no_detectada: "Pizarrón no detectado: se mejoró la imagen sin enderezarla (para enderezarla, fotografía el pizarrón completo)",
+        no_detectada: "Bordes no detectados: se mejoró la imagen sin enderezarla (para enderezarla, fotografía el pizarrón o la hoja completos)",
         desactivada: "Corrección de perspectiva desactivada",
     };
 
@@ -184,16 +186,20 @@
             el.imgResult.onload = () => {
                 el.imgResult.onload = el.imgResult.onerror = null; // comparar cambia el src después
                 const partes = [];
+                const info = document.createDocumentFragment();
                 if (resultado.perspectiva && TEXTO_PERSPECTIVA[resultado.perspectiva]) {
-                    const clase = resultado.perspectiva === "corregida" ? ' class="ok"' : "";
-                    partes.push(`<span${clase}>${TEXTO_PERSPECTIVA[resultado.perspectiva]}</span>`);
+                    const span = document.createElement("span");
+                    if (resultado.perspectiva === "corregida") span.className = "ok";
+                    span.textContent = TEXTO_PERSPECTIVA[resultado.perspectiva];
+                    info.append(span);
                 }
                 partes.push(`${el.imgResult.naturalWidth}×${el.imgResult.naturalHeight} px`);
                 partes.push(validacion.formatearTamano(resultado.blob.size));
                 if (resultado.tiempoMs !== null) {
                     partes.push(resultado.tiempoMs < 100 ? "procesada en menos de 0.1 s" : `procesada en ${(resultado.tiempoMs / 1000).toFixed(1)} s`);
                 }
-                el.infoResultado.innerHTML = partes.join(" · ");
+                info.append(`${info.childNodes.length ? " · " : ""}${partes.join(" · ")}`);
+                el.infoResultado.replaceChildren(info);
                 el.infoResultado.hidden = false;
                 el.btDescargar.href = el.btVerCompleta.href = estado.urlResultado;
                 el.btDescargar.download = resultado.nombreDescarga;
@@ -398,7 +404,7 @@
 
     // ---------------------------------------------------------------- navegación
 
-    const enlaces = [...document.querySelectorAll(".site-nav a")];
+    const enlaces = [...document.querySelectorAll(".site-nav a[href^=\"#\"]")]; // solo anclas de esta página
     const secciones = enlaces.map((a) => document.querySelector(a.getAttribute("href")));
     if ("IntersectionObserver" in window) {
         const observer = new IntersectionObserver((entradas) => {

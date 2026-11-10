@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Crear apuntes — ApuntIA</title>
+<meta name="description" content="Sube una o varias fotos de pizarrón o cuaderno, ordénalas y conviértelas en un apunte digital.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <h1>Crear apuntes</h1>
+  <p class="lead">Añade las fotos de tu pizarrón o cuaderno en el orden en que quieres leerlas. Nada se envía hasta que pulses «Crear apunte».</p>
+  <div class="aviso" id="avisoNuevo" hidden></div>
+
+  <section class="tarjeta" aria-labelledby="tituloFuente">
+    <h2 id="tituloFuente">1. Fotos</h2>
+    <div class="campo">
+      <label for="selFuente">Tipo de fuente para las fotos nuevas</label>
+      <select id="selFuente" aria-describedby="ayudaFuente">
+        <option value="auto">Automático (lo sugiere ApuntIA, puedes cambiarlo)</option>
+        <option value="pizarron">Pizarrón: fondo oscuro o blanco, letra grande, puede estar inclinado</option>
+        <option value="cuaderno">Cuaderno: hoja con renglones o cuadrícula, letra pequeña</option>
+      </select>
+      <small id="ayudaFuente">Ajusta la limpieza de cada foto: en un cuaderno se quitan los renglones; en un pizarrón, los reflejos.</small>
+    </div>
+    <div class="botones" role="group" aria-label="Añadir fotos">
+      <input class="sr-only" type="file" id="inpFotos" multiple accept="image/jpeg,image/png,image/webp" aria-describedby="limitesFotos">
+      <label class="btn primary" for="inpFotos">📁 Añadir fotos</label>
+      <button type="button" class="btn" id="btCamaraNuevo">📷 Tomar foto</button>
+      <input class="sr-only" type="file" id="inpCamaraNuevo" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+    </div>
+    <p class="ayuda" id="limitesFotos">JPEG, PNG o WEBP · hasta 10 MB por foto · hasta 20 fotos. También puedes arrastrarlas aquí.</p>
+    <p class="ayuda" id="contadorPaginas" aria-live="polite">Aún no hay fotos.</p>
+    <ol class="paginas" id="listaPaginas" aria-label="Páginas del apunte, en orden"></ol>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloEnvio">
+    <h2 id="tituloEnvio">2. Crear el apunte</h2>
+    <div class="campo">
+      <label for="inpTitulo">Título</label>
+      <input type="text" id="inpTitulo" maxlength="200" placeholder="Por ejemplo: Derivadas — clase del lunes">
+    </div>
+    <div class="botones">
+      <button type="button" class="btn primary" id="btCrear" disabled>Crear apunte</button>
+      <button type="button" class="btn" id="btCancelarSubida" hidden>Cancelar envío</button>
+    </div>
+    <div id="cajaSubida" hidden>
+      <p id="textoSubida" aria-live="polite"></p>
+      <div class="progreso" role="progressbar" aria-labelledby="textoSubida" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="barraSubida"><span></span></div>
+    </div>
+    <p class="ayuda">¿Solo quieres una foto más nítida, sin texto ni PDF? Usa <a href="/inicio">Mejorar una foto</a>.</p>
+  </section>
+</main>
+
+<!-- Cámara en vivo: el mismo visor que la página de inicio (FRONT-03) -->
+<dialog id="dlgCamara" aria-labelledby="camTitulo">
+  <div class="cam-head">
+    <h2 id="camTitulo">Tomar foto</h2>
+    <button type="button" class="icon-btn sm" id="btCerrarCamara" aria-label="Cerrar cámara">✕</button>
+  </div>
+  <div class="viewfinder">
+    <video id="camVideo" playsinline muted></video>
+    <div class="guides"></div><i class="corner a"></i><i class="corner b"></i><i class="corner c"></i><i class="corner d"></i>
+    <div class="cam-msg" id="camMensaje" role="status">Solicitando permiso para usar la cámara...</div>
+    <div class="flash" id="camFlash"></div>
+  </div>
+  <div class="cam-foot">
+    <span class="cam-foot__espacio" aria-hidden="true"></span>
+    <button type="button" class="shutter" id="btCapturar" aria-label="Capturar fotografía" disabled></button>
+    <span class="cam-foot__espacio" aria-hidden="true"></span>
+  </div>
+</dialog>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/validacion.js"></script>
+<script src="js/camara.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/nuevo.js"></script>
+</body>
+</html>

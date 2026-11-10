@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tu cuenta — ApuntIA</title>
+<meta name="description" content="Crea tu cuenta de ApuntIA, inicia sesión o recupera tu contraseña.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <h1 id="tituloCuenta">Tu cuenta</h1>
+  <p class="lead">Con una cuenta tus apuntes, sus versiones y sus PDF quedan guardados y solo tú puedes verlos.</p>
+  <div class="aviso" id="avisoCuenta" hidden></div>
+
+  <section class="tarjeta" id="yaConectado" hidden aria-labelledby="yaTitulo">
+    <h2 id="yaTitulo">Ya iniciaste sesión</h2>
+    <p id="yaTexto"></p>
+    <div class="botones"><a class="btn primary" href="/front/apuntes.html">Ir a Mis apuntes</a><button type="button" class="btn" id="btSalirCuenta">Cerrar sesión</button></div>
+  </section>
+
+  <div id="formularios">
+    <div class="pestanas" role="tablist" aria-label="Opciones de cuenta">
+      <button type="button" role="tab" id="tabEntrar" aria-controls="panelEntrar" aria-selected="true">Iniciar sesión</button>
+      <button type="button" role="tab" id="tabRegistro" aria-controls="panelRegistro" aria-selected="false" tabindex="-1">Crear cuenta</button>
+      <button type="button" role="tab" id="tabOlvido" aria-controls="panelOlvido" aria-selected="false" tabindex="-1">Olvidé mi contraseña</button>
+    </div>
+
+    <section class="tarjeta" role="tabpanel" id="panelEntrar" aria-labelledby="tabEntrar">
+      <form id="formEntrar" novalidate>
+        <div class="campo">
+          <label for="entrarEmail">Email</label>
+          <input type="email" id="entrarEmail" name="email" autocomplete="username" required maxlength="320" aria-describedby="entrarEmailError">
+          <span class="error-campo" id="entrarEmailError"></span>
+        </div>
+        <div class="campo">
+          <label for="entrarPassword">Contraseña</label>
+          <div class="con-boton">
+            <input type="password" id="entrarPassword" name="password" autocomplete="current-password" required maxlength="256" aria-describedby="entrarPasswordError">
+            <button type="button" class="btn sm ver-password" aria-controls="entrarPassword" aria-pressed="false">Mostrar</button>
+          </div>
+          <span class="error-campo" id="entrarPasswordError"></span>
+        </div>
+        <div class="botones"><button type="submit" class="btn primary">Iniciar sesión</button></div>
+      </form>
+    </section>
+
+    <section class="tarjeta" role="tabpanel" id="panelRegistro" aria-labelledby="tabRegistro" hidden>
+      <form id="formRegistro" novalidate>
+        <div class="campo">
+          <label for="regNombre">Nombre</label>
+          <input type="text" id="regNombre" name="nombre" autocomplete="name" required maxlength="80" aria-describedby="regNombreError">
+          <span class="error-campo" id="regNombreError"></span>
+        </div>
+        <div class="campo">
+          <label for="regEmail">Email</label>
+          <input type="email" id="regEmail" name="email" autocomplete="email" required maxlength="320" aria-describedby="regEmailError">
+          <span class="error-campo" id="regEmailError"></span>
+        </div>
+        <div class="campo">
+          <label for="regPassword">Contraseña</label>
+          <div class="con-boton">
+            <input type="password" id="regPassword" name="password" autocomplete="new-password" required minlength="10" maxlength="256" aria-describedby="regPasswordAyuda regPasswordError">
+            <button type="button" class="btn sm ver-password" aria-controls="regPassword" aria-pressed="false">Mostrar</button>
+          </div>
+          <small id="regPasswordAyuda">Al menos 10 caracteres. Una frase fácil de recordar es más segura que una palabra corta.</small>
+          <span class="error-campo" id="regPasswordError"></span>
+        </div>
+        <div class="campo">
+          <label for="regConfirmar">Repite la contraseña</label>
+          <input type="password" id="regConfirmar" name="confirmar" autocomplete="new-password" required maxlength="256" aria-describedby="regConfirmarError">
+          <span class="error-campo" id="regConfirmarError"></span>
+        </div>
+        <div class="botones"><button type="submit" class="btn primary">Crear cuenta</button></div>
+      </form>
+    </section>
+
+    <section class="tarjeta" role="tabpanel" id="panelOlvido" aria-labelledby="tabOlvido" hidden>
+      <form id="formOlvido" novalidate>
+        <p>Escribe el email de tu cuenta y te enviaremos un enlace para crear una contraseña nueva. Caduca en 30 minutos y solo funciona una vez.</p>
+        <div class="campo">
+          <label for="olvidoEmail">Email</label>
+          <input type="email" id="olvidoEmail" name="email" autocomplete="email" required maxlength="320" aria-describedby="olvidoEmailError">
+          <span class="error-campo" id="olvidoEmailError"></span>
+        </div>
+        <div class="botones"><button type="submit" class="btn primary">Enviar enlace</button></div>
+      </form>
+    </section>
+  </div>
+
+  <section class="tarjeta" id="panelRestablecer" hidden aria-labelledby="restTitulo">
+    <h2 id="restTitulo">Crea una contraseña nueva</h2>
+    <form id="formRestablecer" novalidate>
+      <div class="campo">
+        <label for="restPassword">Contraseña nueva</label>
+        <div class="con-boton">
+          <input type="password" id="restPassword" autocomplete="new-password" required minlength="10" maxlength="256" aria-describedby="restPasswordError">
+          <button type="button" class="btn sm ver-password" aria-controls="restPassword" aria-pressed="false">Mostrar</button>
+        </div>
+        <span class="error-campo" id="restPasswordError"></span>
+      </div>
+      <div class="campo">
+        <label for="restConfirmar">Repite la contraseña</label>
+        <input type="password" id="restConfirmar" autocomplete="new-password" required maxlength="256" aria-describedby="restConfirmarError">
+        <span class="error-campo" id="restConfirmarError"></span>
+      </div>
+      <div class="botones"><button type="submit" class="btn primary">Guardar contraseña</button></div>
+    </form>
+  </section>
+</main>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/formularios.js"></script>
+<script src="js/v2/cuenta.js"></script>
+</body>
+</html>

@@ -87,7 +87,7 @@ ApuntIA/
 │       ├── main.py · app/ · herramientas/ · tests/
 │       ├── requirements*.txt · .env.example
 │       └── README.md · PROCESAMIENTO.md
-├── tests/integracion/          # Pruebas frontend + backend reales
+├── fullstack/                  # Herramientas transversales: scripts, Docker, pruebas de integración
 ├── docs/                       # Esta documentación y evidencias
 ├── package.json                # Scripts de prueba de Node (Playwright)
 └── requirements.txt            # → back/motori_magenes/requirements.txt

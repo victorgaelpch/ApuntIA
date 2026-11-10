@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Mis apuntes — ApuntIA</title>
+<meta name="description" content="Tus apuntes de ApuntIA: busca, revisa su estado, ábrelos, descarga sus PDF o bórralos.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <div class="cabecera-lista">
+    <div>
+      <h1>Mis apuntes</h1>
+      <p class="lead" id="resumenLista">Cargando tus apuntes…</p>
+    </div>
+    <a class="btn primary" href="/front/nuevo.html">+ Crear apunte</a>
+  </div>
+
+  <form class="filtros tarjeta" id="formFiltros" role="search" aria-label="Buscar y filtrar apuntes">
+    <div class="campo filtros__busqueda">
+      <label for="inpBuscar">Buscar en el título y el texto</label>
+      <input type="search" id="inpBuscar" maxlength="200" placeholder="Por ejemplo: derivadas">
+    </div>
+    <div class="campo">
+      <label for="selEstado">Estado</label>
+      <select id="selEstado">
+        <option value="">Todos</option>
+        <option value="listo">Listo</option>
+        <option value="parcial">Parcial</option>
+        <option value="procesando">Procesando</option>
+        <option value="pendiente">En cola</option>
+        <option value="fallido">Falló</option>
+        <option value="cancelado">Cancelado</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="selFuente">Fuente</label>
+      <select id="selFuente">
+        <option value="">Todas</option>
+        <option value="pizarron">Pizarrón</option>
+        <option value="cuaderno">Cuaderno</option>
+        <option value="mixto">Mixto</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="inpDesde">Desde</label>
+      <input type="date" id="inpDesde">
+    </div>
+    <div class="campo">
+      <label for="inpHasta">Hasta</label>
+      <input type="date" id="inpHasta">
+    </div>
+    <div class="campo">
+      <label for="selOrden">Orden</label>
+      <select id="selOrden">
+        <option value="reciente">Más recientes</option>
+        <option value="antiguo">Más antiguos</option>
+        <option value="titulo">Por título</option>
+      </select>
+    </div>
+    <div class="botones filtros__botones">
+      <button type="submit" class="btn primary">Buscar</button>
+      <button type="button" class="btn" id="btLimpiar">Limpiar filtros</button>
+    </div>
+  </form>
+
+  <div class="aviso" id="avisoLista" hidden></div>
+  <ul class="lista-apuntes" id="listaApuntes" aria-busy="true" aria-label="Apuntes"></ul>
+  <nav class="paginacion" id="paginacion" aria-label="Páginas de resultados" hidden>
+    <button type="button" class="btn" id="btAnterior">← Anterior</button>
+    <span id="textoPaginacion" aria-live="polite"></span>
+    <button type="button" class="btn" id="btSiguiente">Siguiente →</button>
+  </nav>
+</main>
+
+<footer class="site-footer"><p>ApuntIA · Proyecto académico</p></footer>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/apuntes.js"></script>
+</body>
+</html>

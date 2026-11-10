@@ -211,4 +211,45 @@ describe("FRONT-13 editor de texto", () => {
         await a.contexto.close();
         void fotoApunte;
     });
+
+    // BACK-28: el servidor marca por qué revisar un bloque y ofrece otras lecturas reales de la foto.
+    // La respuesta se intercepta para inyectar una alternativa conocida (el OCR de una imagen
+    // dibujada en el navegador no es reproducible al detalle); el guardado sí va al backend real.
+    test("motivo de revisión, avisos de la foto y alternativa con un clic", async () => {
+        const { contexto, pagina, id, errores } = await abrir({ esperar: true });
+        const apunte = await documento(contexto, id);
+        const objetivo = apunte.documento.bloques[1];
+        await pagina.route(`**/api/v2/apuntes/${id}`, async (ruta) => {
+            if (ruta.request().method() !== "GET") return ruta.continue();
+            const r = await ruta.fetch();
+            const cuerpo = await r.json();
+            const b = cuerpo.apunte.documento.bloques[1];
+            Object.assign(b, { estado: "incierto", revision: "lecturas_distintas",
+                               alternativas: [{ texto: "Lectura alternativa del motor", confianza: 0.88, variante: "ampliada" }] });
+            cuerpo.apunte.documento.paginas[0].advertencias = ["IMAGEN_GIRADA", "REPETIR_FOTO"];
+            await ruta.fulfill({ response: r, json: cuerpo });
+        });
+        await pagina.reload();
+        await pagina.waitForSelector(".bloque");
+        await pagina.uncheck("#chkAutoguardado");
+        const tarjeta = pagina.locator(`.bloque[data-bloque="${objetivo.id}"]`);
+        assert.match(await tarjeta.locator(".bloque__motivo").textContent(), /Dos lecturas de la foto no coinciden/);
+        const avisos = await pagina.textContent("#visorAvisos");
+        assert.match(avisos, /vuelve a tomarla/);
+        assert.match(avisos, /foto girada \(se enderezó\)/);
+        await tarjeta.getByRole("button", { name: /Usar la lectura «Lectura alternativa del motor»/ }).click();
+        assert.equal(await tarjeta.locator("textarea").inputValue(), "Lectura alternativa del motor");
+        assert.equal(await estadoGuardado(pagina), "Cambios sin guardar");
+        await pagina.unroute(`**/api/v2/apuntes/${id}`);
+        await pagina.click("#btGuardar");
+        await pagina.waitForFunction(() => /Guardado/.test(document.getElementById("estadoGuardado").textContent));
+        const guardado = (await documento(contexto, id)).documento.bloques[1];
+        // Es una corrección del usuario: el texto reconocido se conserva y el cliente no pudo inventar alternativas
+        assert.equal(guardado.texto, "Lectura alternativa del motor");
+        assert.equal(guardado.editado, true);
+        assert.equal(guardado.texto_original, objetivo.texto_original);
+        assert.deepEqual(guardado.alternativas, objetivo.alternativas);
+        assert.deepEqual(errores, []);
+        await contexto.close();
+    });
 });

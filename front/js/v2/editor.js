@@ -264,6 +264,17 @@
     // ---------------------------------------------------------------- transcripción
     const TIPOS = { titulo: "Título", texto: "Texto", manuscrito: "Manuscrito", formula: "Fórmula", tabla: "Tabla", imagen: "Imagen o esquema" };
     const ESTADO_BLOQUE = { reconocido: "Reconocido", incierto: "Incierto: revisa", no_reconocido: "Sin leer" };
+    // Diagnóstico de la foto (BACK-28). Los códigos desconocidos se muestran tal cual.
+    const AVISOS_FOTO = { BAJA_RESOLUCION: "resolución baja", IMAGEN_BORROSA: "imagen borrosa", IMAGEN_OSCURA: "foto oscura",
+                          BAJO_CONTRASTE: "la tinta se distingue poco del fondo", TEXTO_PEQUENO: "letra muy pequeña en la foto",
+                          ILUMINACION_DESIGUAL: "sombras o reflejos (se corrigieron)", IMAGEN_GIRADA: "foto girada (se enderezó)" };
+    // Por qué un bloque pide revisión aunque su confianza sea alta (BACK-28).
+    const MOTIVO_REVISION = {
+        lecturas_distintas: "Dos lecturas de la foto no coinciden: compara con el recorte.",
+        sin_confirmar: "Ninguna otra lectura confirmó este texto: compáralo con el recorte.",
+        formula_sin_confirmar: "Fórmula sin confirmar: compárala con la imagen antes de usarla.",
+        calidad_insuficiente: "La foto no tiene calidad suficiente: revisa este texto.",
+    };
 
     function urlArchivo(archivo) { return `/api/v2/apuntes/${encodeURIComponent(E.id)}/archivos/${encodeURIComponent(archivo)}`; }
 
@@ -305,9 +316,11 @@
         $("#btVerOriginal").textContent = E.verOriginal ? "Ver la foto procesada" : "Ver la foto original";
         $("#btVerOriginal").hidden = !p || !p.archivo_procesado;
         if (!p) { avisos.textContent = ""; return; }
-        const advert = { BAJA_RESOLUCION: "resolución baja", IMAGEN_BORROSA: "imagen borrosa" };
+        const repetir = (p.advertencias || []).includes("REPETIR_FOTO");
+        const otros = (p.advertencias || []).filter((a) => a !== "REPETIR_FOTO");
         avisos.textContent = [p.error ? `Esta página no se pudo analizar: ${p.error}` : "",
-                              (p.advertencias || []).length ? `Avisos de la foto: ${p.advertencias.map((a) => advert[a] || a).join(", ")}.` : ""]
+                              repetir ? "La foto no tiene calidad suficiente para una transcripción confiable: revisa todo el texto o vuelve a tomarla." : "",
+                              otros.length ? `Avisos de la foto: ${otros.map((a) => AVISOS_FOTO[a] || a).join(", ")}.` : ""]
             .filter(Boolean).join(" ");
         const procesada = p.archivo_procesado && !E.verOriginal;
         marco.append(h("img", { src: urlArchivo(procesada ? p.archivo_procesado : p.archivo_original),
@@ -382,6 +395,18 @@
         if (b.palabras_dudosas && b.palabras_dudosas.length && b.estado !== "reconocido") {
             tarjeta.append(h("p", { class: "bloque__dudosas", text: `Palabras dudosas: ${b.palabras_dudosas.slice(0, 12).join(", ")}` }));
         }
+        if (b.origen === "ocr" && b.revision && b.estado !== "reconocido" && MOTIVO_REVISION[b.revision]) {
+            tarjeta.append(h("p", { class: "bloque__motivo", text: MOTIVO_REVISION[b.revision] }));
+        }
+        // Otras lecturas reales de la foto: un clic las usa (sigue siendo una corrección del usuario).
+        if (b.origen === "ocr" && (b.alternativas || []).length && !soloLectura) {
+            tarjeta.append(h("div", { class: "bloque__alternativas", role: "group", "aria-label": `Otras lecturas del bloque ${n}` },
+                h("span", { class: "ayuda", text: "Otras lecturas de la foto:" }),
+                b.alternativas.map((alt) => h("button", { type: "button", class: "btn sm alternativa",
+                    title: alt.latex ? `LaTeX: ${alt.latex}` : "Usar esta lectura",
+                    "aria-label": `Usar la lectura «${alt.texto}» en el bloque ${n}`,
+                    onclick: () => usarAlternativa(b, alt), text: alt.texto }))));
+        }
         if (!soloLectura) {
             const acciones = h("div", { class: "bloque__acciones", role: "group", "aria-label": `Acciones del bloque ${n}` },
                 h("button", { type: "button", class: "btn sm", dataset: { accion: "dividir" }, onclick: () => dividir(b.id),
@@ -444,6 +469,15 @@
         pintarTranscripcion();
         seleccionar(nuevo.id, true);
         return nuevo;
+    }
+
+    function usarAlternativa(b, alt) {
+        b.texto = alt.texto;
+        if (alt.latex) b.latex = alt.latex;
+        marcarCambio();
+        pintarBloques();
+        seleccionar(b.id, true);
+        avisar(aviso(), "info", "Se usó la otra lectura. Puedes volver al texto reconocido cuando quieras.");
     }
 
     function cambiarTipo(b, tipo) { b.tipo = tipo; marcarCambio(); pintarBloques(); seleccionar(b.id, true); }

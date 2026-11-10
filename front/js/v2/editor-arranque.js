@@ -34,6 +34,7 @@
         }
         ed.pintarTodo();
         ed.E.alCargar.forEach((fn) => fn(apunte));
+        ed.pintarTodo();  // con lo que añadieron las extensiones
         const t = apunte.ultimo_trabajo;
         if (t && t.tipo === "analisis" && ["pendiente", "procesando"].includes(t.estado)) ed.seguirAnalisis(t);
         else if (t && t.tipo === "analisis" && ["fallido", "cancelado", "parcial"].includes(t.estado)) ed.informarAnalisis(t);

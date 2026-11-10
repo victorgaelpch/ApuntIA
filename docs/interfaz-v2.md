@@ -91,3 +91,19 @@ solo aparecen con sesión (se consulta con `GET /api/v2/auth/estado`, que no da 
 - Si la sesión caduca, la página no se abandona: los cambios siguen en la pestaña y se pide
   iniciar sesión en otra. Al cerrar con cambios sin guardar, el navegador pide confirmación.
 - Todo el texto se muestra con `value`/`textContent`: un `<script>` del OCR o del usuario es texto.
+
+## Editor: fórmulas, tablas y esquemas (FRONT-14)
+
+- **Fórmulas:** recorte de la foto junto al LaTeX reconocido, editable, con vista previa que dibuja
+  el servidor (`POST /api/v2/formulas/validar`) con el mismo motor que el PDF. Se eligió frente a
+  KaTeX/MathJax porque lo que se ve es lo que saldrá en el PDF, no hay que cargar scripts de un CDN
+  (la CSP solo admite los propios) y el navegador nunca interpreta macros ni HTML: recibe un PNG.
+  Errores de sintaxis y comandos no permitidos (`\input`, `\def`…) se explican junto al campo
+  (`aria-invalid`); también se puede escribir en texto normal (`sqrt(x+1) + x^2`) y convertir.
+  Si la fórmula no se puede dibujar, el PDF usa la imagen original; hay casilla para forzarlo.
+- **Tablas:** edición de encabezados y celdas, añadir y quitar filas y columnas (hasta 500 × 30),
+  con etiquetas accesibles por celda; «Convertir en tabla» pasa un texto con `|` o tabuladores a
+  tabla. Las tablas anchas se desplazan dentro de su caja en el móvil.
+- **Esquemas y dibujos:** se muestran y se exportan como la imagen original, con descripción
+  opcional. ApuntIA no los redibuja para no inventar relaciones.
+- Se pueden añadir fórmulas y tablas a mano. Todo se guarda con el mismo control de versiones.

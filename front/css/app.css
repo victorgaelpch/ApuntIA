@@ -119,8 +119,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-vi
 .region[data-estado=no_reconocido] { border-color: #ff5d5d; border-style: dotted; }
 .region[aria-current=true] { border-color: #6aa7ff; background: rgba(106, 167, 255, .25); box-shadow: 0 0 0 3px rgba(106, 167, 255, .5); }
 .visor__info { font-size: .86rem; color: var(--ink-2); margin: 6px 0 0; }
-.bloques { display: grid; gap: 12px; }
-.bloque { border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); display: grid; gap: 8px; }
+.bloques { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
+.bloque { min-width: 0; border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.bloque__cuerpo { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .bloque[aria-current=true] { border-color: #6aa7ff; box-shadow: 0 0 0 3px rgba(106, 167, 255, .35); }
 .bloque[data-estado=incierto] { border-left: 5px solid #ff9f1c; }
 .bloque[data-estado=no_reconocido] { border-left: 5px solid #ff5d5d; }
@@ -133,6 +134,26 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, .btn:focus-vi
 .bloque__acciones .btn { min-height: 36px; padding: 6px 10px; }
 .etiqueta-editado { font-size: .78rem; font-style: italic; color: var(--yellow-ink); }
 @media (max-width: 900px) {
-  .transcripcion { grid-template-columns: 1fr; }
+  .transcripcion { grid-template-columns: minmax(0, 1fr); }
   .visor { position: static; }
 }
+
+/* ---------- fórmulas, tablas y esquemas (FRONT-14) ---------- */
+.latex { font-family: var(--f-mono); }
+.formula-original { margin: 0; display: grid; gap: 4px; justify-items: start; }
+.formula-original figcaption, .formula-previa .ayuda { font-size: .82rem; color: var(--ink-2); }
+.formula-previa { display: grid; gap: 4px; }
+.formula-vista { min-height: 48px; padding: 8px; background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+.formula-vista img { max-width: 100%; height: auto; max-height: 120px; }
+.formula-estado { margin: 0; font-size: .88rem; }
+.formula-estado[data-tipo=error] { color: var(--danger); }
+.formula-estado[data-tipo=exito] { color: var(--brand-text); }
+.formula-ayuda summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+.tabla-scroll { overflow-x: auto; max-width: 100%; }
+.tabla-editable table { border-collapse: collapse; min-width: 100%; }
+.tabla-editable th, .tabla-editable td { border: 1px solid var(--line); padding: 4px; vertical-align: top; }
+.tabla-editable thead th { background: var(--surface-2); }
+.tabla-editable input { min-width: 90px; min-height: 36px; padding: 6px 8px; border-radius: 8px; }
+.tabla-editable th[scope=row] { white-space: nowrap; font-size: .85rem; color: var(--ink-2); }
+.tabla-editable .quitar { min-height: 28px; padding: 2px 8px; margin-left: 4px; }
+.bloque__recorte--grande { max-height: 320px; }

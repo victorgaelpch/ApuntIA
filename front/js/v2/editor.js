@@ -288,6 +288,7 @@
         pintarVisor();
         pintarBloques();
         $("#btAnadirBloque").disabled = $("#btAnadirTitulo").disabled = !editable();
+        document.querySelectorAll("#botonesAnadirExtra button").forEach((bt) => { bt.disabled = !editable(); });
     }
 
     function pintarVisor() {

@@ -150,9 +150,10 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 | `GET` | `/api/v2/apuntes/{id}/conceptos` | Conceptos del propio apunte que se podrían investigar (glosario, títulos, términos frecuentes) y `{disponible, proveedor}`. No consulta nada fuera |
 | `POST` | `/api/v2/apuntes/{id}/investigacion` | `{consentimiento: true, conceptos: [1–8 palabras clave], idioma: "es"\|"en"}` → `202 {trabajo}` (tipo `investigacion`). Sin `consentimiento: true` o sin la preferencia `investigacion_permitida` → `400 CONSENTIMIENTO_REQUERIDO`; proveedor desactivado → `503 INVESTIGACION_NO_DISPONIBLE`. Cada concepto: ≤ 80 caracteres, ≤ 6 palabras, sin URLs, emails ni rutas |
 | `PATCH` | `/api/v2/apuntes/{id}/ampliaciones/{aid}` | `{estado: "aceptada"\|"rechazada"\|"propuesta"}` (crea una versión; `If-Match` opcional). Solo cambia el estado: el texto y la fuente no se pueden editar |
-| `POST` | `/api/v2/apuntes/{id}/exportaciones` | `{version?}` → `202 {exportacion, trabajo}`. Si ya existe un PDF válido de esa versión, lo reutiliza (`200`) |
-| `GET` | `/api/v2/apuntes/{id}/exportaciones` | PDFs generados, con la versión de origen |
-| `GET` | `/api/v2/exportaciones/{id}/pdf` | Descarga (`application/pdf`, `Content-Disposition: attachment`). Solo el propietario |
+| `POST` | `/api/v2/apuntes/{id}/exportaciones` | `{version?, estilo: "basico"\|"extendido", incluir_originales: false, incluir_complementos: true}` → `202 {exportacion, trabajo}` (tipo `exportacion`). Si ya existe un PDF de esa versión con esas opciones, o se está generando, lo reutiliza (`200`). Análisis en curso → `409 APUNTE_EN_PROCESO` |
+| `GET` | `/api/v2/apuntes/{id}/exportaciones` | PDFs del apunte: `{id, version, opciones, estado, sha256, tamano, paginas, descarga}` |
+| `GET` | `/api/v2/exportaciones/{id}` | Estado de una exportación |
+| `GET` | `/api/v2/exportaciones/{id}/pdf` | Descarga (`application/pdf`, `Content-Disposition: attachment; filename="<titulo>-v<n>.pdf"`, `ETag` y `X-ApuntIA-Sha256`). Solo el propietario; si no está listo → `409 PDF_NO_LISTO` |
 | `GET` | `/api/v2/trabajos/{id}` | `{id, tipo, estado, etapa, progreso, error, intentos}` |
 | `DELETE` | `/api/v2/trabajos/{id}` | Cancela (`estado: cancelado`) |
 | `POST` | `/api/v2/trabajos/{id}/reintentar` | Solo si `fallido` o `cancelado`; reutiliza el mismo trabajo |
@@ -199,6 +200,8 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 | 409 | `EMAIL_EN_USO` | Registro con un email ya usado |
 | 409 | `CONFLICTO_VERSION` | `If-Match` no coincide con la versión actual |
 | 409 | `APUNTE_EN_PROCESO` | Editar o restaurar mientras el análisis está en marcha (al terminar pisaría la edición) |
+| 409 | `PDF_NO_LISTO` | Descargar un PDF que aún se genera o que falló |
+| — | `APUNTE_VACIO` / `PDF_MAQUETACION` | Error de un trabajo de exportación (en `trabajo.error.codigo`): el apunte no tiene contenido o un elemento no cabe en la página. No se guarda ningún PDF |
 | 409 | `TRABAJO_NO_REINTENTABLE` | Reintentar un trabajo que no falló ni se canceló |
 | 413 | `CARGA_DEMASIADO_GRANDE` | El cuerpo supera `MAX_JSON_KB` (JSON) o `MAX_UPLOAD_MB × MAX_PAGINAS` (fotos) |
 | 413 | `CUOTA_EXCEDIDA` | El usuario superó `CUOTA_MB_USUARIO` |

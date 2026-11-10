@@ -10,7 +10,7 @@ from app.core import contexto
 from app.core.config import settings
 from app.core.endurecimiento import CabecerasSeguridad, LimiteCuerpo
 from app.core.errores import CapturarErroresInesperados, registrar_manejadores
-from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_formulas, v2_investigacion, v2_trabajos
+from app.routers import general, imagenes, v2_apuntes, v2_cuentas, v2_exportaciones, v2_formulas, v2_investigacion, v2_trabajos
 
 logging.basicConfig(level=logging.INFO)
 
@@ -21,6 +21,7 @@ CABECERAS_EXPUESTAS = [
     "X-ApuntIA-Dimensiones",
     "X-ApuntIA-Tiempo-Ms",
     "X-ApuntIA-Error-Id",
+    "X-ApuntIA-Sha256",
 ]
 
 
@@ -64,6 +65,7 @@ def create_app() -> FastAPI:
     app.include_router(v2_trabajos.router)
     app.include_router(v2_formulas.router)
     app.include_router(v2_investigacion.router)
+    app.include_router(v2_exportaciones.router)
     return app
 
 

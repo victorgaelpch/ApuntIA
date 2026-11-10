@@ -14,3 +14,5 @@ numpy>=1.26,<3                   # BSD-3-Clause
 pytesseract>=0.3.10,<1.0       # Apache-2.0
 # Fórmulas (BACK-15): mathtext dibuja LaTeX sin motor TeX; también lo usa el PDF.
 matplotlib>=3.8,<4              # Matplotlib License (tipo PSF, permisiva)
+# PDF (BACK-20): maquetación sin interpretar HTML del usuario ni descargar recursos.
+reportlab>=4.2,<6               # BSD

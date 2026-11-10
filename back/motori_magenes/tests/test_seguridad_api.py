@@ -30,6 +30,10 @@ RUTAS_CON_RECURSO = [
     ("GET", "/api/v2/apuntes/{apunte_id}/conceptos"),
     ("POST", "/api/v2/apuntes/{apunte_id}/investigacion"),
     ("PATCH", "/api/v2/apuntes/{apunte_id}/ampliaciones/{ampliacion_id}"),
+    ("POST", "/api/v2/apuntes/{apunte_id}/exportaciones"),
+    ("GET", "/api/v2/apuntes/{apunte_id}/exportaciones"),
+    ("GET", "/api/v2/exportaciones/{exportacion_id}"),
+    ("GET", "/api/v2/exportaciones/{exportacion_id}/pdf"),
     ("GET", "/api/v2/trabajos/{trabajo_id}"),
     ("DELETE", "/api/v2/trabajos/{trabajo_id}"),
     ("POST", "/api/v2/trabajos/{trabajo_id}/reintentar"),
@@ -62,11 +66,15 @@ def victima_y_atacante(con_apuntes, nuevo_cliente, datos_tmp):
     doc.ampliaciones.append(Ampliacion(id="a1", concepto="c", texto="t", fuente=Fuente(
         titulo="t", url="https://es.wikipedia.org/wiki/C", proveedor="wikipedia", consultado="2026-11-10")))
     repo.nueva_version(usuario["id"], apunte, doc, "investigacion")
+    exportacion = "e" * 32
+    datos_tmp.bd.ejecutar("INSERT INTO exportaciones (id, apunte_id, usuario_id, version, clave, estado, archivo_id, "
+                          "sha256, creado, actualizado) VALUES (?, ?, ?, 1, 'x', 'completado', ?, 'h', ?, ?)",
+                          (exportacion, apunte, usuario["id"], archivo, ahora(), ahora()))
     atacante = nuevo_cliente()
     atacante.registrar("intruso@example.com")
     atacante.patch("/api/v2/perfil", json={"preferencias": {"investigacion_permitida": True}})
     valores = {"apunte_id": apunte, "archivo_id": archivo, "numero": 1, "trabajo_id": trabajo,
-               "ampliacion_id": "a1"}
+               "ampliacion_id": "a1", "exportacion_id": exportacion}
     return duena, atacante, valores
 
 
@@ -80,6 +88,8 @@ def test_idor_otro_usuario_recibe_404(victima_y_atacante, metodo, ruta, datos_tm
     kw = {"headers": {"If-Match": "3"}, "json": cuerpos[metodo]} if metodo in ("PUT", "PATCH") else {}
     if metodo == "POST" and ruta.endswith("investigacion"):
         kw = {"json": cuerpos["POST"]}
+    if metodo == "POST" and ruta.endswith("exportaciones"):
+        kw = {"json": {}}
     r = getattr(atacante, metodo.lower())(url, **kw)
     assert r.status_code == 404, (metodo, url, r.text)
     assert r.json()["error"]["codigo"] == "NO_ENCONTRADO"

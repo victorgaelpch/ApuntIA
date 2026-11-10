@@ -316,3 +316,38 @@ Regla de fidelidad, verificada en `tests/test_estructura.py`:
 
 Limitación conocida: el resumen es extractivo (no reescribe); en apuntes muy cortos
 coincide con el texto completo.
+
+## PDF académico (BACK-20)
+
+`app/services/pdf.py` maqueta el apunte con **ReportLab** y fuentes **DejaVu Sans**
+(texto Unicode seleccionable). Se descartó WeasyPrint porque interpreta HTML/CSS y puede
+descargar recursos remotos (riesgo de inyección y SSRF) y necesita Pango/Cairo en Windows.
+
+Contenido: portada (título, fecha, origen, páginas, versión y avisos) → índice con
+marcadores → «Transcripción del apunte» por secciones (con etiquetas «corregido por ti»
+y «reconocimiento incierto») → resumen, conceptos, glosario, tabla comparativa y ejemplos
+(estilo `extendido`) → «Información complementaria» y «Fuentes» (solo ampliaciones
+aceptadas, numeradas y con URL, autor, licencia y fecha) → anexo opcional con las fotos.
+
+Seguridad: todo texto del usuario se escapa (el marcado de ReportLab no se interpreta);
+las fórmulas pasan por la lista blanca de BACK-15 y se dibujan con mathtext (una fórmula
+peligrosa o inválida se sustituye por su recorte); las imágenes se leen del almacén
+privado **comprobando el propietario** (un `recorte` que apunte a un archivo ajeno sale
+como «no disponible»); no se generan archivos temporales.
+
+Medición (`tests/test_pdf.py` y prueba manual, Python 3.13):
+
+| Caso | Resultado |
+|------|-----------|
+| Apunte de ejemplo (títulos, fórmula, tabla, esquema, manuscrito, ampliación) | 4 páginas, abre con pypdf y `pdftotext` |
+| Tabla de 150 filas | Se reparte en ≥ 3 páginas con el encabezado repetido; no se pierde ninguna fila |
+| 60 párrafos largos | ≥ 8 páginas numeradas sin solapes |
+| 20 fotos de 2400×1800 en el anexo + 20 recortes + 120 párrafos | 38 páginas, 1,0 MB, 2,5 s, pico de memoria del proceso 227 MB |
+
+La última fila se midió primero sin reducir las imágenes (4,5 MB y 826 MB de memoria);
+ahora cada imagen se reescala a la resolución con la que se imprime (150 ppp) antes de
+incrustarla. El mismo contenido produce el mismo PDF byte a byte (modo `invariant`), lo
+que permite reutilizar la exportación por versión y opciones.
+
+Inspección visual: se revisaron las páginas renderizadas con `pdftoppm` (fórmula
+centrada, recortes a tamaño natural, tabla con encabezado, tildes y símbolos).

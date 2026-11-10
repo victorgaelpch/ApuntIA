@@ -10,10 +10,11 @@ fullstack/
 ├── README.md               # Este archivo
 ├── config/
 │   └── .env.example        # Variables de toda la aplicación (puertos, datos, OCR, límites)
-├── scripts/                # Arranque y detención sin Docker (FULL-11), copias de seguridad (FULL-23)
+├── scripts/                # iniciar/detener .sh y .ps1 sin Docker (FULL-11), copias de seguridad (FULL-23)
 ├── docker/                 # Dockerfile, nginx y compose.yaml (FULL-13)
 ├── tests/
-│   └── integracion/        # Pruebas frontend + backend reales (antes en tests/integracion/)
+│   ├── integracion/        # Pruebas frontend + backend reales (antes en tests/integracion/)
+│   └── scripts/            # Pruebas de los scripts de arranque (npm run test:scripts)
 └── evaluacion/             # Banco de muestras y métricas de OCR, fórmulas y PDF (FULL-19)
 ```
 

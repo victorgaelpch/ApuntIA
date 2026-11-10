@@ -30,6 +30,11 @@ def _cargar_env(ruta: Path) -> None:
 _cargar_env(BASE_DIR / ".env")
 
 
+def _si(nombre: str, defecto: str = "0") -> bool:
+    """Booleano de una variable de entorno: 1, true, si/sí, yes u on (sin distinguir mayúsculas)."""
+    return os.getenv(nombre, defecto).strip().lower() in ("1", "true", "si", "sí", "yes", "on")
+
+
 class Settings:
     """Valores de configuración de la aplicación."""
 
@@ -80,7 +85,7 @@ class Settings:
     data_dir: Path = (BASE_DIR / os.getenv("DATA_DIR", "datos")).resolve()
 
     # Cookie de sesión con el atributo Secure (actívalo detrás de HTTPS).
-    cookie_segura: bool = os.getenv("COOKIE_SEGURA", "0") == "1"
+    cookie_segura: bool = _si("COOKIE_SEGURA")
 
     # Orígenes permitidos por CORS, separados por comas. "*" permite todos.
     cors_origins: list[str] = [

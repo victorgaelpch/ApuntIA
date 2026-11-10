@@ -58,6 +58,11 @@ class BloqueOCR:
     dudosas: list[str] = field(default_factory=list)   # palabras con confianza < 0.80
     recortar: bool = False    # conservar el recorte de la imagen para revisión manual
     minima: float | None = None  # confianza de la palabra más dudosa
+    # BACK-28: otras lecturas reales del motor (no inventadas), de dónde sale el resultado y,
+    # si hay que revisarlo aunque la confianza sea alta, por qué (p. ej. lecturas distintas).
+    alternativas: list[dict] = field(default_factory=list)
+    procedencia: dict = field(default_factory=dict)
+    revision: str | None = None
 
     @property
     def estado(self) -> str:
@@ -65,6 +70,8 @@ class BloqueOCR:
         # palabra dudosa no puede borrar un párrafo bueno, solo volverlo «incierto».
         estado = estado_por_confianza(self.confianza)
         if estado == "reconocido" and self.minima is not None and self.minima < UMBRAL_RECONOCIDO:
+            return "incierto"
+        if estado == "reconocido" and self.revision:
             return "incierto"
         return estado
 
@@ -88,6 +95,11 @@ class MotorOCR:
 
     def palabras(self, imagen: np.ndarray, idiomas: str, psm: int) -> list[Palabra]:
         raise NotImplementedError
+
+    def palabras_config(self, imagen: np.ndarray, idiomas: str, psm: int, config: str) -> list[Palabra]:
+        """Como `palabras`, con opciones propias del motor (BACK-28: lista de caracteres de las
+        fórmulas). Un motor que no las admite las ignora."""
+        return self.palabras(imagen, idiomas, psm)
 
 
 class MotorTesseract(MotorOCR):
@@ -123,8 +135,11 @@ class MotorTesseract(MotorOCR):
                 "idiomas": idiomas}
 
     def palabras(self, imagen: np.ndarray, idiomas: str, psm: int) -> list[Palabra]:
+        return self.palabras_config(imagen, idiomas, psm, "")
+
+    def palabras_config(self, imagen: np.ndarray, idiomas: str, psm: int, config: str) -> list[Palabra]:
         try:
-            datos = self.pt.image_to_data(imagen, lang=idiomas, config=f"--oem 1 --psm {psm}",
+            datos = self.pt.image_to_data(imagen, lang=idiomas, config=f"--oem 1 --psm {psm} {config}".strip(),
                                           output_type=self.pt.Output.DICT, timeout=120)
         except self.pt.TesseractNotFoundError:
             raise ErrorOCR("OCR_NO_DISPONIBLE",

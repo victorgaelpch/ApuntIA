@@ -30,3 +30,4 @@ fullstack/config/.env
 fullstack/.estado/
 # Copias de seguridad
 respaldos/
+fullstack/evaluacion/resultados/

@@ -52,7 +52,7 @@ FORMULAS = [
 class Muestra:
     nombre: str
     tipo_fuente: str               # pizarron | cuaderno
-    escritura: str                 # impreso | manuscrito | formula
+    escritura: str                 # impreso | manuscrito | formula | diagrama
     imagen: np.ndarray             # BGR
     lineas: list[str]              # texto real, en orden de lectura
     latex: list[str] = field(default_factory=list)
@@ -222,9 +222,39 @@ def pizarron_con_ruido(semilla=11) -> Muestra:
     return Muestra("pizarron_con_ruido", "pizarron", "impreso", img, m.lineas)
 
 
+def cuaderno_cuadriculado() -> Muestra:
+    """Hoja cuadriculada (FULL-19): la cuadrícula no debe confundirse con texto."""
+    img = _lienzo(1400, 1000, (252, 252, 250))
+    d = ImageDraw.Draw(img)
+    for x in range(0, 1400, 40):
+        d.line([(x, 0), (x, 1000)], fill=(190, 210, 225), width=1)
+    for y in range(0, 1000, 40):
+        d.line([(0, y), (1400, y)], fill=(190, 210, 225), width=1)
+    y = 80
+    for i, linea in enumerate(TEXTO_CLASE):
+        fuente = ImageFont.truetype(str(FUENTE_NEGRITA if i == 0 else FUENTE), 46 if i == 0 else 34)
+        d.text((120, y), linea, font=fuente, fill=(25, 30, 60))
+        y += 120
+    return Muestra("cuaderno_cuadriculado", "cuaderno", "impreso", _a_bgr(img), TEXTO_CLASE)
+
+
+def diagrama() -> Muestra:
+    """Esquema con figuras y flechas (FULL-19): debe conservarse como imagen, sin inventar texto."""
+    img = _lienzo(1400, 900)
+    d = ImageDraw.Draw(img)
+    titulo = ImageFont.truetype(str(FUENTE_NEGRITA), 52)
+    d.text((80, 50), "Ciclo del agua", font=titulo, fill=(20, 20, 20))
+    d.ellipse([140, 300, 520, 620], outline=(20, 20, 20), width=8)
+    d.rectangle([860, 300, 1240, 620], outline=(20, 20, 20), width=8)
+    d.line([(540, 460), (840, 460)], fill=(20, 20, 20), width=8)
+    d.polygon([(840, 430), (880, 460), (840, 490)], fill=(20, 20, 20))
+    d.arc([300, 640, 1100, 860], 0, 180, fill=(20, 20, 20), width=8)
+    return Muestra("diagrama", "cuaderno", "diagrama", _a_bgr(img), ["Ciclo del agua"])
+
+
 def corpus() -> list[Muestra]:
-    return [impreso_cuaderno(), cuaderno_con_sombra(), impreso_pizarron(), pizarron_con_ruido(), pizarron_oscuro(),
-            manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron(), formulas_2d()]
+    return [impreso_cuaderno(), cuaderno_con_sombra(), cuaderno_cuadriculado(), impreso_pizarron(), pizarron_con_ruido(),
+            pizarron_oscuro(), manuscrito_cuaderno(), manuscrito_dificil(), formulas_pizarron(), formulas_2d(), diagrama()]
 
 
 if __name__ == "__main__":

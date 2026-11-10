@@ -7,7 +7,7 @@ Un issue está **Hecho** solo si se cumplen **todas** estas condiciones. La plan
 |---|-----------|------------------|
 | 1 | **Rama correcta:** sale de `main`, se llama `<area>-<nn>-<descripcion>` y contiene solo ese issue | Nombre de la rama y commits del PR |
 | 2 | **Criterios de aceptación** del issue cumplidos al 100 % | Matriz de [`alcance.md`](alcance.md) |
-| 3 | **Pruebas aprobadas** en la CI: backend (pytest), interfaz (Playwright) e integración | Los tres trabajos de [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) en verde |
+| 3 | **Pruebas aprobadas** en la CI: backend y evaluación del OCR (pytest), interfaz (Playwright), integración v1/v2 con el backend real, scripts y Docker | Todos los trabajos de [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) en verde (ver [`docs/ci.md`](ci.md)) |
 | 4 | **Sin vulnerabilidades conocidas** en las dependencias | Paso `pip-audit` de la CI |
 | 5 | **Revisado por pares:** al menos 1 aprobación de alguien que no sea el autor | Revisión del PR en GitHub |
 | 6 | **Contrato al día:** si cambia la API, se actualizan en el mismo PR `docs/api.md`, el mock y las pruebas | Revisión del PR |
@@ -30,7 +30,7 @@ Para que GitHub **impida** fusionar algo que no cumpla la DoD, hay que crear una
 *Settings → Branches → Add branch protection rule* (o *Rulesets*) para `main`:
 
 - ☑ *Require a pull request before merging* → *Require approvals*: **1**.
-- ☑ *Require status checks to pass before merging* → seleccionar los trabajos de la CI: `Backend (pytest + auditoría de dependencias)`, `Interfaz (Playwright, API simulada)` e `Integración (interfaz + FastAPI reales)`. Aparecen en la lista después de la primera ejecución.
+- ☑ *Require status checks to pass before merging* → seleccionar los trabajos de la CI: `Backend, evaluación del OCR y reglas de la interfaz`, `Interfaz (Playwright, API simulada)`, `Integración (interfaz + FastAPI + OCR reales) y scripts` y `Docker (construcción y prueba de humo)`. Aparecen en la lista después de la primera ejecución.
 - ☑ *Require branches to be up to date before merging*.
 - ☑ *Do not allow bypassing the above settings*.
 

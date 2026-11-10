@@ -1,6 +1,9 @@
-# Integración continua de ApuntIA (rúbrica punto 2: Definition of Done).
-# Se ejecuta en cada push y en cada pull request hacia main. Un PR solo cumple
-# la DoD si los tres trabajos terminan en verde (ver docs/definicion-de-hecho.md).
+# Integración continua de ApuntIA (rúbrica punto 2: Definition of Done; FULL-17).
+# Se ejecuta en cada push a main y en cada pull request. Un PR solo cumple la DoD si todos
+# los trabajos terminan en verde (ver docs/definicion-de-hecho.md y docs/ci.md). Para que
+# GitHub BLOQUEE la fusión, el dueño del repositorio debe marcarlos como «required status
+# checks» en la protección de la rama main.
+# No usa secretos ni servicios externos: la investigación se prueba con una Wikipedia simulada.
 name: CI
 
 on:
@@ -16,11 +19,15 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Tesseract 5.3.4 de Ubuntu 24.04: la versión con la que se midió el OCR.
+  PAQUETES_SISTEMA: tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng poppler-utils
+
 jobs:
   commits:
     name: Mensajes de commit (Conventional Commits)
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,12 +39,10 @@ jobs:
       - name: Validar los commits del PR
         run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
 
-  backend:
-    name: Backend (pytest + auditoría de dependencias)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: back/motori_magenes
+  rapido:
+    name: Backend, evaluación del OCR y reglas de la interfaz
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,18 +50,35 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: back/motori_magenes/requirements*.txt
-      - name: Instalar dependencias
-        run: pip install -r requirements-dev.txt -c constraints.txt
-      - name: Pruebas (pytest)
-        run: python -m pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Paquetes del sistema (Tesseract, poppler)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $PAQUETES_SISTEMA
+      - name: Dependencias de Python
+        run: pip install -r back/motori_magenes/requirements-dev.txt -c back/motori_magenes/constraints.txt pyyaml
+      - name: Validación rápida (pytest, evaluación del OCR, catálogo, sintaxis)
+        run: fullstack/scripts/validar.sh --rapido --informes informes
+        env:
+          PYTHON: python
+      - name: Cobertura del backend
+        working-directory: back/motori_magenes
+        run: python -m pytest -p no:cacheprovider --cov=app --cov-report=term --cov-report=xml:../../informes/cobertura.xml -q
       - name: Vulnerabilidades conocidas (pip-audit)
         run: |
           pip install pip-audit
-          pip-audit -r requirements.txt -r requirements-dev.txt -c constraints.txt
+          pip-audit -r back/motori_magenes/requirements.txt -r back/motori_magenes/requirements-dev.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informes-rapido
+          path: informes/
+          retention-days: 14
 
-  frontend:
+  interfaz:
     name: Interfaz (Playwright, API simulada)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,11 +86,18 @@ jobs:
           node-version: "22"
       - run: npm install
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:front
+      - run: node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=interfaz.xml "front/tests/*.test.js"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informe-interfaz
+          path: interfaz.xml
+          retention-days: 14
 
   integracion:
-    name: Integración (interfaz + FastAPI reales)
-    runs-on: ubuntu-latest
+    name: Integración (interfaz + FastAPI + OCR reales) y scripts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -79,9 +108,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Paquetes del sistema (Tesseract, poppler)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends $PAQUETES_SISTEMA
       - run: pip install -r back/motori_magenes/requirements.txt -c back/motori_magenes/constraints.txt
       - run: npm install
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:integracion
+      - name: "Integración v1 y v2 (una suite cada vez: cada una levanta su backend)"
+        run: mkdir -p informes && node --test --test-concurrency=1 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=informes/integracion.xml "fullstack/tests/integracion/*.test.js"
         env:
           PYTHON: python
+          CAPTURAS: informes/capturas
+      - name: Scripts de arranque y detención
+        run: npm run test:scripts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: informes-integracion
+          path: informes/
+          retention-days: 14
+
+  docker:
+    name: Docker (construcción y prueba de humo)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Construir y probar con Docker Compose
+        run: npm run test:docker
+      - name: Registros de los contenedores si falla
+        if: failure()
+        run: docker compose -f fullstack/compose.yaml -p apuntia-prueba logs --no-color > docker.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: registros-docker
+          path: docker.log
+          retention-days: 7

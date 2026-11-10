@@ -251,7 +251,7 @@ El 0.7 % restante es el superíndice «²», que Tesseract lee como «?». `test
 
 `app/services/manuscrito.py`. Estrategia híbrida sobre Tesseract, **sin transcribir por imaginación**:
 
-1. **La confianza del bloque la limita su palabra más dudosa.** Se midió que, en escritura irregular, Tesseract daba una media alta (0.85) a bloques con palabras mal leídas («inte grates», confianza 0.70) y los marcaba como `reconocido`. Ahora basta una palabra por debajo de 0.80 para que el bloque sea `incierto`, y esas palabras se listan en `palabras_dudosas`.
+1. **Una palabra dudosa vuelve `incierto` el bloque.** Se midió que, en escritura irregular, Tesseract daba una media alta (0.85) a bloques con palabras mal leídas («inte grates», confianza 0.70) y los marcaba como `reconocido`. Ahora basta una palabra por debajo de 0.80 para que el bloque sea `incierto`, y esas palabras se listan en `palabras_dudosas`. Para que el bloque sea `no_reconocido` (y se descarte su texto) hace falta que la **media** sea baja: en BACK-21 se detectó que, si la palabra más dudosa decidía también eso, un símbolo mal leído («f'(x)», 0.45) vaciaba un párrafo de tres líneas correctas.
 2. **Segundo intento** para lo que no quedó reconocido: recorte ampliado ×2, binarizado con Otsu y `psm 6`. Se queda la lectura con más confianza.
 3. **Ilegible = sin texto:** un bloque `no_reconocido` queda vacío, de tipo `manuscrito`, y conserva su **recorte** con la ubicación, para transcribirlo a mano. Los `inciertos` conservan su texto y también el recorte, para comparar.
 4. **Tinta no detectada por el OCR:** se conserva como `manuscrito` (trazos del tamaño del texto) o `imagen` (dibujos y esquemas, más altos y poco densos), siempre como recorte.

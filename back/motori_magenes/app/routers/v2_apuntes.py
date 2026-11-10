@@ -8,8 +8,9 @@ from app.core.seguridad import sesion_actual
 from app.datos.almacen import ArchivoNoEncontrado
 from app.datos.apuntes import RepositorioApuntes
 from app.services.cuentas import Sesion
-from app.services.entrada import validar_paginas
 from app.core.errores import ApiError
+from app.services import analisis  # noqa: F401 — registra el manejador de trabajos «analisis»
+from app.services.entrada import validar_paginas
 
 router = APIRouter(prefix="/api/v2", tags=["v2: apuntes"])
 
@@ -28,13 +29,30 @@ def crear_apunte(
     sesion: Sesion = Depends(sesion_actual),
 ):
     recibidas = validar_paginas(paginas, tipos)
-    apunte, creado = repositorio().crear(sesion.usuario.id, titulo, recibidas, idempotency_key)
-    return JSONResponse({"apunte": apunte, "trabajo": None}, status_code=202 if creado else 200)
+    repo = repositorio()
+    trabajos = contexto.obtener().trabajos
+    apunte, creado = repo.crear(sesion.usuario.id, titulo, recibidas, idempotency_key)
+    if not creado:  # misma Idempotency-Key: se devuelve lo ya creado, sin otro análisis
+        fila = contexto.obtener().bd.uno("SELECT id FROM trabajos WHERE apunte_id = ? AND tipo = 'analisis' "
+                                         "ORDER BY creado DESC LIMIT 1", (apunte["id"],))
+        trabajo = trabajos.obtener(sesion.usuario.id, fila["id"]) if fila else None
+        return JSONResponse({"apunte": apunte, "trabajo": trabajo}, status_code=200)
+    try:
+        trabajo = trabajos.encolar(sesion.usuario.id, "analisis", apunte["id"],
+                                   {"idiomas": sesion.usuario.preferencias.get("idioma_ocr")})
+    except ApiError:
+        repo.borrar(sesion.usuario.id, apunte["id"])  # sin trabajo no se deja un apunte huérfano
+        raise
+    return JSONResponse({"apunte": apunte, "trabajo": trabajo}, status_code=202)
 
 
 @router.get("/apuntes/{apunte_id}")
 def ver_apunte(apunte_id: str, sesion: Sesion = Depends(sesion_actual)):
-    return {"apunte": repositorio().obtener(sesion.usuario.id, apunte_id)}
+    apunte = repositorio().obtener(sesion.usuario.id, apunte_id)
+    fila = contexto.obtener().bd.uno("SELECT id FROM trabajos WHERE apunte_id = ? ORDER BY creado DESC LIMIT 1",
+                                     (apunte_id,))
+    apunte["ultimo_trabajo"] = contexto.obtener().trabajos.obtener(sesion.usuario.id, fila["id"]) if fila else None
+    return {"apunte": apunte}
 
 
 @router.get("/apuntes/{apunte_id}/archivos/{archivo_id}")

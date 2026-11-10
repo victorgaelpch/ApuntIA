@@ -56,10 +56,16 @@ class BloqueOCR:
     tipo: str = "texto"       # titulo | texto | manuscrito | formula | imagen
     dudosas: list[str] = field(default_factory=list)   # palabras con confianza < 0.80
     recortar: bool = False    # conservar el recorte de la imagen para revisión manual
+    minima: float | None = None  # confianza de la palabra más dudosa
 
     @property
     def estado(self) -> str:
-        return estado_por_confianza(self.confianza)
+        # «no_reconocido» (el texto se descarta) exige que la MEDIA sea baja: una sola
+        # palabra dudosa no puede borrar un párrafo bueno, solo volverlo «incierto».
+        estado = estado_por_confianza(self.confianza)
+        if estado == "reconocido" and self.minima is not None and self.minima < UMBRAL_RECONOCIDO:
+            return "incierto"
+        return estado
 
 
 def estado_por_confianza(confianza: float) -> str:
@@ -177,19 +183,19 @@ def agrupar(palabras: list[Palabra]) -> list[BloqueOCR]:
             lps.sort(key=lambda p: p.bbox[0])
             textos.append(" ".join(p.texto for p in lps))
             alturas.append(statistics.median(p.bbox[3] - p.bbox[1] for p in lps))
-        # Confianza del bloque: la media ponderada por longitud, pero limitada por
-        # su palabra más dudosa. Se midió (BACK-14) que en escritura irregular
-        # Tesseract da medias altas (0.85) a bloques con palabras mal leídas
-        # (0.70): basta una palabra dudosa para que el bloque se revise.
+        # Confianza del bloque: media ponderada por longitud. Además se guarda la
+        # de su palabra más dudosa: se midió (BACK-14) que en escritura irregular
+        # Tesseract da medias altas (0.85) a bloques con palabras mal leídas (0.70),
+        # así que una palabra dudosa basta para que el bloque sea «incierto».
         total = sum(len(p.texto) for p in ps)
         media = sum(p.confianza * len(p.texto) for p in ps) / total if total else 0.0
         significativas = [p.confianza for p in ps if sum(c.isalnum() for c in p.texto) >= 2] or [media]
-        conf = min(media, min(significativas))
+        conf = media
         dudosas = [p.texto for p in ps if p.confianza < UMBRAL_RECONOCIDO]
         bbox = [min(p.bbox[0] for p in ps), min(p.bbox[1] for p in ps),
                 max(p.bbox[2] for p in ps), max(p.bbox[3] for p in ps)]
         bloques.append(BloqueOCR("\n".join(textos), round(conf, 3), bbox, textos, statistics.median(alturas),
-                                 dudosas=dudosas))
+                                 dudosas=dudosas, minima=round(min(significativas), 3)))
     marcar_titulos(bloques)
     return bloques
 

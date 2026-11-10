@@ -38,7 +38,7 @@ EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,255}\.[^@\s]{2,}$")
 PREFERENCIAS_POR_DEFECTO = {
     "tipo_fuente": "cuaderno",          # tipo propuesto al subir fotos
     "investigacion_permitida": False,   # la investigación externa requiere activarla
-    "idioma_ocr": "spa",
+    "idioma_ocr": "spa+eng",   # eng ayuda con símbolos y fórmulas
 }
 
 

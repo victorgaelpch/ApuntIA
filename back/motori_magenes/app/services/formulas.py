@@ -349,13 +349,16 @@ def separar_formulas(bloques):
                     latex, valido = convertir(texto)
                     # Solo «reconocida» si se convirtió y el OCR no dudó de ninguna palabra (≥ 0.90):
                     # una fórmula no se da por buena sin poder compararla con la foto.
-                    conf = b.confianza if (valido and b.confianza >= 0.90) else min(b.confianza, 0.79)
+                    minima = b.minima if b.minima is not None else b.confianza
+                    segura = valido and min(b.confianza, minima) >= 0.90
+                    conf = b.confianza if segura else min(b.confianza, 0.79)
                     nuevo = BloqueOCR(texto, conf, caja, grupo,
-                                      b.altura_linea, "formula", b.dudosas, recortar=True)
+                                      b.altura_linea, "formula", b.dudosas, recortar=True, minima=minima)
                     nuevo.latex, nuevo.latex_valido = latex, valido
                 else:
                     nuevo = BloqueOCR(texto, b.confianza, caja, grupo, b.altura_linea,
-                                      b.tipo if b.tipo != "formula" else "texto", b.dudosas, b.recortar)
+                                      b.tipo if b.tipo != "formula" else "texto", b.dudosas, b.recortar,
+                                      minima=b.minima)
                 salida.append(nuevo)
             if linea is not None:
                 grupo, tipo_grupo, inicio = [linea], es_f, i

@@ -50,13 +50,15 @@ def segundo_intento(gris: np.ndarray, bloque: BloqueOCR, idiomas: str, motor: Mo
     if not nuevos:
         return bloque
     total = sum(len(b.texto) for b in nuevos)
-    conf = min(b.confianza for b in nuevos) if total else 0.0
-    if conf <= bloque.confianza + 0.05:
+    conf = sum(b.confianza * len(b.texto) for b in nuevos) / total if total else 0.0
+    minima = min((b.minima if b.minima is not None else b.confianza) for b in nuevos)
+    actual = min(bloque.confianza, bloque.minima if bloque.minima is not None else bloque.confianza)
+    if min(conf, minima) <= actual + 0.05:
         return bloque
     texto = "\n".join(b.texto for b in nuevos)
     dudosas = [d for b in nuevos for d in b.dudosas]
     return BloqueOCR(texto, round(conf, 3), bloque.bbox, texto.split("\n"), bloque.altura_linea,
-                     bloque.tipo, dudosas)
+                     bloque.tipo, dudosas, minima=round(minima, 3))
 
 
 def _solape(a: list[int], b: list[int]) -> float:
@@ -100,7 +102,8 @@ def leer_con_respaldo(gris: np.ndarray, bloques: list[BloqueOCR], idiomas: str,
             b = segundo_intento(gris, b, idiomas, motor)
         if b.estado == "no_reconocido":
             # No se inventa texto: se conserva la imagen para transcribirla a mano.
-            b = BloqueOCR("", b.confianza, b.bbox, [], b.altura_linea, "manuscrito", b.dudosas, recortar=True)
+            b = BloqueOCR("", b.confianza, b.bbox, [], b.altura_linea, "manuscrito", b.dudosas, recortar=True,
+                          minima=b.minima)
         elif b.estado == "incierto":
             b.recortar = True
         resultado.append(b)

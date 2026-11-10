@@ -21,7 +21,8 @@ node_modules/
 
 # Datos privados de ApuntIA (base de datos, fotos, PDFs, buzón de desarrollo)
 back/motori_magenes/datos/
-datos/
+# DATA_DIR relativo en la raíz (no confundir con el paquete de código app/datos/)
+/datos/
 *.sqlite3
 *.db
 # Configuración local con valores reales

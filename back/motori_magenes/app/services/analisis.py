@@ -22,6 +22,7 @@ import numpy as np
 
 from app.core import contexto
 from app.core.config import settings
+from app.core.errores import ApiError
 from app.datos.apuntes import RepositorioApuntes
 from app.services.documento import Bloque, Documento
 from app.services.formulas import separar_formulas
@@ -115,6 +116,12 @@ def manejar_analisis(trabajo: Trabajo) -> Resultado:
             if exc.codigo in ("OCR_NO_DISPONIBLE", "OCR_IDIOMA_NO_DISPONIBLE"):
                 repo.cambiar_estado(trabajo.apunte_id, "fallido")
                 raise ErrorTrabajo(exc.codigo, exc.mensaje) from None
+            fallidas.append(pagina.orden)
+            paginas.append(pagina.model_copy(update={"error": exc.mensaje}))
+        except ApiError as exc:
+            if exc.codigo == "ALMACENAMIENTO_LLENO":  # no es culpa de la página: falla el trabajo
+                repo.cambiar_estado(trabajo.apunte_id, "fallido")
+                raise
             fallidas.append(pagina.orden)
             paginas.append(pagina.model_copy(update={"error": exc.mensaje}))
         except ErrorTrabajo as exc:

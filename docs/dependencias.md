@@ -85,6 +85,7 @@ Versiones probadas. Las dependencias «transitivas» son las que traen las direc
 | reportlab (+ charset-normalizer) | BSD, MIT | Generación del PDF (BACK-20). Elegido frente a WeasyPrint: no interpreta HTML/CSS ni descarga recursos y no necesita Pango/Cairo |
 | Fuentes DejaVu (incluidas en matplotlib) | Licencia Bitstream Vera / DejaVu (libre, permite incrustarlas) | Texto Unicode seleccionable en el PDF |
 | pypdf (solo pruebas) | BSD-3-Clause | Abrir y leer los PDF generados en las pruebas |
+| pytest-cov + coverage (solo pruebas) | MIT, Apache-2.0 | Informe de cobertura (BACK-25) |
 
 ## 4. Inventario de Node (solo para pruebas; no se distribuye con la aplicación)
 

@@ -75,3 +75,4 @@ def reiniciar(data_dir: Path) -> Contexto:
 def detener() -> None:
     if _ctx is not None:
         _ctx.trabajos.detener(esperar=False)
+        _ctx.bd.cerrar()  # cierra las conexiones de todos los hilos

@@ -8,6 +8,7 @@ certifi==2026.10.23
 charset-normalizer==3.5.1
 click==8.5.0
 contourpy==1.4.0
+coverage==7.17.2
 cycler==0.12.1
 fastapi==0.162.0
 fonttools==4.68.0
@@ -31,6 +32,7 @@ pygments==2.21.0
 pyparsing==3.1.1
 pypdf==6.17.0
 pytesseract==0.3.13
+pytest-cov==7.1.0
 pytest==9.2.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.4

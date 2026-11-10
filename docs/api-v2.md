@@ -207,6 +207,7 @@ Misma estructura `{"error": {"codigo", "mensaje"}}`, con un campo opcional `deta
 | 413 | `CUOTA_EXCEDIDA` | El usuario superó `CUOTA_MB_USUARIO` |
 | 428 | `VERSION_REQUERIDA` | Falta `If-Match` |
 | 429 | `DEMASIADOS_INTENTOS` / `DEMASIADOS_TRABAJOS` / `DEMASIADAS_PETICIONES` | Límites de abuso (ver docs/seguridad-api.md) |
+| 507 | `ALMACENAMIENTO_LLENO` | El disco del servidor está lleno: no se guarda nada a medias (en un trabajo, aparece como su `error.codigo`) |
 | 503 | `OCR_NO_DISPONIBLE` | Tesseract no está instalado: el análisis falla con este código, no con texto vacío |
 | 503 | `INVESTIGACION_NO_DISPONIBLE` | Sin conexión con el proveedor o deshabilitado |
 

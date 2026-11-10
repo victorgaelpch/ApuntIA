@@ -223,6 +223,8 @@ class GestorTrabajos:
             self._terminar(trabajo.id, "cancelado")
         except ErrorTrabajo as exc:
             self._terminar(trabajo.id, "fallido", codigo=exc.codigo, mensaje=exc.mensaje)
+        except ApiError as exc:  # p. ej. ALMACENAMIENTO_LLENO: error previsto con mensaje para el usuario
+            self._terminar(trabajo.id, "fallido", codigo=exc.codigo, mensaje=exc.mensaje)
         except Exception as exc:  # noqa: BLE001
             error_id = uuid.uuid4().hex[:12]
             logger.error("Trabajo %s (%s) falló (id=%s)", trabajo.id, trabajo.tipo, error_id, exc_info=exc)

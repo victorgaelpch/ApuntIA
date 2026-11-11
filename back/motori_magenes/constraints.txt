@@ -34,7 +34,7 @@ pypdf==6.17.0
 pytesseract==0.3.13
 pytest-cov==7.1.0
 pytest==9.2.0
-python-dateutil==2.9.0.post0
+python-dateutil==4.0.0
 python-dotenv==1.2.4
 python-multipart==0.0.33
 pyyaml==6.0.3

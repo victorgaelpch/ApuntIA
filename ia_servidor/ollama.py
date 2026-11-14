@@ -106,10 +106,13 @@ class ClienteOllama:
                 for m in self._pedir("/api/ps").get("models") or []]
 
     # ------------------------------------------------------------------ inferencia
-    def chat(self, modelo: str, mensajes: list[dict], esquema: dict, keep_alive: str, timeout: float) -> dict:
+    def chat(self, modelo: str, mensajes: list[dict], esquema: dict, keep_alive: str, timeout: float,
+             num_ctx: int = 8192, max_tokens: int = 2048) -> dict:
+        # think=False lo ignoran las variantes «thinking» (medido: siguen razonando); por eso el
+        # tope de tokens es obligatorio y el modelo recomendado es la variante -instruct.
         cuerpo = {
             "model": modelo, "stream": False, "format": esquema, "keep_alive": keep_alive, "think": False,
-            "options": {"temperature": 0, "seed": 0},
+            "options": {"temperature": 0, "seed": 0, "num_ctx": num_ctx, "num_predict": max_tokens},
             "messages": mensajes,
         }
         respuesta = self._pedir("/api/chat", cuerpo, timeout=timeout, modelo=modelo)

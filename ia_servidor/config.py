@@ -55,6 +55,8 @@ class Configuracion:
     espera_cola_s: int = 20                     # cuánto espera una petición su turno antes de 429
     timeout_s: int = 180                        # tiempo máximo de una inferencia
     keep_alive: str = "10m"                     # cuánto queda el modelo en VRAM tras usarse
+    num_ctx: int = 8192                         # contexto: imagen (~1-2 K tokens) + respuesta; 4096 (defecto de Ollama) se queda corto
+    max_tokens: int = 2048                      # tope de tokens generados (incluido el «razonamiento» de modelos thinking)
     min_disco_mb: int = 2048                    # espacio libre mínimo para considerar el equipo listo
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
@@ -73,6 +75,8 @@ class Configuracion:
             espera_cola_s=_entero("IA_ESPERA_COLA_S", 20, 0, 600),
             timeout_s=_entero("IA_TIMEOUT_S", 180, 10, 1800),
             keep_alive=os.environ.get("IA_KEEP_ALIVE", "10m").strip(),
+            num_ctx=_entero("IA_NUM_CTX", 8192, 2048, 32768),
+            max_tokens=_entero("IA_MAX_TOKENS", 2048, 256, 16384),
             min_disco_mb=_entero("IA_MIN_DISCO_MB", 2048, 0, 10_000_000),
         )
         c.validar()

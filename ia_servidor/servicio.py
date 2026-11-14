@@ -147,12 +147,14 @@ class Servicio:
 
     def _inferir(self, modelo: str, tarea: str, imagen_b64: str):
         mensajes = [{"role": "user", "content": PROMPT_BASE + "Tarea: " + TAREAS[tarea], "images": [imagen_b64]}]
-        r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s)
+        r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s,
+                             self.config.num_ctx, self.config.max_tokens)
         salida = interpretar(r["contenido"])
         if salida is None:  # un único reintento pidiendo solo el JSON; si vuelve a fallar, error técnico
             mensajes += [{"role": "assistant", "content": r["contenido"][:2000]},
                          {"role": "user", "content": PROMPT_REPARAR}]
-            r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s)
+            r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s,
+                             self.config.num_ctx, self.config.max_tokens)
             salida = interpretar(r["contenido"])
             if salida is None:
                 raise ErrorIA("RESPUESTA_INVALIDA", "JSON fuera de contrato tras un reintento")

@@ -251,3 +251,68 @@ def test_trabajo_fallido_en_el_servidor(tmp_path):
 def test_codigos_publicos(error, publico):
     codigo, mensaje = codigo_publico(error)
     assert codigo == publico and len(mensaje) > 30
+
+
+# ------------------------------------------------------------------ BACK-38: fórmulas multilínea
+def test_formula_multilinea_se_divide_en_un_bloque_por_linea():
+    from app.services.analisis_remoto import dividir_lineas
+    lineas = [r"\frac{\sqrt{2}}{2}", r"\sin 45^\circ = [?]", "Isosceles Right"]
+    region = {"id": "p1b4", "tipo": "formula", "bbox": [0, 0, 10, 10], "estado": "incierto",
+              "texto": "\n".join(f"${l}$" for l in lineas[:2]) + "\n" + lineas[2],
+              "latex": "\n".join(lineas),
+              "dudas": ["1 fragmento(s) que el modelo marcó como no legibles ([?])",
+                        "LaTeX con llaves desbalanceadas en la línea 1"]}
+    partes = dividir_lineas(region)
+    assert [p["tipo"] for p in partes] == ["formula", "formula", "texto"]
+    assert [p["latex"] for p in partes] == [lineas[0], lineas[1], None]
+    assert [p["texto"] for p in partes] == lineas
+    assert partes[0]["dudas"] == ["LaTeX con llaves desbalanceadas en la línea 1"]
+    assert partes[1]["dudas"] == ["1 fragmento(s) que el modelo marcó como no legibles ([?])"]
+    assert partes[2]["dudas"] == []
+    assert all(p["bbox"] == [0, 0, 10, 10] and p["estado"] == "incierto" for p in partes)
+    # una sola línea, texto o región sin LaTeX: intactos
+    for b in ({**region, "latex": "x^2"}, {**region, "tipo": "texto"}, {**region, "latex": None}):
+        assert dividir_lineas(b) == [b]
+
+
+def test_formula_multilinea_real_llega_dividida_y_el_pdf_marca_la_propuesta(nuevo_cliente, servidor):
+    from pypdf import PdfReader
+    import io
+    raiz = r"\frac{\sqrt{2}}{2}"
+    servidor["ollama"].chat[:] = [f"${raiz}$\n${raiz}$\nIsosceles Right"] * 200
+    vincular(servidor)
+    c = nuevo_cliente()
+    c.registrar()
+    creado = crear(c, "ia_remota")
+    assert esperar(c, creado["trabajo"]["id"])["estado"] == "completado"
+    aid = creado["apunte"]["id"]
+    bloques = c.get(f"/api/v2/apuntes/{aid}").json()["apunte"]["documento"]["bloques"]
+    primeros = [b for b in bloques if b["id"].startswith(bloques[0]["id"].rsplit("_", 1)[0] + "_")]
+    assert [b["tipo"] for b in primeros] == ["formula", "formula", "texto"], bloques[:3]
+    assert primeros[0]["latex"] == raiz and primeros[0]["latex_valido"] is True
+    assert primeros[2]["texto"] == "Isosceles Right" and primeros[2]["latex"] is None
+    assert len({b["recorte"] for b in primeros}) == 1                      # mismo recorte de la región
+    assert all(b["procedencia"]["motor"] == "ia_remota" for b in primeros)
+    r = c.post(f"/api/v2/apuntes/{aid}/exportaciones", json={"estilo": "basico"})
+    assert r.status_code == 202, r.text
+    assert esperar(c, r.json()["trabajo"]["id"])["estado"] == "completado"
+    exp = r.json()["exportacion"]
+    pdf = c.get(f"/api/v2/exportaciones/{exp['id']}/pdf")
+    assert pdf.status_code == 200
+    texto = "\n".join(p.extract_text() for p in PdfReader(io.BytesIO(pdf.content)).pages)
+    assert "propuesta del servidor IA: sin revisar" in texto
+    assert "Recorte de la foto: compáralo con la propuesta del servidor IA" in texto
+    assert "son propuestas del servidor IA sin revisar" in texto
+
+
+def test_texto_con_lineas_que_son_solo_formula_se_divide():
+    from app.services.analisis_remoto import dividir_lineas
+    ley = r"\frac{a}{\sin(A)} = \frac{b}{\sin(B)}"
+    region = {"tipo": "texto", "bbox": [0, 0, 9, 9], "estado": "reconocido", "latex": None, "dudas": [],
+              "texto": "Laws of sins:\n$" + ley + "$\nsin θ = $x$ mezclada\nSin(0) = 0"}
+    partes = dividir_lineas(region)
+    assert [p["tipo"] for p in partes] == ["texto", "formula", "texto"]
+    assert partes[1]["latex"] == ley and partes[1]["texto"] == ley
+    assert partes[2]["texto"] == "sin θ = $x$ mezclada\nSin(0) = 0"     # líneas de texto seguidas, juntas
+    solo_texto = {**region, "texto": "Uno\nDos"}
+    assert dividir_lineas(solo_texto) == [solo_texto]

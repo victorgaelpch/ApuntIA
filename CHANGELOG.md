@@ -8,6 +8,13 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Propuestas del servidor IA en el PDF y fuentes verificables** (BACK-38): etiqueta «propuesta del
+  servidor IA: sin revisar/revisada», recorte de la foto una vez por región (opción
+  `incluir_recortes_ia`, clave de exportación por defecto sin cambios) y aviso en la portada; las
+  regiones multilínea se dividen en un bloque por fórmula; resumen, glosario y conceptos a investigar
+  solo de bloques confirmados; Wikilibros como segunda fuente (`INVESTIGACION_PROVEEDOR=wikipedia,wikilibros`)
+  y redirecciones a otros hosts rechazadas. Guías `generacion-pdf.md`, `investigacion-verificada.md`,
+  `trazabilidad-contenido.md` y PDFs sintéticos de referencia.
 - **Editor de revisión de propuestas de IA** (FRONT-26): etiqueta «Propuesta de IA · sin revisar» sin
   porcentajes, recorte siempre visible, dudas del modelo, aviso de símbolos confundibles y «Marcar como
   revisado» (campo `revisado`, opcional y compatible con apuntes anteriores).

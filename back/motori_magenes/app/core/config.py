@@ -65,7 +65,8 @@ class Settings:
     # Páginas por apunte en la API v2 (BACK-11).
     max_paginas: int = int(os.getenv("MAX_PAGINAS", "20"))
 
-    # Investigación opcional (BACK-18): "wikipedia" o "ninguno" (sin Internet).
+    # Investigación opcional (BACK-18/38): "wikipedia", "wikilibros", "wikipedia,wikilibros" (en ese orden)
+    # o "ninguno" (sin Internet). Solo hosts fijos de Wikimedia; nunca URLs configurables.
     investigacion_proveedor: str = os.getenv("INVESTIGACION_PROVEEDOR", "wikipedia").strip().lower()
     investigacion_timeout_s: float = float(os.getenv("INVESTIGACION_TIMEOUT_S", "6"))
 

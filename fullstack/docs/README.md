@@ -30,6 +30,9 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [servidor-ia.md](servidor-ia.md) | Servidor de inferencia IA en la PC con GPU: arquitectura, contrato v1, errores, límites (BACK-35) |
 | [conexion-remota.md](conexion-remota.md) | Vinculación, API `/api/v2/ia`, Tailscale y Cloudflare Tunnel (FULL-31) |
 | [trabajos-remotos.md](trabajos-remotos.md) | Análisis con el servidor IA: cola, reintentos, recuperación y códigos AI_* (BACK-37) |
+| [trazabilidad-contenido.md](trazabilidad-contenido.md) | Procedencia de cada bloque de la foto al PDF; regiones divididas (BACK-38) |
+| [generacion-pdf.md](generacion-pdf.md) | PDF educativo: partes, opciones, propuestas de IA, fidelidad de fórmulas, PDFs de referencia (BACK-38) |
+| [investigacion-verificada.md](investigacion-verificada.md) | Información complementaria citada: reglas, Wikipedia y Wikilibros, SSRF, errores (BACK-18/38) |
 
 ## Arranque, operación y entrega
 

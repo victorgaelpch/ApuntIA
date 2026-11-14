@@ -5,8 +5,9 @@ documento define el corpus, las métricas y cómo se ejecuta la medición. Las c
 corpus sintético están en [servidor-ia.md §8.2](servidor-ia.md#82-comparación-de-modelos-con-el-pipeline-11-13112026).
 
 > Estado (14/11/2026): banco de medición **implementado y probado** (`python -m ia_servidor.medir
-> --corpus …`, 7 pruebas). **Bloqueado**: faltan las fotos reales con permiso. Sin ellas no se elige la
-> segmentación por regiones ni se afirma nada sobre pizarrones reales.
+> --corpus …`, con cobertura, fidelidad a los errores del original y comparación página/regiones;
+> 16 pruebas). **Medido con 1 foto real** de pizarrón (§5.1): segmentar por regiones mejora la
+> fidelidad. Faltan más fotos (cuaderno manuscrito, circuito) y la segmentación automática.
 
 ## 1. Corpus privado (fuera de Git)
 
@@ -52,6 +53,8 @@ Carpeta `fullstack/evaluacion/privado/` (ignorada por Git: nunca se sube). Conti
 | VRAM pico | todas | `nvidia-smi` cada 0,25 s + `/api/ps` |
 | Errores por código | todas | `RESPUESTA_INVALIDA`, `SIN_MEMORIA`, `TIEMPO_AGOTADO`… |
 | Dudas marcadas | todas | Fragmentos `[?]` del modelo frente a errores reales (¿marca lo que falla?) |
+| Cobertura | todas | Fracción de elementos de la verdad presentes en la salida (CER ≤ 25 % por elemento, sin depender del orden) |
+| **Fidelidad** | trampas | Errores reales del original: fiel (se conserva), **corregida** (el modelo lo «arregló»: alucinación) o no leída |
 
 Pendientes de implementar cuando haya corpus: celdas de tabla correctas y relaciones de
 diagramas (nodos y aristas), y equivalencia con SymPy en fórmulas aplicables.
@@ -78,4 +81,45 @@ El informe queda en `fullstack/evaluacion/resultados/servidor-ia-medicion-<model
 
 ## 5. Resultados con fotos reales
 
-Ninguno todavía: no hay corpus real. No se reportan cifras hasta medirlas.
+### 5.1 Pizarrón de trigonometría (14/11/2026)
+
+Corpus: **una** foto real de pizarrón (2000×1500, tres colores de marcador; aportada por el dueño del
+proyecto para evaluación privada, sin datos personales) y **12 regiones recortadas a mano** de ella
+(fórmulas 2D, tabla grados/radianes, identidades, valores, recordatorios manuscritos). Verdad
+transcrita literalmente, con **6 trampas**: errores reales del pizarrón que deben conservarse
+(`(cos(h)-1)/1`, `cos(θ/2)` con `1 - cos θ`, un denominador `cos²` equivocado, `sin(π)=-1`,
+`sin(π/2)=0`, `sin(3π/2)=0`) y 3 faltas de ortografía en títulos. Equipo: RTX 3060, Ollama 0.40.16,
+pipeline 1.1. Recortes manuales = segmentación ideal: es la **cota superior** de cualquier
+segmentación automática.
+
+| | 8b-instruct, página completa | 8b-instruct, por regiones | 4b-instruct, página completa | 4b-instruct, por regiones |
+|---|---|---|---|---|
+| Elementos de las regiones encontrados (38) | 97 % | 97 % | **13 %** | 97 % |
+| Títulos y textos fuera de regiones (16) | 100 % | — | 0 % | — |
+| Trampas: fieles / **corregidas** / no leídas (6) | 5 / **1** / 0 | 5 / 0 / 1 | 0 / **5** / 1 | **6 / 0 / 0** |
+| Ortografía del original (3) | **3 corregidas** | — | **3 corregidas** | — |
+| Latencia | 21,3 s la página | 2,2–4,5 s por región (≈40 s las 12) | 18,1 s | 1,3–3,2 s (≈22 s las 12) |
+| Pico de VRAM de la GPU* | 10,8 GB | 10,8 GB | 8,2 GB | 8,2 GB |
+
+\* Incluye ~2,9 GB del escritorio. La 1.ª petición de cada tanda incluye la carga del modelo (9–14 s).
+
+Observaciones literales:
+- Con la página completa, el 8B **corrigió** `(cos(h)-1)/1` a `/h` y la ortografía de los títulos:
+  justo lo que el Issue prohíbe («no corregir la ecuación escrita»).
+- El 4B con la página completa la envolvió en `\begin{center}`, unió fórmulas con `\quad` e
+  **inventó** encabezados («Special Values», «Graphs»): inutilizable como transcripción.
+- Por regiones, el 8B desordenó las fracciones 2D de las identidades (une numeradores y
+  denominadores); el 4B las transcribió exactas. El 4B omitió la cabecera «Degree | Radians» de la tabla.
+- Ningún modelo marcó dudas (`[?]`) en esta foto.
+
+**Conclusión provisional** (una sola foto: no generalizable):
+1. **Segmentar por regiones mejora la fidelidad** con ambos modelos y es imprescindible con el 4B.
+   La página completa solo sirve, si acaso, para el orden de lectura y los títulos, nunca como
+   transcripción de fórmulas.
+2. Por regiones, el **4b-instruct fue igual o mejor** que el 8B (6/6 trampas, identidades exactas),
+   en la mitad del tiempo y con 2,6 GB menos de VRAM.
+3. Siguiente paso: **segmentación automática** de regiones (OpenCV o *grounding*) medida contra estos
+   recortes manuales, y más fotos (cuaderno manuscrito, circuito) antes de cambiar el modelo por defecto.
+
+Reproducir: `python -m ia_servidor.medir --corpus fullstack\evaluacion\privado` con cada modelo;
+`--reevaluar INFORME --corpus …` recalcula cobertura y fidelidad sin usar la GPU.

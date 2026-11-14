@@ -218,6 +218,16 @@ Configuración de esta primera tanda: la del servidor antes de añadir `IA_NUM_C
   dice 0.12.7. El servidor sigue exigiendo ≥ 0.12.7; con un Ollama más antiguo que 0.30 el modelo
   no carga y `/listo` lo indicaría como error de Ollama.
 
+**Prueba de mitigación sin descargas** (mismo `qwen3-vl:8b`, prompt corto de una línea, sin
+esquema JSON en `format`, contexto 8192, tope 2048 tokens): las tres muestras que fallaban
+terminaron. `formulas_2d` dio 18,7 s, `rac{a}{b} + rac{c}{d}`, `\sqrt{x + 1}` y
+`E = mc^2` correctos (CER 8,6 % contra la verdad, solo por espacios y llaves); `formulas_pizarron`,
+6,0 s, transcripción literal (`a/b + c/d` tal como está dibujado); `pizarron_con_ruido`, 9,9 s
+y CER 0 %. El razonamiento bajó de 10 000–68 000 a 500–860 caracteres. Conclusión: el disparador
+es el prompt largo de reglas junto con el esquema JSON, no la imagen. El CER contra una cadena
+LaTeX penaliza diferencias sin significado (`x^2` y `x^{2}`): las fórmulas deben compararse
+normalizando el LaTeX o por equivalencia con SymPy (BACK-36).
+
 Lectura honesta: el CER 0 % se obtuvo en un corpus **sintético y fácil** (texto dibujado con
 fuentes). No permite afirmar nada sobre fotos reales de pizarrón; eso es BACK-36.
 Siguiente paso propuesto: repetir la tanda con `qwen3-vl:8b-instruct` (mismo tamaño, sin

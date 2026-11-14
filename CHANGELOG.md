@@ -8,6 +8,10 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Análisis con el servidor IA en trabajos durables** (BACK-37): `motor` local / ia_remota / auto, cola
+  asíncrona en el servidor IA (`/api/v1/trabajos`), clave idempotente por página y resultado guardado
+  (`ia_resultados`), retomar por id tras cortes o reinicios, cancelación remota, códigos AI_* y
+  `POST /api/v2/apuntes/{id}/analisis` para re-analizar sin perder correcciones (versión nueva).
 - **Banco de evaluación con fotos reales** (BACK-36): `python -m ia_servidor.medir --corpus` sobre un corpus
   privado fuera de Git (permiso obligatorio por foto), con métricas de fórmulas por LaTeX normalizado y
   notación equivalente. Guía: `fullstack/docs/evaluacion-multimodal.md`.

@@ -29,6 +29,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [compatibilidad.md](compatibilidad.md) | Compatibilidad real frontend ↔ backend (FULL-06) |
 | [servidor-ia.md](servidor-ia.md) | Servidor de inferencia IA en la PC con GPU: arquitectura, contrato v1, errores, límites (BACK-35) |
 | [conexion-remota.md](conexion-remota.md) | Vinculación, API `/api/v2/ia`, Tailscale y Cloudflare Tunnel (FULL-31) |
+| [trabajos-remotos.md](trabajos-remotos.md) | Análisis con el servidor IA: cola, reintentos, recuperación y códigos AI_* (BACK-37) |
 
 ## Arranque, operación y entrega
 

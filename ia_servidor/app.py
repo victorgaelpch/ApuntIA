@@ -9,6 +9,8 @@ Con credencial de dispositivo (Authorization: Bearer …):
     GET  /api/v1/yo             qué dispositivo es (comprobar la credencial)
     GET  /api/v1/capacidades    tareas, formatos, límites y modelo
     POST /api/v1/analisis       ?tarea=… con la imagen como cuerpo binario (no multipart)
+    POST /api/v1/trabajos       igual, pero asíncrono: 202 + trabajo_id (BACK-37, ver trabajos.py)
+    GET/DELETE /api/v1/trabajos/{id}   estado y progreso / cancelar
 
 No hay rutas de administración por HTTP: aprobar y revocar se hace en la consola de la PC del
 servidor (`python -m ia_servidor.admin`), porque por el túnel todo llega desde 127.0.0.1.
@@ -34,7 +36,9 @@ from ia_servidor.config import Configuracion, carpeta_datos
 from ia_servidor.dispositivos import Autorizado, ErrorVinculacion, Registro
 from ia_servidor.errores import ErrorIA
 from ia_servidor.ollama import ClienteOllama
+from ia_servidor.esquemas import TAREAS_PUBLICAS
 from ia_servidor.servicio import Servicio
+from ia_servidor.trabajos import ColaTrabajos
 
 logger = logging.getLogger("apuntia.ia")
 CABECERA_ID = "X-ApuntIA-Id-Correlacion"
@@ -82,9 +86,10 @@ def crear_app(config: Configuracion | None = None, servicio: Servicio | None = N
     registro = registro or Registro(carpeta_datos(config.datos))
     registro.token_admin()  # se crea al arrancar para las herramientas locales
     limitador = Limitador(config.max_analisis_min)
+    cola = ColaTrabajos(servicio, config.max_cola, config.ttl_trabajos_s)
     app = FastAPI(title="ApuntIA — servidor IA", version=API_VERSION, docs_url=None, redoc_url=None,
                   openapi_url=None)  # sin documentación pública: el contrato está en el repositorio
-    app.state.servicio, app.state.registro = servicio, registro
+    app.state.servicio, app.state.registro, app.state.cola = servicio, registro, cola
 
     @app.middleware("http")
     async def registro_peticiones(request: Request, siguiente):
@@ -109,7 +114,9 @@ def crear_app(config: Configuracion | None = None, servicio: Servicio | None = N
         id_correlacion = getattr(request.state, "id", "-")
         logger.warning("ia: id=%s codigo=%s detalle=%s", id_correlacion, e.codigo, e.detalle)
         cabeceras = None
-        if e.codigo == "OCUPADO":
+        if e.codigo == "OCUPADO" and "cola llena" in e.detalle:
+            cabeceras = {"Retry-After": "30"}
+        elif e.codigo == "OCUPADO":
             cabeceras = {"Retry-After": str(max(5, config.espera_cola_s))}
         elif e.codigo == "LIMITE_PETICIONES":
             cabeceras = {"Retry-After": "60"}
@@ -176,11 +183,7 @@ def crear_app(config: Configuracion | None = None, servicio: Servicio | None = N
         await run_in_threadpool(autorizar, request)
         return servicio.capacidades()
 
-    @app.post("/api/v1/analisis")
-    async def analisis(request: Request, tarea: str = "pagina"):
-        a = await run_in_threadpool(autorizar, request)
-        if not a.admin and not limitador.permitir(a.dispositivo_id):
-            raise ErrorIA("LIMITE_PETICIONES", f"dispositivo {a.dispositivo_id[:8]}")
+    async def leer_imagen(request: Request) -> bytes:
         limite = config.max_mb * 1024 * 1024
         declarado = request.headers.get("content-length")
         if declarado and declarado.isdigit() and int(declarado) > limite:
@@ -194,8 +197,41 @@ def crear_app(config: Configuracion | None = None, servicio: Servicio | None = N
             if total > limite:
                 raise ErrorIA("IMAGEN_DEMASIADO_GRANDE", f"más de {limite} bytes")
             trozos.append(trozo)
-        datos = b"".join(trozos)
-        del trozos
+        return b"".join(trozos)
+
+    async def autorizar_analisis(request: Request) -> Autorizado:
+        a = await run_in_threadpool(autorizar, request)
+        if not a.admin and not limitador.permitir(a.dispositivo_id):
+            raise ErrorIA("LIMITE_PETICIONES", f"dispositivo {a.dispositivo_id[:8]}")
+        return a
+
+    @app.post("/api/v1/analisis")
+    async def analisis(request: Request, tarea: str = "pagina"):
+        await autorizar_analisis(request)
+        datos = await leer_imagen(request)
         return await run_in_threadpool(servicio.analizar, datos, tarea, request.state.id)
+
+    # ------------------------------------------------------------------ trabajos asíncronos (BACK-37)
+    @app.post("/api/v1/trabajos", status_code=202)
+    async def crear_trabajo(request: Request, tarea: str = "documento"):
+        a = await autorizar_analisis(request)
+        if tarea not in TAREAS_PUBLICAS:
+            raise ErrorIA("TAREA_INVALIDA", tarea[:40])
+        clave = (request.headers.get("idempotency-key") or "")[:100] or None
+        datos = await leer_imagen(request)
+        t, nuevo = cola.encolar(a.dispositivo_id, tarea, datos, clave)
+        _, posicion = cola.obtener(a.dispositivo_id, t.id)
+        return JSONResponse(t.publico(posicion), status_code=202 if nuevo else 200)
+
+    @app.get("/api/v1/trabajos/{trabajo_id}")
+    async def ver_trabajo(trabajo_id: str, request: Request):
+        a = await run_in_threadpool(autorizar, request)
+        t, posicion = cola.obtener(a.dispositivo_id, trabajo_id[:64])
+        return t.publico(posicion)
+
+    @app.delete("/api/v1/trabajos/{trabajo_id}")
+    async def cancelar_trabajo(trabajo_id: str, request: Request):
+        a = await run_in_threadpool(autorizar, request)
+        return cola.cancelar(a.dispositivo_id, trabajo_id[:64]).publico()
 
     return app

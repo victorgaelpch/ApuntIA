@@ -4,8 +4,10 @@ import io
 import json
 import shutil
 import sqlite3
+import os
 import tarfile
 import time
+from pathlib import Path
 
 import pytest
 
@@ -57,7 +59,8 @@ def test_respaldo_completo_y_restauracion_en_un_entorno_limpio(con_datos, tmp_pa
     manifiesto = respaldo.crear(datos.data_dir, copia)
     assert manifiesto["recuentos"]["usuarios"] == 1 and manifiesto["recuentos"]["apuntes"] == 1
     assert len(manifiesto["archivos"]) >= 2 and not manifiesto["faltaban"]
-    assert (copia.stat().st_mode & 0o777) == 0o600, "la copia tiene datos personales: solo su dueño la lee"
+    if os.name != "nt":   # en Windows no hay permisos Unix: la protege la ACL del perfil del usuario
+        assert (copia.stat().st_mode & 0o777) == 0o600, "la copia tiene datos personales: solo su dueño la lee"
     nombres = tarfile.open(copia).getnames()
     assert not any(n.startswith(("tmp/", "buzon/", "respaldos/")) for n in nombres)
 
@@ -214,7 +217,7 @@ def test_restaurar_sobre_un_punto_de_montaje(con_datos, tmp_path, monkeypatch):
 
     monkeypatch.setattr(type(volumen), "rename", rename)
     r = respaldo.restaurar(copia, volumen, forzar=True)
-    assert "/.antes-" in r["apartado"]
+    assert Path(r["apartado"]).name.startswith(".antes-")
     apartado = next(volumen.glob(".antes-*"))
     assert (apartado / "viejo.txt").read_text() == "antes" and (volumen / "apuntia.sqlite3").exists()
 

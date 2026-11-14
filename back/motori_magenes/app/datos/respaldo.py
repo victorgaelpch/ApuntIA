@@ -25,6 +25,7 @@ import sqlite3
 import sys
 import tarfile
 import tempfile
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -42,9 +43,10 @@ def _sha(datos: bytes) -> str:
 
 def instantanea_bd(origen: Path, destino: Path) -> None:
     """Copia consistente aunque el servidor esté escribiendo (sqlite3 backup API)."""
-    with sqlite3.connect(origen) as fuente, sqlite3.connect(destino) as copia:
+    # `with sqlite3.connect()` solo confirma la transacción, NO cierra: en Windows un archivo abierto
+    # no se puede borrar ni mover. closing() lo cierra siempre.
+    with closing(sqlite3.connect(origen)) as fuente, closing(sqlite3.connect(destino)) as copia:
         fuente.backup(copia)
-    sqlite3.connect(destino).close()
 
 
 def crear(data_dir: Path, destino: Path) -> dict:
@@ -60,7 +62,8 @@ def crear(data_dir: Path, destino: Path) -> dict:
         version = con.execute("SELECT MAX(version) FROM schema_migraciones").fetchone()[0] or 0
         recuentos = {t: con.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]  # noqa: S608 (tablas fijas)
                      for t in ("usuarios", "apuntes", "versiones", "archivos", "exportaciones")}
-        rutas = [r[0] for r in con.execute("SELECT ruta FROM archivos")]
+        # Windows guarda «usuario\archivo»; dentro del tar los nombres siempre van con «/».
+        rutas = [r[0].replace("\\", "/") for r in con.execute("SELECT ruta FROM archivos")]
         con.close()
         archivos = {}
         faltan = []
@@ -126,7 +129,7 @@ def verificar(archivo: Path) -> dict:
     with tempfile.TemporaryDirectory() as tmp:
         ruta = Path(tmp) / BD
         ruta.write_bytes(datos_bd)
-        with sqlite3.connect(ruta) as con:
+        with closing(sqlite3.connect(ruta)) as con:
             if con.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
                 raise ErrorRespaldo("La base de datos de la copia no supera la comprobación de integridad.")
     return manifiesto

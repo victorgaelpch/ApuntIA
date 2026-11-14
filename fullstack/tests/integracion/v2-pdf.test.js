@@ -53,7 +53,7 @@ describe("FRONT-16 PDF", () => {
         const ruta = await descarga.path();
         const bytes = fs.readFileSync(ruta);
         assert.ok(bytes.length > 1000 && bytes.subarray(0, 5).toString() === "%PDF-");
-        const texto = execFileSync("pdftotext", ["-layout", ruta, "-"], { encoding: "utf8" });
+        const texto = execFileSync("pdftotext", ["-enc", "UTF-8", "-layout", ruta, "-"], { encoding: "utf8" });
         assert.match(texto, /Física: Óptica/);
         assert.match(texto, /Anexo: fotos originales/);
         assert.deepEqual(errores, []);

@@ -97,6 +97,24 @@ def test_analisis_remoto_completo(nuevo_cliente, servidor):
     assert c.get(f"/api/v2/apuntes/{creado['apunte']['id']}/archivos/{b['recorte']}").status_code == 200
 
 
+def test_marcar_revisado_se_guarda_sin_cambiar_la_procedencia(nuevo_cliente, servidor):
+    vincular(servidor)
+    c = nuevo_cliente()
+    c.registrar()
+    creado = crear(c, "ia_remota")
+    esperar(c, creado["trabajo"]["id"])
+    aid = creado["apunte"]["id"]
+    apunte = c.get(f"/api/v2/apuntes/{aid}").json()["apunte"]
+    doc = apunte["documento"]
+    assert doc["bloques"][0]["revisado"] is False
+    doc["bloques"][0]["revisado"] = True
+    doc["bloques"][0]["procedencia"] = {"motor": "usuario-tramposo"}   # el servidor lo ignora
+    doc["bloques"][0]["revision"] = None
+    assert c.put(f"/api/v2/apuntes/{aid}/documento", json=doc, headers={"If-Match": str(apunte["version"])}).status_code == 200
+    b = c.get(f"/api/v2/apuntes/{aid}").json()["apunte"]["documento"]["bloques"][0]
+    assert b["revisado"] is True and b["procedencia"]["motor"] == "ia_remota" and b["revision"] == "sin_confirmar"
+
+
 def test_reanalizar_no_repite_la_gpu(nuevo_cliente, servidor):
     vincular(servidor)
     c = nuevo_cliente()

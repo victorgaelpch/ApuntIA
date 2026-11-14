@@ -105,6 +105,7 @@ Una única representación JSON, validada y versionada. Separa **lo que hay en l
 | `bloques[].revision` | `null`, `lecturas_distintas`, `sin_confirmar`, `formula_sin_confirmar`, `calidad_insuficiente` | Por qué un bloque pide revisión aunque su confianza sea alta (BACK-28). Si no es `null`, el bloque es `incierto` |
 | `bloques[].alternativas` | hasta 3 `{texto, latex?, confianza, variante}` | Otras lecturas **reales** del motor para el mismo fragmento; nunca texto inventado. Usar una es una corrección del usuario |
 | `bloques[].procedencia` | `{motor, version, reconocimiento, variante, psm, lecturas}` o `null` | Motor y versión, versión del reconocimiento (`adaptativo/1`), preprocesado que dio el texto y lecturas comparadas |
+| `bloques[].revisado` | `true`/`false` (por defecto `false`) | FRONT-26: la persona marcó el bloque como revisado contra su recorte. Lo cambia el usuario; no altera `procedencia` ni `revision`. Con `procedencia.motor = "ia_remota"` el bloque es una **propuesta** del servidor IA (sin `confianza`) hasta que se revisa |
 | `paginas[].calidad` | `{nivel, metricas}` o `null` | `nivel`: `buena`, `aceptable` o `insuficiente`; `metricas`: solo números (resolución, nitidez, brillo, contraste, altura de letra, inclinación). Los códigos de aviso van en `advertencias`: `BAJA_RESOLUCION`, `IMAGEN_BORROSA`, `IMAGEN_OSCURA`, `BAJO_CONTRASTE`, `TEXTO_PEQUENO`, `ILUMINACION_DESIGUAL`, `IMAGEN_GIRADA`, `REPETIR_FOTO` |
 | `ampliaciones[].estado` | `propuesta`, `aceptada`, `rechazada` | Solo las `aceptadas` van al PDF, en una sección aparte y citadas |
 | `ampliaciones[].discrepancia` | texto o `null` | La fuente parece contradecir al apunte: se pide revisión, nunca se corrige el apunte |
@@ -113,7 +114,7 @@ El esquema se rechaza completo si no valida: no se guarda una versión a medias.
 
 **Reglas de procedencia al guardar una edición** (`app/services/documento.py`, `fusionar`):
 - En un bloque de OCR, el servidor **conserva** `pagina`, `bbox`, `origen`, `confianza`, `texto_original`, `latex_original`, `recorte`, `palabras_dudosas`, `alternativas`, `procedencia` y `revision` de la versión anterior, aunque el cliente envíe otros valores. `editado` se calcula comparando con el original.
-- Los campos de BACK-28 (`revision`, `alternativas`, `procedencia`, `calidad`) son **opcionales**: los apuntes anteriores no los tienen y siguen siendo válidos con el mismo esquema `apuntia.documento/1`.
+- Los campos de BACK-28 (`revision`, `alternativas`, `procedencia`, `calidad`) y de FRONT-26 (`revisado`) son **opcionales**: los apuntes anteriores no los tienen y siguen siendo válidos con el mismo esquema `apuntia.documento/1`.
 - Un bloque nuevo debe tener `origen: "usuario"`: no se pueden inventar bloques «de la foto».
 - De una ampliación solo se puede cambiar `estado`; su texto y su fuente vienen de la investigación. Quitarla del cuerpo no la borra.
 
@@ -187,6 +188,15 @@ stateDiagram-v2
 - **Durabilidad:** los trabajos viven en SQLite. Si el servidor se reinicia a mitad, al arrancar se vuelven a encolar (máximo 3 intentos).
 - **Límites:** `MAX_TRABAJOS_SIMULTANEOS` (2) en el servidor y 3 trabajos pendientes por usuario → `429 DEMASIADOS_TRABAJOS`.
 - **Idempotencia:** el mismo `Idempotency-Key` del mismo usuario devuelve el apunte ya creado; exportar dos veces la misma versión devuelve el mismo PDF.
+
+### Análisis con el servidor IA (BACK-37)
+
+- `POST /api/v2/apuntes` acepta el campo de formulario `motor`: `local` (por defecto), `ia_remota` o `auto`.
+- `POST /api/v2/apuntes/{id}/analisis` `{motor, sobrescribir_ediciones}` vuelve a analizar las fotos
+  originales y crea una versión nueva (409 `APUNTE_CON_EDICIONES` si hay correcciones y no se confirma).
+- Etapas nuevas del trabajo: `ia_enviando`, `ia_en_cola`, `ia_procesando`; `resultado.motor` y
+  `resultado.aviso`. Errores `AI_*`: [trabajos-remotos.md](trabajos-remotos.md#3-códigos-públicos-y-recuperación).
+- Conexión y vinculación (`/api/v2/ia/*`): [conexion-remota.md](conexion-remota.md#3-api-del-backend-para-la-interfaz-front-25).
 
 ## 6. Errores nuevos
 

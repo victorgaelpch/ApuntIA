@@ -1,4 +1,4 @@
-"""Copias de seguridad y recuperación de DATA_DIR (FULL-23). Guía: docs/respaldo.md.
+"""Copias de seguridad y recuperación de DATA_DIR (FULL-23). Guía: fullstack/docs/respaldo.md.
 
 Una copia es un .tar.gz con:
   apuntia.sqlite3  instantánea CONSISTENTE de la base de datos (API de copia en línea de

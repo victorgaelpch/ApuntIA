@@ -1,4 +1,4 @@
-"""Disponibilidad y diagnóstico (FULL-21). Guía: docs/diagnostico.md.
+"""Disponibilidad y diagnóstico (FULL-21). Guía: fullstack/docs/diagnostico.md.
 
 - `GET /salud` (v1, sin cambios de contrato): la aplicación está VIVA y responde.
 - `GET /api/v2/listo`: sus dependencias están LISTAS. 200 si todas las obligatorias

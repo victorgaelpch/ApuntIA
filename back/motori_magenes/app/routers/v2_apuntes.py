@@ -1,4 +1,4 @@
-"""Rutas de apuntes de la API v2. Contrato: docs/api-v2.md §5."""
+"""Rutas de apuntes de la API v2. Contrato: fullstack/docs/api-v2.md §5."""
 
 from typing import Literal
 

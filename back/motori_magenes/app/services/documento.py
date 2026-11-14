@@ -1,4 +1,4 @@
-"""Modelo intermedio editable de un apunte (BACK-17). Esquema: docs/api-v2.md §3.
+"""Modelo intermedio editable de un apunte (BACK-17). Esquema: fullstack/docs/api-v2.md §3.
 
 Separa tres procedencias que nunca se mezclan:
   - lo que aparece en la foto (bloques con origen "ocr" y su texto_original),

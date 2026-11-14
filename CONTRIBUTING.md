@@ -18,7 +18,7 @@ git switch -c back-11-descripcion-corta
 
    Formato del nombre: `<area>-<nn>-<descripcion>`, donde el área es `back`, `front` o `full`.
 2. Commits pequeños con el formato de la sección siguiente.
-3. PR hacia `main` usando la plantilla (incluye la [Definición de Hecho](docs/definicion-de-hecho.md)).
+3. PR hacia `main` usando la plantilla (incluye la [Definición de Hecho](fullstack/docs/definicion-de-hecho.md)).
 4. La CI debe estar en verde y otro integrante debe aprobar el PR antes de fusionarlo con «Create a merge commit».
 
 ## Mensajes de commit: Conventional Commits

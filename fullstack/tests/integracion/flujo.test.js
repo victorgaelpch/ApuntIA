@@ -1,6 +1,6 @@
 // Pruebas de integración de extremo a extremo (FULL-07): interfaz real en el
 // navegador + FastAPI real (uvicorn), manejadas como lo haría el usuario.
-//   npm run test:integracion        (CAPTURAS=docs/evidencias para guardar evidencias)
+//   npm run test:integracion        (CAPTURAS=fullstack/docs/evidencias para guardar evidencias)
 const { test, describe, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");

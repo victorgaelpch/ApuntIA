@@ -5,7 +5,7 @@
 //
 // Usan la API simulada (?mock=...), así que no necesitan el backend. Variables:
 //   NAVEGADORES=chromium,firefox,webkit   (por defecto chromium)
-//   CAPTURAS=docs/evidencias              (guarda capturas de evidencia)
+//   CAPTURAS=fullstack/docs/evidencias              (guarda capturas de evidencia)
 const { test, describe, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");

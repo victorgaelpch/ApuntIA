@@ -1,6 +1,6 @@
 # Integración continua de ApuntIA (rúbrica punto 2: Definition of Done; FULL-17).
 # Se ejecuta en cada push a main y en cada pull request. Un PR solo cumple la DoD si todos
-# los trabajos terminan en verde (ver docs/definicion-de-hecho.md y docs/ci.md). Para que
+# los trabajos terminan en verde (ver fullstack/docs/definicion-de-hecho.md y fullstack/docs/ci.md). Para que
 # GitHub BLOQUEE la fusión, el dueño del repositorio debe marcarlos como «required status
 # checks» en la protección de la rama main.
 # No usa secretos ni servicios externos: la investigación se prueba con una Wikipedia simulada.

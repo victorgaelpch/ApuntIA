@@ -1,4 +1,4 @@
-"""Diagnóstico del sistema completo (FULL-21). Guía: docs/diagnostico.md.
+"""Diagnóstico del sistema completo (FULL-21). Guía: fullstack/docs/diagnostico.md.
 
 - Identificador de petición `X-ApuntIA-Peticion-Id`: se acepta el que manda el cliente si
   es válido o se genera uno; viaja en la respuesta y en cada línea de log de esa petición.

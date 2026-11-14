@@ -8,7 +8,7 @@ OpenCV).
 Limitación declarada: la «letra manuscrita» usa la tipografía Hershey Script de
 OpenCV con temblor aleatorio. Se parece a la escritura a mano mucho menos que
 una foto real, así que sus métricas son optimistas; las fotos reales deben
-evaluarse aparte con permiso de sus autores (ver docs/evaluacion.md).
+evaluarse aparte con permiso de sus autores (ver fullstack/docs/evaluacion.md).
 
     python -m herramientas.corpus ../bd/corpus      # guarda imágenes + verdad.json
 """

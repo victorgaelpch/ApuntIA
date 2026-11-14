@@ -1,6 +1,6 @@
 """Manejo de errores de la API (BACK-07).
 
-Todas las respuestas de error usan la estructura acordada en docs/api.md:
+Todas las respuestas de error usan la estructura acordada en fullstack/docs/api.md:
 
     {"error": {"codigo": "TIPO_NO_PERMITIDO", "mensaje": "..."}}
 
@@ -65,7 +65,7 @@ async def manejar_api_error(_: Request, exc: ApiError) -> JSONResponse:
 async def manejar_validacion(request: Request, exc: RequestValidationError) -> JSONResponse:
     campos = sorted({str(e.get("loc", ["?"])[-1]) for e in exc.errors()})
     if request.url.path.startswith("/api/v2/"):
-        # API v2: los datos del cuerpo inválidos son un 400 (docs/api-v2.md §6).
+        # API v2: los datos del cuerpo inválidos son un 400 (fullstack/docs/api-v2.md §6).
         return respuesta_error(400, "DATOS_INVALIDOS",
                                f"Revisa estos campos: {', '.join(campos)}.")
     return respuesta_error(

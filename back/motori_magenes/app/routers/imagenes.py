@@ -72,7 +72,7 @@ def motori_magenes(
 def obtener_imagen_memoria():
     """Ejemplo heredado: devuelve una imagen generada en memoria.
 
-    No forma parte del alcance v1 (docs/alcance.md). Se conserva solo porque
+    No forma parte del alcance v1 (fullstack/docs/alcance.md). Se conserva solo porque
     BACK-01 exige que las rutas existentes sigan respondiendo; marcada como
     obsoleta para retirarla cuando el equipo lo apruebe.
     """

@@ -30,7 +30,9 @@ Las subcarpetas `scripts/`, `docker/` y `evaluacion/` se añaden en sus issues; 
 | Es código del backend o sus pruebas unitarias (pytest) | `back/motori_magenes/` |
 | Arranca, detiene o empaqueta **varias** partes a la vez | `fullstack/scripts/` o `fullstack/docker/` |
 | Prueba el frontend **y** el backend reales juntos | `fullstack/tests/integracion/` |
-| Es documentación de producto, contratos o decisiones | `docs/` (una sola copia; aquí solo se enlaza) |
+| Es documentación de producto, contratos, arquitectura o decisiones transversales | `fullstack/docs/` (una sola copia; aquí solo se enlaza) — ver [ESTRUCTURA_DOCUMENTAL.md](docs/ESTRUCTURA_DOCUMENTAL.md) |
+| Es documentación solo de la interfaz (pantallas, pruebas de UI, accesibilidad) | `front/docs/` |
+| Es la ficha, el plan o la bitácora de un Issue | `fullstack/tickets/` (ver [tickets/README.md](tickets/README.md)) |
 | Es un lanzador que el usuario ejecuta | Raíz del repositorio (`iniciar.*`, `detener.*`), que llama a `fullstack/scripts/` |
 
 ## Comandos públicos (no cambian)
@@ -45,19 +47,21 @@ Las subcarpetas `scripts/`, `docker/` y `evaluacion/` se añaden en sus issues; 
 
 ```mermaid
 flowchart LR
-    FT["front/ + index.html"] -->|HTTP: docs/api.md, docs/api-v2.md| BK["back/motori_magenes"]
+    FT["front/ + index.html"] -->|HTTP: fullstack/docs/api.md, fullstack/docs/api-v2.md| BK["back/motori_magenes"]
     FS["fullstack/"] -.arranca y prueba.-> FT & BK
-    DOC["docs/"] -.describe.-> FT & BK & FS
+    DOC["fullstack/docs/"] -.describe.-> FT & BK & FS
 ```
 
 | Carpeta | Responsable (área de los issues) |
 |---------|----------------------------------|
 | `front/`, `index.html` | Frontend (FRONT-*) |
 | `back/motori_magenes/` | Backend (BACK-*) |
-| `fullstack/`, `docs/` | Full stack (FULL-*) |
+| `fullstack/`, `fullstack/docs/` | Full stack (FULL-*) |
 
 ## Migración desde la estructura anterior
 
 | Antes | Ahora | Compatibilidad |
 |-------|-------|----------------|
 | `tests/integracion/` | `fullstack/tests/integracion/` | `npm run test:integracion` se mantiene; documentación y CI actualizadas |
+| `docs/` (raíz) | `fullstack/docs/` (FULL-29, `git mv`: conserva el historial) | Enlaces internos, comentarios, pruebas y CI actualizados; no queda copia en `docs/` |
+| `docs/interfaz-v2.md`, `docs/pruebas-frontend.md`, `docs/pruebas-interfaz.md` | `front/docs/` (FULL-29) | Ídem; las capturas siguen en `fullstack/docs/evidencias/` |

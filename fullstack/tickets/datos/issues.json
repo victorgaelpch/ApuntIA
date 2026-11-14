@@ -1,0 +1,2441 @@
+{
+ "repositorio": "victorgaelpch/ApuntIA",
+ "obtenido_en": "2026-11-14T03:37:18Z",
+ "issues": [
+  {
+   "numero": 1,
+   "titulo": "Add dependencies for FastAPI project",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/1",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-10-17T04:32:01Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-10-17T04:30:31Z",
+   "updated_at": "2026-10-17T04:32:01Z",
+   "closed_at": "2026-10-17T04:32:01Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 2,
+   "titulo": "[BACK-01] Revisar y organizar la estructura del backend.",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/2",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T16:04:30Z",
+   "updated_at": "2026-11-03T19:02:05Z",
+   "closed_at": "2026-11-03T19:02:05Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 3,
+   "titulo": "[BACK-02] implementa la carga y validación de imagenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/3",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T16:35:37Z",
+   "updated_at": "2026-11-03T20:57:08Z",
+   "closed_at": "2026-11-03T20:57:08Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 4,
+   "titulo": "[BACK-03] Implementar el procesamiento de imágenes con OpenCV",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/4",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:16:16Z",
+   "updated_at": "2026-11-03T20:57:10Z",
+   "closed_at": "2026-11-03T20:57:10Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 5,
+   "titulo": "[BACK-04] Implementar la corrección de perspectiva del pizarrón",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/5",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:19:19Z",
+   "updated_at": "2026-11-03T20:57:11Z",
+   "closed_at": "2026-11-03T20:57:11Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 6,
+   "titulo": "[BACK-05] Mejorar la calidad y nitidez de las imágenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/6",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:20:05Z",
+   "updated_at": "2026-11-03T20:57:12Z",
+   "closed_at": "2026-11-03T20:57:12Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 7,
+   "titulo": "[BACK-06] Implementar la eliminación de ruido en las imágenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/7",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:21:10Z",
+   "updated_at": "2026-11-03T20:57:14Z",
+   "closed_at": "2026-11-03T20:57:14Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 8,
+   "titulo": "[BACK-07] Implementar el manejo de errores de la API",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/8",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:21:53Z",
+   "updated_at": "2026-11-03T20:57:15Z",
+   "closed_at": "2026-11-03T20:57:15Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 9,
+   "titulo": "[BACK-08] Realizar pruebas de los endpoints de FastAPI",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/9",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:22:34Z",
+   "updated_at": "2026-11-03T20:57:16Z",
+   "closed_at": "2026-11-03T20:57:16Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 10,
+   "titulo": "[BACK-09] Optimizar el tiempo de procesamiento de las imágenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/10",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:23:20Z",
+   "updated_at": "2026-11-03T20:57:18Z",
+   "closed_at": "2026-11-03T20:57:18Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 11,
+   "titulo": "[BACK-10] Documentar la instalación y ejecución del backend",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/11",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:23:59Z",
+   "updated_at": "2026-11-03T20:57:19Z",
+   "closed_at": "2026-11-03T20:57:19Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 12,
+   "titulo": "[FRONT-01] Diseñar la interfaz principal de ApuntIA",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/12",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:24:54Z",
+   "updated_at": "2026-11-03T19:19:35Z",
+   "closed_at": "2026-11-03T19:19:35Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 13,
+   "titulo": "[FRONT-02] Implementar la carga de imágenes desde el dispositivo",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/13",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:25:38Z",
+   "updated_at": "2026-11-03T20:57:20Z",
+   "closed_at": "2026-11-03T20:57:20Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 14,
+   "titulo": "[FRONT-03] Implementar la captura de fotografías desde la cámara",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/14",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:26:13Z",
+   "updated_at": "2026-11-03T20:57:22Z",
+   "closed_at": "2026-11-03T20:57:22Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 15,
+   "titulo": "[FRONT-04] Mostrar una vista previa de la imagen seleccionada",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/15",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:26:49Z",
+   "updated_at": "2026-11-03T20:57:23Z",
+   "closed_at": "2026-11-03T20:57:23Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 16,
+   "titulo": "[FRONT-05] Preparar la interfaz para comunicarse con la API de FastAPI",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/16",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:27:28Z",
+   "updated_at": "2026-11-03T20:57:24Z",
+   "closed_at": "2026-11-03T20:57:24Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 17,
+   "titulo": "[FRONT-06] Mostrar la imagen después del procesamiento",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/17",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:28:04Z",
+   "updated_at": "2026-11-03T20:57:25Z",
+   "closed_at": "2026-11-03T20:57:25Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 18,
+   "titulo": "[FRONT-07] Implementar indicadores de carga durante el procesamiento",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/18",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:28:40Z",
+   "updated_at": "2026-11-03T20:57:27Z",
+   "closed_at": "2026-11-03T20:57:27Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 19,
+   "titulo": "[FRONT-08] Mostrar mensajes de error y validación al usuario",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/19",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:29:11Z",
+   "updated_at": "2026-11-03T20:57:28Z",
+   "closed_at": "2026-11-03T20:57:28Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 20,
+   "titulo": "[FRONT-09] Adaptar la interfaz para dispositivos móviles y computadoras",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/20",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:29:40Z",
+   "updated_at": "2026-11-03T20:57:29Z",
+   "closed_at": "2026-11-03T20:57:29Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 21,
+   "titulo": "[FRONT-10] Realizar pruebas de funcionamiento de la interfaz",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/21",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:30:07Z",
+   "updated_at": "2026-11-03T20:57:31Z",
+   "closed_at": "2026-11-03T20:57:31Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 22,
+   "titulo": "[FULL-01] Analizar los requerimientos y definir el flujo completo de la aplicación",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/22",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:30:50Z",
+   "updated_at": "2026-11-03T20:57:32Z",
+   "closed_at": "2026-11-03T20:57:32Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 23,
+   "titulo": "[FULL-02] Coordinar la integración entre el frontend y el backend",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/23",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:32:38Z",
+   "updated_at": "2026-11-03T20:57:33Z",
+   "closed_at": "2026-11-03T20:57:33Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 24,
+   "titulo": "[FULL-03] Diseñar y documentar los contratos de la API",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/24",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:33:41Z",
+   "updated_at": "2026-11-03T20:57:35Z",
+   "closed_at": "2026-11-03T20:57:34Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 25,
+   "titulo": "[FULL-04] Integrar el frontend con los endpoints de FastAPI",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/25",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:34:47Z",
+   "updated_at": "2026-11-03T20:57:36Z",
+   "closed_at": "2026-11-03T20:57:36Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 26,
+   "titulo": "[FULL-05] Implementar el flujo completo de carga, procesamiento y visualización de imágenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/26",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:35:15Z",
+   "updated_at": "2026-11-03T20:57:37Z",
+   "closed_at": "2026-11-03T20:57:37Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 27,
+   "titulo": "[FULL-06] Verificar que los datos enviados desde el frontend sean compatibles con el backend",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/27",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:35:44Z",
+   "updated_at": "2026-11-03T20:57:39Z",
+   "closed_at": "2026-11-03T20:57:39Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 28,
+   "titulo": "[FULL-07] Realizar pruebas de integración entre frontend y backend",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/28",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:36:09Z",
+   "updated_at": "2026-11-03T20:57:40Z",
+   "closed_at": "2026-11-03T20:57:40Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 29,
+   "titulo": "[FULL-08] Detectar y corregir errores que involucren varias capas de la aplicación",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/29",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:36:32Z",
+   "updated_at": "2026-11-03T20:57:41Z",
+   "closed_at": "2026-11-03T20:57:41Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 30,
+   "titulo": "[FULL-09] Validar el funcionamiento completo de la aplicación y la experiencia del usuario",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/30",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:36:55Z",
+   "updated_at": "2026-11-03T20:57:42Z",
+   "closed_at": "2026-11-03T20:57:42Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 31,
+   "titulo": "[FULL-10] Documentar la arquitectura, los flujos principales y la configuración del proyecto",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/31",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-10-26T17:37:23Z",
+   "updated_at": "2026-11-03T20:57:44Z",
+   "closed_at": "2026-11-03T20:57:44Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 32,
+   "titulo": "[BACK-01] Reorganiza el backend de FastAPI en módulos (core, routers,…",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/32",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-03T19:02:03Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-03T18:55:52Z",
+   "updated_at": "2026-11-03T19:02:03Z",
+   "closed_at": "2026-11-03T19:02:03Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 33,
+   "titulo": "[FRONT-01] Diseña la interfaz principal de ApuntIA conectada a FastAPI",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/33",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-03T19:19:33Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-03T19:17:00Z",
+   "updated_at": "2026-11-03T19:19:33Z",
+   "closed_at": "2026-11-03T19:19:33Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 34,
+   "titulo": "ApuntIA v1.0: implementa todos los issues BACK, FRONT y FULL",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/34",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-03T20:57:06Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-03T20:55:42Z",
+   "updated_at": "2026-11-03T20:57:06Z",
+   "closed_at": "2026-11-03T20:57:06Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+   ]
+  },
+  {
+   "numero": 35,
+   "titulo": "Rubrica 1 2 6 8",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/35",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-03T21:13:29Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-03T21:11:40Z",
+   "updated_at": "2026-11-03T21:13:29Z",
+   "closed_at": "2026-11-03T21:13:29Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 36,
+   "titulo": "build(deps-dev): bump @commitlint/cli from 19.8.1 to 21.2.4",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/36",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-03T21:14:45Z",
+   "updated_at": "2026-11-03T21:14:49Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 37,
+   "titulo": "build(deps-dev): bump @commitlint/config-conventional from 19.8.1 to 21.2.4",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/37",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-03T21:14:51Z",
+   "updated_at": "2026-11-03T21:14:54Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 38,
+   "titulo": "ci: Bump actions/setup-node from 4 to 7",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/38",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-03T21:14:51Z",
+   "updated_at": "2026-11-10T14:54:02Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 39,
+   "titulo": "ci: Bump actions/setup-python from 5 to 7",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/39",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-03T21:15:24Z",
+   "updated_at": "2026-11-10T14:54:09Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 40,
+   "titulo": "ci: Bump actions/checkout from 4 to 7",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/40",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-03T21:15:36Z",
+   "updated_at": "2026-11-10T14:54:20Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 41,
+   "titulo": "[FULL-11] Automatizar la instalación, configuración y ejecución de ApuntIA mediante scripts",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/41",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T19:45:59Z",
+   "updated_at": "2026-11-10T17:05:01Z",
+   "closed_at": "2026-11-10T17:05:01Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 42,
+   "titulo": "[FULL-12] Crear y organizar la carpeta fullstack para ejecución, documentación y pruebas de integración",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/42",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:20:55Z",
+   "updated_at": "2026-11-10T17:05:03Z",
+   "closed_at": "2026-11-10T17:05:03Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 43,
+   "titulo": "[FULL-13] Implementar arranque alternativo mediante Docker y Docker Compose en fullstack",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/43",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:23:14Z",
+   "updated_at": "2026-11-10T17:05:05Z",
+   "closed_at": "2026-11-10T17:05:05Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 44,
+   "titulo": "[FULL-14] Reescribir README y documentación para instalación reproducible por cualquier evaluador",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/44",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:23:39Z",
+   "updated_at": "2026-11-10T17:05:06Z",
+   "closed_at": "2026-11-10T17:05:06Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 45,
+   "titulo": "[FULL-15] Diseñar arquitectura y contratos API v2 para OCR, fórmulas, PDF y cuentas sin romper /analisis",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/45",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:24:17Z",
+   "updated_at": "2026-11-10T17:05:08Z",
+   "closed_at": "2026-11-10T17:05:08Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 46,
+   "titulo": "[FULL-16] Integrar flujo completo de imagen/cuaderno a apunte editable, ampliado y PDF descargable",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/46",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:24:46Z",
+   "updated_at": "2026-11-10T17:05:09Z",
+   "closed_at": "2026-11-10T17:05:09Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 47,
+   "titulo": "[FULL-17] Centralizar pruebas unitarias, integración y CI para scripts y contenedores",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/47",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:25:01Z",
+   "updated_at": "2026-11-10T17:05:11Z",
+   "closed_at": "2026-11-10T17:05:11Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 48,
+   "titulo": "[FULL-18] Integrar autenticación, historial de apuntes y permisos de extremo a extremo",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/48",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:25:34Z",
+   "updated_at": "2026-11-10T17:05:12Z",
+   "closed_at": "2026-11-10T17:05:12Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 49,
+   "titulo": "[FULL-19] Crear banco de muestras y métricas verificables para OCR, fórmulas y PDFs ETIQUETA: fullStack",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/49",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:25:53Z",
+   "updated_at": "2026-11-10T17:05:14Z",
+   "closed_at": "2026-11-10T17:05:14Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 50,
+   "titulo": "[FULL-20] Auditar seguridad y privacidad de toda la arquitectura y dependencias",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/50",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:26:16Z",
+   "updated_at": "2026-11-10T17:05:15Z",
+   "closed_at": "2026-11-10T17:05:15Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 51,
+   "titulo": "[FULL-21] Agregar diagnósticos, métricas y manejo de fallos del sistema completo",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/51",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:27:02Z",
+   "updated_at": "2026-11-10T17:05:17Z",
+   "closed_at": "2026-11-10T17:05:17Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 52,
+   "titulo": "[FULL-22] Preparar entrega reproducible, versión de release y arranque en equipos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/52",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:27:30Z",
+   "updated_at": "2026-11-10T17:05:19Z",
+   "closed_at": "2026-11-10T17:05:19Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 53,
+   "titulo": "[FULL-23] Diseñar migraciones, respaldo y recuperación de la base de datos y archivos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/53",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:28:00Z",
+   "updated_at": "2026-11-10T17:05:20Z",
+   "closed_at": "2026-11-10T17:05:20Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 54,
+   "titulo": "[FULL-24] Validar alcance educativo con escenarios reales y preparar evidencia de entrega",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/54",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:28:19Z",
+   "updated_at": "2026-11-10T17:05:22Z",
+   "closed_at": "2026-11-10T17:05:22Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 55,
+   "titulo": "[BACK-11] Ampliar entrada de documentos para pizarrón, hojas de cuaderno y múltiples páginas",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/55",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I",
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:28:42Z",
+   "updated_at": "2026-11-10T17:05:23Z",
+   "closed_at": "2026-11-10T17:05:23Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 56,
+   "titulo": "[BACK-12] Adaptar OpenCV y preprocesamiento para mejorar OCR de cuadernos y pizarrones",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/56",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I",
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:29:09Z",
+   "updated_at": "2026-11-10T17:05:25Z",
+   "closed_at": "2026-11-10T17:05:25Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 57,
+   "titulo": "[BACK-13] Implementar OCR de texto impreso en fotografías y extracción por bloques",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/57",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I",
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:29:32Z",
+   "updated_at": "2026-11-10T17:05:27Z",
+   "closed_at": "2026-11-10T17:05:26Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 58,
+   "titulo": "[BACK-14] Reconocer escritura manuscrita de cuadernos y pizarrones con fallback seguro",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/58",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I",
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:29:48Z",
+   "updated_at": "2026-11-10T17:02:18Z",
+   "closed_at": "2026-11-10T17:02:18Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 59,
+   "titulo": "[BACK-15] Detectar fórmulas y convertir expresiones matemáticas a LaTeX verificable",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/59",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I",
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:30:17Z",
+   "updated_at": "2026-11-10T17:02:20Z",
+   "closed_at": "2026-11-10T17:02:19Z",
+   "dependencias": "BACK-13..BACK-15",
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 60,
+   "titulo": "[BACK-17] Crear modelo intermedio editable de apuntes con confianza y trazabilidad",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/60",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:33:32Z",
+   "updated_at": "2026-11-10T17:02:21Z",
+   "closed_at": "2026-11-10T17:02:21Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 61,
+   "titulo": "[BACK-18] Investigar temas de los apuntes y enriquecer información con fuentes citables y consentimiento",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/61",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:33:51Z",
+   "updated_at": "2026-11-10T17:02:22Z",
+   "closed_at": "2026-11-10T17:02:22Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 62,
+   "titulo": "[BACK-19] Generar apuntes estructurados y ampliados con resúmenes, conceptos y tablas comparativas",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/62",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:34:06Z",
+   "updated_at": "2026-11-10T17:02:24Z",
+   "closed_at": "2026-11-10T17:02:24Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 63,
+   "titulo": "[BACK-20] Generar PDF académico completo con fórmulas, tablas, esquemas e índice ETIQUETA: backend",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/63",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:34:27Z",
+   "updated_at": "2026-11-10T17:02:25Z",
+   "closed_at": "2026-11-10T17:02:25Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 64,
+   "titulo": "[BACK-21] Construir API de análisis y generación de apuntes con estado de tareas y errores",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/64",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:34:43Z",
+   "updated_at": "2026-11-10T17:02:27Z",
+   "closed_at": "2026-11-10T17:02:27Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 65,
+   "titulo": "[BACK-22] Implementar base de datos y almacenamiento privado para usuarios, apuntes, versiones y PDFs",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/65",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:35:07Z",
+   "updated_at": "2026-11-10T17:02:28Z",
+   "closed_at": "2026-11-10T17:02:28Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 66,
+   "titulo": "[BACK-23] Crear autenticación segura: registro, login, sesión, logout y recuperación de contraseña",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/66",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:35:25Z",
+   "updated_at": "2026-11-10T17:02:29Z",
+   "closed_at": "2026-11-10T17:02:29Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 67,
+   "titulo": "[BACK-24] Aplicar autorización por propietario, validaciones y protección de archivos en API",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/67",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:35:52Z",
+   "updated_at": "2026-11-10T17:02:31Z",
+   "closed_at": "2026-11-10T17:02:31Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 68,
+   "titulo": "[BACK-25] Ampliar pruebas unitarias y regresión para OCR, fórmulas, PDF, cuentas y datos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/68",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:36:14Z",
+   "updated_at": "2026-11-10T17:02:32Z",
+   "closed_at": "2026-11-10T17:02:32Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 69,
+   "titulo": "[BACK-26] Crear endpoints seguros de historial, búsqueda, edición y descarga de apuntes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/69",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:36:33Z",
+   "updated_at": "2026-11-10T17:02:34Z",
+   "closed_at": "2026-11-10T17:02:33Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 70,
+   "titulo": "[BACK-27] Crear gestor de trabajos durables para OCR y PDF con cancelación y límites",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/70",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:36:51Z",
+   "updated_at": "2026-11-10T17:02:35Z",
+   "closed_at": "2026-11-10T17:02:35Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 71,
+   "titulo": "[FRONT-11] Actualizar concepto visual de ApuntIA para pizarrones y cuadernos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/71",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:37:19Z",
+   "updated_at": "2026-11-10T17:02:36Z",
+   "closed_at": "2026-11-10T17:02:36Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 72,
+   "titulo": "[FRONT-12] Permitir cargar y ordenar varias fotografías de cuadernos o pizarrones",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/72",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:38:02Z",
+   "updated_at": "2026-11-10T17:02:38Z",
+   "closed_at": "2026-11-10T17:02:38Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 73,
+   "titulo": "[FRONT-13] Mostrar OCR y permitir corregir texto por bloques antes de generar apuntes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/73",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:39:37Z",
+   "updated_at": "2026-11-10T17:02:39Z",
+   "closed_at": "2026-11-10T17:02:39Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 74,
+   "titulo": "[FRONT-14] Visualizar y corregir fórmulas, tablas y esquemas antes del PDF",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/74",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:39:55Z",
+   "updated_at": "2026-11-10T17:02:40Z",
+   "closed_at": "2026-11-10T17:02:40Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 75,
+   "titulo": "[FRONT-15] Permitir ampliar apuntes con investigación y mostrar referencias verificables",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/75",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:40:12Z",
+   "updated_at": "2026-11-10T17:02:42Z",
+   "closed_at": "2026-11-10T17:02:42Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 76,
+   "titulo": "[FRONT-16] Implementar progreso de generación, vista previa y descarga real del PDF",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/76",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:40:28Z",
+   "updated_at": "2026-11-10T17:02:43Z",
+   "closed_at": "2026-11-10T17:02:43Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 77,
+   "titulo": "[FRONT-17] Diseñar e integrar registro, inicio de sesión y recuperación de contraseña",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/77",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:40:46Z",
+   "updated_at": "2026-11-10T17:02:45Z",
+   "closed_at": "2026-11-10T17:02:45Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 78,
+   "titulo": "[FRONT-18] Crear panel Mis apuntes con historial, búsqueda, filtros y acceso a PDFs",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/78",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:41:04Z",
+   "updated_at": "2026-11-10T17:02:46Z",
+   "closed_at": "2026-11-10T17:02:46Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 79,
+   "titulo": "[FRONT-19] Implementar perfil de usuario, preferencias y cambio seguro de contraseña",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/79",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:41:50Z",
+   "updated_at": "2026-11-10T17:02:48Z",
+   "closed_at": "2026-11-10T17:02:47Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 80,
+   "titulo": "[FRONT-20] Unificar validaciones, mensajes de error y seguridad de interfaz en todos los flujos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/80",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:42:08Z",
+   "updated_at": "2026-11-10T17:02:49Z",
+   "closed_at": "2026-11-10T17:02:49Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 81,
+   "titulo": "[FRONT-21] Extender pruebas de interfaz, accesibilidad y responsive para todos los módulos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/81",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:42:25Z",
+   "updated_at": "2026-11-10T17:02:50Z",
+   "closed_at": "2026-11-10T17:02:50Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 82,
+   "titulo": "[FRONT-22] Añadir revisión de versiones, autosalvado controlado y comparación de cambios de apuntes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/82",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-09T23:42:40Z",
+   "updated_at": "2026-11-10T17:02:52Z",
+   "closed_at": "2026-11-10T17:02:52Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 83,
+   "titulo": "V2 ocr pdf cuentas",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/83",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-10T14:52:00Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-10T02:26:50Z",
+   "updated_at": "2026-11-10T14:52:00Z",
+   "closed_at": "2026-11-10T14:52:00Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 84,
+   "titulo": "[BACK-28] Implementar reconocimiento adaptativo y recuperación asistida de texto manuscrito y fórmulas difíciles",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/84",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "completed",
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-10T17:04:04Z",
+   "updated_at": "2026-11-10T18:14:32Z",
+   "closed_at": "2026-11-10T18:14:32Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 85,
+   "titulo": "build(deps): Bump click from 8.5.0 to 8.5.1 in /back/motori_magenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/85",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-10T17:15:23Z",
+   "updated_at": "2026-11-10T17:15:28Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 86,
+   "titulo": "build(deps): Bump python-dateutil from 2.9.0.post0 to 4.0.0 in /back/motori_magenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/86",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-10T17:15:30Z",
+   "updated_at": "2026-11-10T17:15:35Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 87,
+   "titulo": "build(deps): Bump pypdf from 6.17.0 to 7.0.0 in /back/motori_magenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/87",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-10T17:15:36Z",
+   "updated_at": "2026-11-10T17:15:41Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 88,
+   "titulo": "build(deps): Bump reportlab from 5.0.1 to 5.1.0 in /back/motori_magenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/88",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-10T17:15:38Z",
+   "updated_at": "2026-11-10T17:15:42Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 89,
+   "titulo": "build(deps): Bump typing-inspection from 0.4.4 to 0.4.5 in /back/motori_magenes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/89",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [],
+   "autor": "dependabot[bot]",
+   "created_at": "2026-11-10T17:15:41Z",
+   "updated_at": "2026-11-10T17:15:46Z",
+   "closed_at": null,
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 90,
+   "titulo": "[BACK-28] Reconocimiento adaptativo y recuperación asistida",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/90",
+   "es_pr": true,
+   "pr_fusionado_en": "2026-11-10T18:07:45Z",
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-10T18:00:58Z",
+   "updated_at": "2026-11-10T18:07:45Z",
+   "closed_at": "2026-11-10T18:07:45Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 91,
+   "titulo": "[FULLSTACK][IA][OCR][P0] Implementar motor multimodal avanzado de reconocimiento, interpretación y reconstrucción inteligente de apuntes académicos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/91",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": "not_planned",
+   "etiquetas": [
+    "backend",
+    "frontend",
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-10T19:02:32Z",
+   "updated_at": "2026-11-13T01:45:39Z",
+   "closed_at": "2026-11-13T01:45:39Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 92,
+   "titulo": "[FULL-30] IA multimodal (1/8): auditoría, interfaz de motores, VLM local opcional y perfiles",
+   "url": "https://github.com/victorgaelpch/ApuntIA/pull/92",
+   "es_pr": true,
+   "pr_fusionado_en": null,
+   "estado": "closed",
+   "motivo_estado": null,
+   "etiquetas": [],
+   "responsables": [],
+   "autor": "I-Yane-I",
+   "created_at": "2026-11-10T19:19:03Z",
+   "updated_at": "2026-11-13T01:47:33Z",
+   "closed_at": "2026-11-13T01:47:33Z",
+   "dependencias": null,
+   "plan": [],
+   "cierra": []
+  },
+  {
+   "numero": 93,
+   "titulo": "[FULL-29] Reorganizar toda la documentación y centralizar los tickets de trabajo con trazabilidad real",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/93",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:33:50Z",
+   "updated_at": "2026-11-14T00:33:50Z",
+   "closed_at": null,
+   "dependencias": "Ninguna. Es base para todos los demás Issues.",
+   "plan": [
+    [
+     "2026-11-13",
+     "18:00",
+     "20:00",
+     "Auditoría de rutas, documentación, tickets e historial de GitHub."
+    ],
+    [
+     "2026-11-14",
+     "10:00",
+     "12:30",
+     "Migración controlada de documentación y creación del índice de tickets."
+    ],
+    [
+     "2026-11-16",
+     "18:30",
+     "20:30",
+     "Corrección de vínculos, CI y validación de navegación."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 94,
+   "titulo": "[FULL-30] Implementar un instalador y menú único de ApuntIA y servidor IA en Windows sin romper los scripts actuales",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/94",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:37:50Z",
+   "updated_at": "2026-11-14T00:37:50Z",
+   "closed_at": null,
+   "dependencias": "FULL-29. Coordinar con BACK-35 para instalar/activar el servidor IA.",
+   "plan": [
+    [
+     "2026-11-17",
+     "18:00",
+     "20:00",
+     "Diseño de menú y verificación de compatibilidad de scripts."
+    ],
+    [
+     "2026-11-18",
+     "18:30",
+     "21:00",
+     "Implementación incremental del instalador y perfiles."
+    ],
+    [
+     "2026-11-20",
+     "17:30",
+     "20:30",
+     "Pruebas de arranque/detención y recuperación de errores."
+    ],
+    [
+     "2026-11-17",
+     "19:00",
+     "21:00",
+     "Inspección de APIs, esquemas y separación de responsabilidades."
+    ],
+    [
+     "2026-11-19",
+     "18:00",
+     "21:00",
+     "Implementación del servidor de inferencia y adaptadores."
+    ],
+    [
+     "2026-11-21",
+     "10:00",
+     "13:00",
+     "Contrato, pruebas simuladas, inferencia real y memoria GPU."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 95,
+   "titulo": "[FULL-31] Conexión remota segura automática, emparejamiento inicial, configuración manual y respaldo para otras redes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/95",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:39:19Z",
+   "updated_at": "2026-11-14T00:39:19Z",
+   "closed_at": null,
+   "dependencias": "BACK-35 y FULL-30 al menos con endpoints de salud y esquema de cliente.",
+   "plan": [
+    [
+     "2026-11-23",
+     "18:00",
+     "21:00",
+     "Contrato de conexión y riesgos de seguridad; configuración de túnel."
+    ],
+    [
+     "2026-11-25",
+     "18:00",
+     "21:00",
+     "Emparejamiento y almacenamiento local de credenciales."
+    ],
+    [
+     "2026-11-28",
+     "10:00",
+     "13:00",
+     "Pruebas desde otra red, diagnóstico, recuperación manual."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 96,
+   "titulo": "[BACK-36] Implementar el pipeline multimodelo de máximo reconocimiento para cuadernos, pizarrones, fórmulas, tablas, diagramas y dibujos",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/96",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "fullStack"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:40:15Z",
+   "updated_at": "2026-11-14T00:40:15Z",
+   "closed_at": null,
+   "dependencias": "BACK-35; usar la base de evaluación existente (BACK-28, `fullstack/evaluacion/`).",
+   "plan": [
+    [
+     "2026-11-24",
+     "18:00",
+     "21:00",
+     "Definición de corpus, preprocesamiento, ROI y contratos de bloque."
+    ],
+    [
+     "2026-11-27",
+     "18:00",
+     "22:00",
+     "Pipeline híbrido, OCR/VLM y validación de fórmulas/diagramas."
+    ],
+    [
+     "2026-11-30",
+     "18:00",
+     "21:00",
+     "Benchmark, comparación de motores y corrección de regresiones."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 97,
+   "titulo": "[BACK-37] Gestionar trabajos remotos asíncronos, cola, reintentos, fallos y recuperación sin pérdida de apuntes",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/97",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "backend"
+   ],
+   "responsables": [
+    "I-Yane-I"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:41:24Z",
+   "updated_at": "2026-11-14T00:41:24Z",
+   "closed_at": null,
+   "dependencias": "BACK-35 + FULL-31 + esquema BACK-36.",
+   "plan": [
+    [
+     "2026-11-30",
+     "19:00",
+     "21:00",
+     "Diseño de estados de trabajos y reanudación."
+    ],
+    [
+     "2026-12-02",
+     "18:00",
+     "21:00",
+     "Cola y adaptador sin duplicación; códigos de error."
+    ],
+    [
+     "2026-12-04",
+     "18:00",
+     "20:00",
+     "Pruebas de fallos reales y recuperación."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 98,
+   "titulo": "[FRONT-25] Añadir panel de estado IA, conexión automática/manual, vinculación y diagnóstico accesible",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/98",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:42:20Z",
+   "updated_at": "2026-11-14T00:42:20Z",
+   "closed_at": null,
+   "dependencias": "FULL-31 para endpoints y BACK-37 para estado de trabajos; usar mocks mientras tanto.",
+   "plan": [
+    [
+     "2026-11-28",
+     "16:00",
+     "18:00",
+     "Diseño UX de conexión y estados con API simulada."
+    ],
+    [
+     "2026-11-30",
+     "18:00",
+     "20:30",
+     "Interfaz de emparejamiento, perfil y mensajes."
+    ],
+    [
+     "2026-12-02",
+     "18:30",
+     "20:30",
+     "Pruebas E2E, teclado y navegación móvil."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 99,
+   "titulo": "[FRONT-26] Ampliar el editor para revisión visual de manuscritos, fórmulas, tablas, diagramas y evidencia de reconocimiento",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/99",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:43:28Z",
+   "updated_at": "2026-11-14T00:43:28Z",
+   "closed_at": null,
+   "dependencias": "BACK-36 para contrato de bloques; FRONT-25 para mensajes.",
+   "plan": [
+    [
+     "2026-12-03",
+     "18:00",
+     "20:30",
+     "Revisión del editor y prototipos de anotación por región."
+    ],
+    [
+     "2026-12-04",
+     "18:00",
+     "21:00",
+     "Implementar revisión, comparación y edición estructurada."
+    ],
+    [
+     "2026-12-05",
+     "10:00",
+     "12:30",
+     "Pruebas E2E y documentación de UI."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 100,
+   "titulo": "[BACK-38] Integrar resultados de IA remota, investigación verificable y generación de PDF educativo completo con trazabilidad",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/100",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "frontend"
+   ],
+   "responsables": [
+    "Azul-Lopez"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:44:35Z",
+   "updated_at": "2026-11-14T00:44:35Z",
+   "closed_at": null,
+   "dependencias": "BACK-36 + BACK-37 + FRONT-26; reutilizar flujos actuales de investigación/PDF.",
+   "plan": [
+    [
+     "2026-12-04",
+     "19:00",
+     "21:00",
+     "Auditar investigación Wikipedia y PDF actuales, esquema de evidencia."
+    ],
+    [
+     "2026-12-07",
+     "18:00",
+     "21:00",
+     "Integración de bloque multimodal, enriquecimiento y PDF."
+    ],
+    [
+     "2026-12-08",
+     "18:00",
+     "21:00",
+     "Pruebas de citas, fórmulas, esquemas y regresión."
+    ]
+   ],
+   "cierra": []
+  },
+  {
+   "numero": 101,
+   "titulo": "[FULL-32] Cerrar ApuntIA 3.0 con pruebas en dos redes, documentación técnica exhaustiva, seguridad y guía de exposición",
+   "url": "https://github.com/victorgaelpch/ApuntIA/issues/101",
+   "es_pr": false,
+   "pr_fusionado_en": null,
+   "estado": "open",
+   "motivo_estado": null,
+   "etiquetas": [
+    "fullStack"
+   ],
+   "responsables": [
+    "victorgaelpch"
+   ],
+   "autor": "victorgaelpch",
+   "created_at": "2026-11-14T00:45:49Z",
+   "updated_at": "2026-11-14T00:45:49Z",
+   "closed_at": null,
+   "dependencias": "FULL-29/30/31, BACK-35/36/37/38, FRONT-25/26.",
+   "plan": [
+    [
+     "2026-12-09",
+     "17:30",
+     "21:00",
+     "Revisión integrada de contratos, CI y seguridad."
+    ],
+    [
+     "2026-12-10",
+     "18:00",
+     "21:30",
+     "Prueba de instalación real y comunicación entre dos redes."
+    ],
+    [
+     "2026-12-12",
+     "10:00",
+     "14:00",
+     "Pruebas de aceptación de fotos, PDFs y documentación para entrega."
+    ]
+   ],
+   "cierra": []
+  }
+ ]
+}

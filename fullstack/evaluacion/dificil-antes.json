@@ -500,5 +500,5 @@
       "particion": "evaluacion"
     }
   ],
-  "descripcion": "Corpus de casos difíciles (BACK-28). antes = código de main antes de BACK-28; despues = modo adaptativo. Generado con python -m herramientas.evaluar_dificil (ver docs/evaluacion.md §6)."
+  "descripcion": "Corpus de casos difíciles (BACK-28). antes = código de main antes de BACK-28; despues = modo adaptativo. Generado con python -m herramientas.evaluar_dificil (ver fullstack/docs/evaluacion.md §6)."
 }

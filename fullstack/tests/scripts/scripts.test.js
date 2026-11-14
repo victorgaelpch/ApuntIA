@@ -1,6 +1,6 @@
 // FULL-11: pruebas de los scripts de arranque y detención (Linux/macOS).
 // Se ejecutan los scripts reales con --sin-venv (usan el Python del sistema, como en CI).
-// Los .ps1/.bat de Windows no se pueden ejecutar en este entorno: ver docs/arranque.md.
+// Los .ps1/.bat de Windows no se pueden ejecutar en este entorno: ver fullstack/docs/arranque.md.
 const { test, describe, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { spawnSync, spawn } = require("node:child_process");

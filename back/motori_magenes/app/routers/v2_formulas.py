@@ -1,4 +1,4 @@
-"""Validación y vista previa de fórmulas (BACK-15, FRONT-14). Contrato: docs/api-v2.md §5."""
+"""Validación y vista previa de fórmulas (BACK-15, FRONT-14). Contrato: fullstack/docs/api-v2.md §5."""
 
 import base64
 

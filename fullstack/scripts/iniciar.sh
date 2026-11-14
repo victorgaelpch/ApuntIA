@@ -88,7 +88,7 @@ else
     aviso "Instálalo con: sudo apt install tesseract-ocr tesseract-ocr-spa  (macOS: brew install tesseract tesseract-lang)"
 fi
 
-# Backend Spring Boot: el repositorio NO tiene uno (ver docs/arranque.md). Si se añade en
+# Backend Spring Boot: el repositorio NO tiene uno (ver fullstack/docs/arranque.md). Si se añade en
 # back/<carpeta>/ con mvnw o pom.xml, se detecta y se arranca también.
 SPRING=""
 for pom in "$RAIZ"/back/*/pom.xml "$RAIZ"/back/*/build.gradle; do

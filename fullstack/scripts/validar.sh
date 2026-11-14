@@ -54,7 +54,9 @@ else
     RESUMEN+=("○ Evaluación del OCR omitida: Tesseract no está instalado")
 fi
 paso "Seguridad: sin secretos en el repositorio ni en su historial" "$PY" fullstack/scripts/buscar_secretos.py
-paso "Documentación: enlaces internos" "$PY" fullstack/scripts/comprobar_enlaces.py
+paso "Documentación: enlaces internos, imágenes y documentos huérfanos (FULL-29)" "$PY" fullstack/scripts/comprobar_enlaces.py
+paso "Documentación y tickets: pruebas del comprobador y del sincronizador (FULL-29)" bash -c "'$PY' -m unittest discover -s fullstack/tests/docs && '$PY' -m unittest discover -s fullstack/tests/tickets"
+paso "Tickets: las fichas coinciden con el snapshot (sincronizador sin red, FULL-29)" bash -c "'$PY' fullstack/scripts/sincronizar_tickets.py --offline && git diff --exit-code -- fullstack/tickets"
 paso "Interfaz: catálogo de mensajes y reglas de seguridad" bash -c "node --test $(junit_node catalogo) front/tests/catalogo.test.js"
 paso "Sintaxis de los scripts de arranque" bash -c "for s in fullstack/scripts/*.sh iniciar.sh detener.sh; do bash -n \"\$s\" || exit 1; done"
 paso "Sintaxis de los workflows y de compose.yaml" "$PY" - <<'PYEOF'

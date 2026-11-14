@@ -43,7 +43,7 @@ MUTACIONES = [
 
 
 def copiar(destino: Path) -> Path:
-    """Copia el backend (y docs/, que leen algunas pruebas) con la misma estructura del repositorio."""
+    """Copia el backend (y fullstack/docs/, que leen algunas pruebas) con la misma estructura del repositorio."""
     ignorar = shutil.ignore_patterns("__pycache__", "*.sqlite3", ".pytest_cache", "venv*", ".venv")
     backend = destino / RAIZ.relative_to(REPO)
     backend.mkdir(parents=True)
@@ -53,7 +53,7 @@ def copiar(destino: Path) -> Path:
             shutil.copytree(origen, backend / nombre, ignore=ignorar)
         else:
             shutil.copy2(origen, backend / nombre)
-    shutil.copytree(REPO / "docs", destino / "docs", ignore=ignorar)
+    shutil.copytree(REPO / "fullstack" / "docs", destino / "fullstack" / "docs", ignore=ignorar)
     return backend
 
 

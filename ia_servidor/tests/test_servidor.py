@@ -86,6 +86,7 @@ def test_analisis_valido_devuelve_contrato(armar):
     chat = ollama.chats()[0]
     assert chat["model"] == "qwen3-vl:8b" and chat["stream"] is False and chat["options"]["temperature"] == 0
     assert chat["format"]["properties"]["texto"] and len(chat["messages"][0]["images"]) == 1
+    assert chat["options"]["num_ctx"] == 8192 and chat["options"]["num_predict"] == 2048  # siempre acotado
 
 
 def test_imagen_grande_se_reduce_para_el_modelo(armar):

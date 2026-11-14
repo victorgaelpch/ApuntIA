@@ -9,3 +9,9 @@
   `python -m ia_servidor`: `/salud` 200, `/listo` 503 (Ollama no instalado, GPU detectada),
   análisis 503 `NO_DISPONIBLE`, `IA_HOST=0.0.0.0` rechazado con salida 2.
   Pendiente: inferencia real con `qwen3-vl:8b` (requiere instalar Ollama y descargar 6,2 GB).
+- Sesión real: 2026-11-13 22:20–23:01 (America/Mexico_City). Responsable: Claude Code a petición del
+  dueño del equipo, que autorizó instalar Ollama y `qwen3-vl:8b`. Actividad: instalación con
+  `winget` (Ollama 0.40.16, hash verificado) y `ia.ps1 -Accion instalar -AceptarDescarga`
+  (593 s); medición real con `python -m ia_servidor.medir`; diagnóstico de la variante «thinking»
+  (ignora `think:false`, agota el contexto en fórmulas); `IA_NUM_CTX`/`IA_MAX_TOKENS`.
+  Evidencia: `fullstack/docs/servidor-ia.md` §8; pytest 40 OK.

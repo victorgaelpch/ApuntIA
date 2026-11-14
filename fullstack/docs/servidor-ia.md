@@ -5,11 +5,11 @@ con GPU** y convierte UNA imagen en una transcripción estructurada con un model
 (Qwen3-VL en Ollama). La laptop del profesor sigue teniendo todo lo demás: cuentas, SQLite,
 historial, editor y PDF. El servidor IA **no** tiene usuarios, base de datos ni almacenamiento.
 
-> Estado (13/11/2026): **implementado y probado con un Ollama simulado** (40 pruebas). Arranque
-> real comprobado en la PC destino (Windows 11, RTX 3060 12 GB, driver 621.14) **sin Ollama
-> instalado**: `/salud` 200, `/listo` 503 con causa, `/api/v1/analisis` 503 `NO_DISPONIBLE`.
-> **Pendiente**: instalar Ollama + `qwen3-vl:8b` (FULL-30) y medir VRAM, latencia y calidad
-> reales con fotos de prueba (BACK-36). No hay todavía ninguna cifra de precisión.
+> Estado (13/11/2026): implementado, 40 pruebas con Ollama simulado y **probado en la PC
+> destino** (Windows 11, RTX 3060 12 GB, controlador 621.14, Ollama 0.40.16, `qwen3-vl:8b`
+> Q4_K_M). Medición real en §8: el texto impreso y el manuscrito sintético se leen sin errores,
+> pero la variante `qwen3-vl:8b` es **«thinking»** y en fórmulas se queda razonando sin responder.
+> Pendiente: probar `qwen3-vl:8b-instruct` y fotos reales (BACK-36).
 
 ## 1. Arquitectura
 
@@ -136,8 +136,10 @@ Fuentes: <https://ollama.com/library/qwen3-vl> (tamaños, «requires Ollama 0.12
 Licencia del modelo: Apache-2.0 según la ficha de Qwen3-VL de Qwen; **verificarla** en la ficha
 del modelo descargado (`ollama show qwen3-vl:8b --license`) antes de la entrega.
 
-**Las cifras de VRAM y latencia reales todavía no se han medido.** Se registrarán en
-`evaluacion-multimodal.md` (BACK-36) con `nvidia-smi` y `/api/ps`.
+| `IA_NUM_CTX` | 8192 | El defecto de Ollama (4096) se agotó con imagen + respuesta en fórmulas (§8) |
+| `IA_MAX_TOKENS` | 2048 | Tope de generación: un modelo «thinking» puede razonar sin fin (§8) |
+
+Cifras reales de VRAM y latencia: §8.
 
 ## 5. Seguridad y privacidad
 
@@ -177,3 +179,46 @@ Se ejecutan en `fullstack/scripts/validar.sh` y en la CI.
 
 Pendiente en el equipo real (no simulable): inferencia con `qwen3-vl:8b`, pico de VRAM,
 latencia por tarea, OOM real y calidad con fotos de prueba.
+
+## 8. Medición real en la PC destino (13/11/2026)
+
+Equipo: Windows 11 Pro 10.0.26200, RTX 3060 12 GB (controlador 621.14), Ollama 0.40.16,
+`qwen3-vl:8b` (8,2 B parámetros, Q4_K_M, 6,2 GB). Comando reproducible, con el servidor en marcha:
+`python -m ia_servidor.medir` (corpus **sintético** de `herramientas/corpus.py`, con verdad
+generada por código; resultados en `fullstack/evaluacion/resultados/`, no versionado).
+
+Configuración de esta primera tanda: la del servidor antes de añadir `IA_NUM_CTX`/`IA_MAX_TOKENS`
+(contexto 4096 por defecto de Ollama).
+
+| Muestra | Tarea | Resultado | Latencia | CER VLM | CER Tesseract (línea base) |
+|---------|-------|-----------|----------|---------|----------------------------|
+| impreso_cuaderno | texto_impreso | 200 | 132,8 s (en frío: carga del modelo) | 0 % | 0,68 % |
+| cuaderno_con_sombra | texto_impreso | 200 | 35,3 s | 0 % | 0,68 % |
+| cuaderno_cuadriculado | texto_impreso | 200 | 20,1 s | 0 % | 0,68 % |
+| impreso_pizarron | texto_impreso | 200 | 38,5 s | 0 % | 0,68 % |
+| pizarron_oscuro | texto_impreso | 200 | 43,0 s | 0 % | 0,68 % |
+| pizarron_con_ruido | texto_impreso | 502 `RESPUESTA_INVALIDA` (cortada) | 51,0 s | — | — |
+| manuscrito_cuaderno | texto_manuscrito | 200 | 20,6 s | 0 % | 0 % |
+| manuscrito_dificil | texto_manuscrito | 200 | 22,2 s | 0 % | 5,56 % |
+| formulas_pizarron | formula | 502 (cortada) | 65,1 s | — | — |
+| formulas_2d | formula | 502 (cortada) | 63,4 s | — | — |
+| diagrama | diagrama | 200, descripción prudente («círculo, flecha hacia un rectángulo, línea curva»), sin inventar | 21,4 s | — | — |
+
+- **VRAM**: el modelo cargado ocupa 5,8 GB según `/api/ps` con contexto 4096 y 7,9 GB con
+  16384. Pico de la GPU durante la tanda: 10,7 GB, incluidos ~3,6 GB que ya usaban otros
+  programas del escritorio. Con un juego abierto que use más de ~4 GB de VRAM, es esperable `SIN_MEMORIA`.
+- **Por qué es lento y por qué falla**: `ollama show` indica `renderer qwen3-vl-thinking` y
+  «thinking default true». La API **ignora `think: false`** en esta variante (medido: sigue
+  devolviendo razonamiento). Así, 147 caracteres de respuesta costaron hasta 2 505 tokens. En
+  fórmulas, imagen + razonamiento agotaron el contexto de 4096 (`done_reason: length`).
+  Con contexto 16384 el modelo razonó 50 000–68 000 caracteres durante ~6 min por imagen y
+  **tampoco** terminó. Por eso existen ahora `IA_NUM_CTX` y `IA_MAX_TOKENS` (con ellos, el peor
+  caso termina en un error acotado en vez de colgarse).
+- `ollama show` declara `requires 0.30.0` para este modelo, aunque la página de la biblioteca
+  dice 0.12.7. El servidor sigue exigiendo ≥ 0.12.7; con un Ollama más antiguo que 0.30 el modelo
+  no carga y `/listo` lo indicaría como error de Ollama.
+
+Lectura honesta: el CER 0 % se obtuvo en un corpus **sintético y fácil** (texto dibujado con
+fuentes). No permite afirmar nada sobre fotos reales de pizarrón; eso es BACK-36.
+Siguiente paso propuesto: repetir la tanda con `qwen3-vl:8b-instruct` (mismo tamaño, sin
+razonamiento) y, si mejora, hacerlo el modelo por defecto.

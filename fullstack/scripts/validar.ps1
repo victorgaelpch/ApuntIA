@@ -9,6 +9,7 @@
 #                   con el corpus sintético (tiempo y pico de VRAM por caso). Solo en la PC del servidor.
 #   -Remoto URL     además: desde la laptop, comprueba el servidor IA por su URL pública (HTTPS del
 #                   túnel o de Tailscale): TLS, /salud y latencia. La prueba entre dos redes es esta.
+#   -SoloRemoto     con -Remoto: solo esa comprobación (para la laptop, que no tiene pytest ni Node).
 #   -Python RUTA    intérprete con las dependencias de desarrollo (por defecto: $env:PYTHON, el .venv
 #                   del backend o el Python del sistema).
 #
@@ -17,8 +18,10 @@ param(
     [switch]$Completo,
     [switch]$Gpu,
     [string]$Remoto = "",
+    [switch]$SoloRemoto,
     [string]$Python = ""
 )
+if ($SoloRemoto -and -not $Remoto) { Write-Host "-SoloRemoto necesita -Remoto URL" -ForegroundColor Red; exit 2 }
 $ErrorActionPreference = "Continue"
 $Raiz = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 Import-Module (Join-Path $PSScriptRoot "ApuntIA.Comun.psm1") -Force -DisableNameChecking
@@ -31,7 +34,7 @@ if (-not $Python) {
     $venv = Join-Path $Raiz "back\motori_magenes\.venv\Scripts\python.exe"
     if (Test-Path $venv) { $Python = $venv } else { $p = Find-Python; if ($p) { $Python = $p[0] } }
 }
-if (-not $Python) { Write-Error2 "No hay Python 3.10+ (usa -Python RUTA)."; exit 2 }
+if (-not $Python -and -not $SoloRemoto) { Write-Error2 "No hay Python 3.10+ (usa -Python RUTA)."; exit 2 }
 $Node = (Get-Command node -ErrorAction SilentlyContinue).Source
 if (-not $Node -and (Test-Path "C:\Program Files\nodejs\node.exe")) { $Node = "C:\Program Files\nodejs\node.exe" }
 $Tess = "C:\Program Files\Tesseract-OCR"
@@ -54,6 +57,7 @@ function Paso([string]$Nombre, [scriptblock]$Accion) {
 function Nota([string]$Texto) { Write-Aviso $Texto; $script:resumen.Add("--  $Texto") }
 
 # ------------------------------------------------------------------ rápido
+if (-not $SoloRemoto) {
 Paso "Backend: pytest" { Push-Location back\motori_magenes; try { & $Python -m pytest -q -p no:cacheprovider } finally { Pop-Location } }
 Paso "Servidor IA: pytest con Ollama simulado" { & $Python -m pytest -q -p no:cacheprovider ia_servidor\tests }
 Paso "Seguridad: sin secretos en el árbol ni en el historial" { & $Python fullstack\scripts\buscar_secretos.py }
@@ -74,6 +78,7 @@ if (Get-Command tesseract -ErrorAction SilentlyContinue) {
         Nota "Tesseract sin «spa» ($idiomas): copia spa.traineddata en tessdata; si no, fallan las pruebas de calidad del OCR"
     }
 } else { Nota "Tesseract no está instalado: se omiten las pruebas que lo necesitan" }
+}
 
 # ------------------------------------------------------------------ completo
 if ($Completo) {

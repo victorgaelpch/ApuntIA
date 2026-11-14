@@ -57,7 +57,7 @@ def test_construir_region(contenido, esperado):
 
 def test_tarea_documento(armar):
     ollama = OllamaFalso(chat=[r"$\sin(t)=0$" + "\n" + r"$\cos(t)=1$", "DIBUJO: una tabla", "Recordatorios [?]"])
-    cliente, *_ = armar(ollama)
+    cliente, *_ = armar(ollama, seg_hueco_lineas=0.6)  # párrafos de la imagen sintética en un bloque
     png = cv2.imencode(".png", pizarron())[1].tobytes()
     r = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"})
     assert r.status_code == 200, r.json()
@@ -94,7 +94,7 @@ def test_una_region_invalida_no_tumba_el_documento(armar):
             if url.endswith("/api/chat") and len(self.chats()) == 2:
                 datos = datos.replace(b'"done_reason": "stop"', b'"done_reason": "length"')
             return estado, datos
-    cliente, *_ = armar(Cortada(chat=["uno", "dos", "tres"]))
+    cliente, *_ = armar(Cortada(chat=["uno", "dos", "tres"]), seg_hueco_lineas=0.6)
     png = cv2.imencode(".png", pizarron())[1].tobytes()
     r = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"})
     assert r.status_code == 200

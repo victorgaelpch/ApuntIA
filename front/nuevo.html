@@ -58,6 +58,13 @@
       <label for="inpTitulo">Título</label>
       <input type="text" id="inpTitulo" maxlength="200" placeholder="Por ejemplo: Derivadas — clase del lunes">
     </div>
+    <fieldset class="motor-ia" aria-describedby="estadoMotorIA">
+      <legend>Reconocimiento</legend>
+      <label><input type="radio" name="motor" value="auto" checked> <span><strong>Automático</strong>: el servidor IA si este equipo está vinculado; si no, el local (te avisamos).</span></label>
+      <label><input type="radio" name="motor" value="ia_remota" id="motorRemoto"> <span><strong>Servidor IA</strong>: mejor con manuscritos, fórmulas y tablas. Tarda más y requiere la PC del servidor encendida.</span></label>
+      <label><input type="radio" name="motor" value="local"> <span><strong>Local</strong>: rápido y siempre disponible; lee peor la letra a mano.</span></label>
+      <p class="ayuda" id="estadoMotorIA" aria-live="polite">Comprobando el servidor IA… · <a href="/front/ia.html">Configurar</a></p>
+    </fieldset>
     <div class="botones">
       <button type="button" class="btn primary" id="btCrear" disabled>Crear apunte</button>
       <button type="button" class="btn" id="btCancelarSubida" hidden>Cancelar envío</button>

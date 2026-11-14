@@ -211,3 +211,31 @@ del { background: color-mix(in srgb, var(--danger) 18%, transparent); text-decor
 /* ---------- perfil (FRONT-19) ---------- */
 .estado-guardado[data-tipo=exito] { color: var(--brand-text); font-weight: 600; }
 .zona-peligro { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+
+/* ---------------------------------------------------------------- Servidor IA (FRONT-25)
+   El estado siempre lleva TEXTO; el color solo lo refuerza (contraste AA sobre blanco). */
+.estado-ia { display: flex; align-items: center; gap: .6rem; font-weight: 600; margin: .4rem 0; }
+.estado-ia__punto { width: .9rem; height: .9rem; border-radius: 50%; background: #6b7280; flex: none; }
+.estado-ia[data-estado="conectado"] .estado-ia__punto { background: #0a7d62; }
+.estado-ia[data-estado="vinculado"] .estado-ia__punto { background: #2563eb; }
+.estado-ia[data-estado="sin_vincular"] .estado-ia__punto,
+.estado-ia[data-estado="no_listo"] .estado-ia__punto { background: #b45309; }
+.estado-ia[data-estado="sin_conexion"] .estado-ia__punto,
+.estado-ia[data-estado="no_autorizado"] .estado-ia__punto { background: #b91c1c; }
+.estado-ia[data-estado="cargando"] .estado-ia__punto { animation: latido 1.2s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .estado-ia[data-estado="cargando"] .estado-ia__punto { animation: none; } }
+.opciones-ia { border: 0; padding: 0; margin: 0 0 1rem; display: grid; gap: .6rem; }
+.opciones-ia legend { font-weight: 600; margin-bottom: .4rem; }
+.opciones-ia label { display: flex; gap: .6rem; align-items: flex-start; cursor: pointer; }
+.opciones-ia input { margin-top: .25rem; }
+.codigo-ia { font-size: 1.1rem; }
+.codigo-ia strong { font-family: "Space Grotesk", monospace; font-size: 1.8rem; letter-spacing: .12em; }
+.diagnostico-ia { padding-left: 1.2rem; display: grid; gap: .5rem; }
+.diagnostico-ia .diag-ok strong { color: #0a6b54; }
+.diagnostico-ia .diag-error strong { color: #b91c1c; }
+.motor-ia { display: grid; gap: .5rem; border: 0; padding: 0; margin: .6rem 0 1rem; }
+.motor-ia legend { font-weight: 600; margin-bottom: .3rem; }
+.motor-ia label { display: flex; gap: .5rem; align-items: flex-start; }
+.motor-ia input:disabled + span { opacity: .6; }
+.propuesta-ia { border-left: 4px solid #2563eb; padding-left: .6rem; }

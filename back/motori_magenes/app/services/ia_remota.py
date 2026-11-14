@@ -223,6 +223,18 @@ class Almacen:
             return None
 
 
+def url_efectiva(almacen: "Almacen", por_defecto: str | None) -> str | None:
+    """Modo guardado en este equipo (FRONT-25): «local» = sin servidor IA; «manual» = la URL escrita;
+    «auto» (o nada) = la URL de la instalación (APUNTIA_IA_URL)."""
+    datos = almacen.leer()
+    modo = datos.get("modo", "auto")
+    if modo == "local":
+        return None
+    if modo == "manual" and datos.get("url"):
+        return datos["url"]
+    return datos.get("url") or por_defecto
+
+
 # ============================================================================== circuit breaker
 
 @dataclass
@@ -485,6 +497,7 @@ class ClienteIARemota:
         vinculado = bool(self.url) and cred.get("origen") == (origen(self.url) if self.url and not validar_url(self.url) else None)
         en_curso = datos.get("vinculacion") or {}
         return {
+            "configuracion": self.almacen.leer().get("modo", "auto"),
             "modo": "remoto" if self.url and vinculado else "local",
             "url": self.url or None,
             "url_valida": not validar_url(self.url) if self.url else False,

@@ -16,7 +16,8 @@ async function iniciarBackendV2(env = {}, opciones = {}) {
     const detener = backend.detener;
     backend.datos = datos;
     backend.parar = detener;  // detiene el proceso y conserva los datos (para reiniciar)
-    backend.detener = async () => { await detener(); if (propia) fs.rmSync(datos, { recursive: true, force: true }); };
+    // maxRetries: en Windows el SQLite del proceso recién detenido puede seguir bloqueado un instante (EPERM/EBUSY).
+    backend.detener = async () => { await detener(); if (propia) fs.rmSync(datos, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 }); };
     return backend;
 }
 

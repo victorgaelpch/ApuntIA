@@ -195,12 +195,33 @@
         }
     }
 
+    // Vuelve a analizar las fotos originales con otro motor (POST /apuntes/{id}/analisis, BACK-37).
+    // Si hay correcciones, se pide confirmación: se crea una versión nueva y las suyas quedan en el historial.
+    async function reanalizar(motor, sobrescribir = false) {
+        try {
+            const r = await pedir(`/api/v2/apuntes/${encodeURIComponent(E.apunte.id)}/analisis`,
+                                  { method: "POST", json: { motor, sobrescribir_ediciones: sobrescribir } });
+            avisar(aviso(), "info", "");
+            E.apunte.estado = "pendiente";
+            pintarTodo();
+            seguirAnalisis(r.trabajo);
+        } catch (err) {
+            if (err.codigo === "APUNTE_CON_EDICIONES" && !sobrescribir) {
+                const ok = await NS.v2.confirmar({ titulo: "Volver a analizar", aceptar: "Analizar de nuevo",
+                    texto: NS.v2.textoDeError(err) });
+                if (ok) reanalizar(motor, true);
+                return;
+            }
+            avisarError(aviso(), err);
+        }
+    }
+
     function informarAnalisis(t) {
         if (!t || t.tipo !== "analisis") return;
         if (t.estado === "fallido" || t.estado === "cancelado") {
             const texto = t.estado === "cancelado" ? "Cancelaste el análisis. Puedes reanudarlo cuando quieras."
                 : NS.v2.textoErrorTrabajo(t.error, "El análisis falló.");
-            avisar(aviso(), "error", texto, [{ texto: "Reintentar el análisis", alHacer: async () => {
+            const acciones = [{ texto: "Reintentar el análisis", alHacer: async () => {
                 try {
                     const r = await pedir(`/api/v2/trabajos/${t.id}/reintentar`, { method: "POST" });
                     avisar(aviso(), "info", "");
@@ -208,12 +229,19 @@
                     pintarTodo();
                     seguirAnalisis(r.trabajo);
                 } catch (err) { avisarError(aviso(), err); }
-            } }]);
+            } }];
+            // Error del servidor IA (BACK-37): las fotos siguen guardadas; se puede leer en modo local.
+            if (t.error && /^AI_/.test(t.error.codigo || "")) {
+                acciones.push({ texto: "Analizar en modo local", alHacer: () => reanalizar("local") });
+            }
+            avisar(aviso(), t.estado === "cancelado" ? "info" : (NS.mensajes.tipoDe ? NS.mensajes.tipoDe((t.error || {}).codigo) : "error"), texto, acciones);
         } else if (t.estado === "parcial") {
             avisar(aviso(), "aviso", (t.error && t.error.mensaje) || "Alguna página no se pudo analizar.");
         } else if (t.estado === "completado" && t.resultado) {
             const r = t.resultado;
             const partes = [`Análisis terminado: ${r.bloques} bloque(s).`];
+            if (r.motor === "ia_remota") partes.push("Es una PROPUESTA del servidor IA: compara cada bloque con su recorte de la foto antes de darlo por bueno.");
+            if (r.aviso) partes.push(r.aviso);
             if (r.inciertos) partes.push(`${r.inciertos} con reconocimiento incierto (márgenes naranjas): revísalos.`);
             if (r.no_reconocidos) partes.push(`${r.no_reconocidos} sin leer: escríbelos tú o consérvalos como imagen.`);
             avisar(aviso(), r.inciertos || r.no_reconocidos ? "aviso" : "exito", partes.join(" "));

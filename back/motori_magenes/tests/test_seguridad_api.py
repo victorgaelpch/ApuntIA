@@ -37,6 +37,7 @@ RUTAS_CON_RECURSO = [
     ("GET", "/api/v2/trabajos/{trabajo_id}"),
     ("DELETE", "/api/v2/trabajos/{trabajo_id}"),
     ("POST", "/api/v2/trabajos/{trabajo_id}/reintentar"),
+    ("POST", "/api/v2/apuntes/{apunte_id}/analisis"),   # BACK-37
 ]
 
 

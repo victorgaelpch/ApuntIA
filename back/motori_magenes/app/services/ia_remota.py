@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import base64
 import ctypes
+import random
 import json
 import logging
 import os
@@ -47,10 +48,11 @@ LOCALES = {"127.0.0.1", "localhost", "::1"}
 
 class ErrorIARemota(Exception):
     def __init__(self, codigo: str, mensaje: str, reintentable: bool = False, estado_http: int | None = None,
-                 espera_s: float | None = None):
+                 espera_s: float | None = None, codigo_servidor: str | None = None):
         super().__init__(mensaje)
         self.codigo, self.mensaje, self.reintentable = codigo, mensaje, reintentable
         self.estado_http, self.espera_s = estado_http, espera_s
+        self.codigo_servidor = codigo_servidor  # código del servidor IA (p. ej. MODELO_NO_INSTALADO)
 
     def a_dict(self) -> dict:
         return {"codigo": self.codigo, "mensaje": self.mensaje, "reintentable": self.reintentable}
@@ -74,6 +76,32 @@ SOLUCIONES = {
     "AI_CIRCUITO_ABIERTO": "Varios fallos seguidos: se espera unos segundos antes de reintentar. ApuntIA sigue en modo local.",
     "AI_VINCULACION": "La solicitud de vinculación caducó, fue rechazada o anulada: pide un código nuevo.",
 }
+
+
+# Códigos PÚBLICOS para la interfaz y los trabajos (BACK-37), con la acción manual sugerida.
+PUBLICOS = {
+    "AI_NO_DISPONIBLE": "El servidor IA no está disponible (PC apagada, túnel o Internet caídos). La foto se conservó: reintenta más tarde o analiza en modo local.",
+    "AI_NO_AUTORIZADA": "Este equipo no está autorizado en el servidor IA. Vincúlalo de nuevo desde «Servidor IA».",
+    "AI_MODELO_AUSENTE": "El servidor IA no tiene instalado el modelo. Avisa al administrador (iniciar.bat -Modo instalar-ia).",
+    "AI_MEMORIA_INSUFICIENTE": "La GPU del servidor no tiene memoria libre (quizá un juego u otro programa). Reintenta más tarde.",
+    "AI_TIEMPO_AGOTADO": "El servidor IA tardó demasiado. El trabajo puede seguir allí: reintenta para recogerlo sin repetirlo.",
+    "AI_RESPUESTA_INVALIDA": "El servidor IA respondió algo fuera de contrato; no se guardó nada. Reintenta o analiza en modo local.",
+    "AI_COLA_LLENA": "El servidor IA está ocupado con otros trabajos. Espera unos minutos y reintenta.",
+    "AI_CONTRATO_INCOMPATIBLE": "Las versiones de ApuntIA y del servidor IA no son compatibles. Actualiza ambos equipos.",
+    "AI_CANCELADO": "Cancelado por el usuario.",
+}
+
+
+def codigo_publico(e: "ErrorIARemota") -> tuple[str, str]:
+    """ErrorIARemota → (código público AI_*, mensaje con la acción manual)."""
+    servidor = {"MODELO_NO_INSTALADO": "AI_MODELO_AUSENTE", "SIN_MEMORIA": "AI_MEMORIA_INSUFICIENTE",
+                "TIEMPO_AGOTADO": "AI_TIEMPO_AGOTADO", "RESPUESTA_INVALIDA": "AI_RESPUESTA_INVALIDA",
+                "OCUPADO": "AI_COLA_LLENA", "CANCELADO": "AI_CANCELADO"}
+    directo = {"AI_AUTH": "AI_NO_AUTORIZADA", "AI_REVOCADO": "AI_NO_AUTORIZADA", "AI_NO_VINCULADO": "AI_NO_AUTORIZADA",
+               "AI_NET_TIMEOUT": "AI_TIEMPO_AGOTADO", "AI_RESPUESTA": "AI_RESPUESTA_INVALIDA", "AI_LIMITE": "AI_COLA_LLENA",
+               "AI_VERSION": "AI_CONTRATO_INCOMPATIBLE", "AI_CANCELADO": "AI_CANCELADO"}
+    codigo = servidor.get(e.codigo_servidor or "") or directo.get(e.codigo) or "AI_NO_DISPONIBLE"
+    return codigo, PUBLICOS[codigo]
 
 
 # ============================================================================== URL
@@ -195,6 +223,18 @@ class Almacen:
             return None
 
 
+def url_efectiva(almacen: "Almacen", por_defecto: str | None) -> str | None:
+    """Modo guardado en este equipo (FRONT-25): «local» = sin servidor IA; «manual» = la URL escrita;
+    «auto» (o nada) = la URL de la instalación (APUNTIA_IA_URL)."""
+    datos = almacen.leer()
+    modo = datos.get("modo", "auto")
+    if modo == "local":
+        return None
+    if modo == "manual" and datos.get("url"):
+        return datos["url"]
+    return datos.get("url") or por_defecto
+
+
 # ============================================================================== circuit breaker
 
 @dataclass
@@ -288,9 +328,10 @@ class ClienteIARemota:
         return token
 
     def _peticion(self, metodo: str, ruta: str, cuerpo: bytes | None = None, tipo: str = "application/json",
-                  con_token: bool = False, timeout: float | None = None, reintentar: bool = True) -> dict:
+                  con_token: bool = False, timeout: float | None = None, reintentar: bool = True,
+                  extra: dict | None = None) -> dict:
         self._comprobar_url()
-        cabeceras = {"Accept": "application/json", "User-Agent": "ApuntIA-cliente"}
+        cabeceras = {"Accept": "application/json", "User-Agent": "ApuntIA-cliente", **(extra or {})}
         if cuerpo is not None:
             cabeceras["Content-Type"] = tipo
         if con_token:
@@ -341,7 +382,8 @@ class ClienteIARemota:
             return ErrorIARemota("AI_LIMITE", SOLUCIONES["AI_LIMITE"], True, estado, espera_s=espera or 5.0)
         if estado >= 500:
             reintentable = bool(servidor.get("reintentable", estado in (502, 503, 504)))
-            return ErrorIARemota("AI_SERVIDOR", detalle or SOLUCIONES["AI_SERVIDOR"], reintentable, estado, espera_s=espera)
+            return ErrorIARemota("AI_SERVIDOR", detalle or SOLUCIONES["AI_SERVIDOR"], reintentable, estado, espera_s=espera,
+                                 codigo_servidor=servidor.get("codigo"))
         return ErrorIARemota(servidor.get("codigo") or "AI_RESPUESTA", detalle or f"El servidor respondió {estado}.",
                              False, estado)
 
@@ -402,6 +444,52 @@ class ClienteIARemota:
         return self._peticion("POST", f"/api/v1/analisis?tarea={tarea_q}", imagen, tipo=tipo, con_token=True,
                               timeout=self.timeout_analisis_s)
 
+    # ------------------------------------------------------------------ trabajos asíncronos (BACK-37)
+    def analizar_trabajo(self, imagen: bytes, tarea: str, clave: str, trabajo_remoto: str | None = None,
+                         guardar_id=None, cancelado=None, al_avance=None, tipo: str = "image/png",
+                         max_espera_s: float = 900.0, reloj=time.monotonic) -> dict:
+        """Envía la imagen a la cola del servidor IA y espera el resultado consultando con espera
+        creciente (1 s → 5 s, con jitter). `clave`: Idempotency-Key estable (apunte/página/foto):
+        reenviar con la misma clave NO repite el trabajo en la GPU. `trabajo_remoto`: id guardado de un
+        intento anterior (se retoma en vez de reenviar). `guardar_id(id)` permite persistirlo.
+        `cancelado()` → True cancela también en el servidor."""
+        tid = trabajo_remoto
+        if tid:
+            try:
+                self._peticion("GET", f"/api/v1/trabajos/{urllib.parse.quote(tid, safe='')}", con_token=True)
+            except ErrorIARemota as e:
+                if e.codigo != "TRABAJO_NO_ENCONTRADO":   # el servidor se reinició o caducó: reenviar
+                    raise
+                tid = None
+        if not tid:
+            r = self._peticion("POST", f"/api/v1/trabajos?tarea={urllib.parse.quote(tarea, safe='')}", imagen, tipo=tipo,
+                               con_token=True, timeout=self.timeout_s * 3, extra={"Idempotency-Key": clave[:100]})
+            tid = r["trabajo_id"]
+            if guardar_id:
+                guardar_id(tid)
+        fin, pausa = reloj() + max_espera_s, 1.0
+        while True:
+            if cancelado and cancelado():
+                try:
+                    self._peticion("DELETE", f"/api/v1/trabajos/{tid}", con_token=True, reintentar=False)
+                except ErrorIARemota:
+                    pass
+                raise ErrorIARemota("AI_CANCELADO", "Cancelado por el usuario.")
+            r = self._peticion("GET", f"/api/v1/trabajos/{tid}", con_token=True)
+            if al_avance:
+                al_avance(r.get("estado"), int(r.get("progreso") or 0), r.get("posicion"))
+            if r["estado"] == "completado":
+                return r["resultado"]
+            if r["estado"] in ("fallido", "cancelado"):
+                err = r.get("error") or {}
+                raise ErrorIARemota("AI_SERVIDOR", err.get("mensaje") or "El servidor IA no pudo completar el trabajo.",
+                                    bool(err.get("reintentable")), codigo_servidor=err.get("codigo") or "CANCELADO")
+            if reloj() > fin:
+                raise ErrorIARemota("AI_NET_TIMEOUT", "El servidor IA sigue procesando; se podrá recoger al reintentar.",
+                                    True)
+            self.espera(pausa * random.uniform(0.8, 1.2))
+            pausa = min(pausa * 1.5, 5.0)
+
     # ------------------------------------------------------------------ estado y diagnóstico
     def estado(self) -> dict:
         datos = self.almacen.leer()
@@ -409,6 +497,7 @@ class ClienteIARemota:
         vinculado = bool(self.url) and cred.get("origen") == (origen(self.url) if self.url and not validar_url(self.url) else None)
         en_curso = datos.get("vinculacion") or {}
         return {
+            "configuracion": self.almacen.leer().get("modo", "auto"),
             "modo": "remoto" if self.url and vinculado else "local",
             "url": self.url or None,
             "url_valida": not validar_url(self.url) if self.url else False,

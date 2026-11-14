@@ -4,6 +4,7 @@ from typing import Literal
 
 from fastapi import APIRouter, Body, Depends, File, Form, Header, Query, UploadFile
 from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel
 
 from app.core import contexto
 from app.core.endurecimiento import comprobar_cuota, limitar
@@ -30,6 +31,7 @@ def crear_apunte(
     paginas: list[UploadFile] | None = File(None, description="Fotos en orden (JPEG, PNG o WEBP)"),
     tipos: list[str] | None = Form(None, description="Un tipo por página: pizarron o cuaderno"),
     titulo: str = Form("", max_length=200),
+    motor: Literal["local", "ia_remota", "auto"] = Form("local", description="Reconocimiento: local, servidor IA o auto"),
     idempotency_key: str | None = Header(None, max_length=100),
     sesion: Sesion = Depends(sesion_actual),
 ):
@@ -46,11 +48,38 @@ def crear_apunte(
         return JSONResponse({"apunte": apunte, "trabajo": trabajo}, status_code=200)
     try:
         trabajo = trabajos.encolar(sesion.usuario.id, "analisis", apunte["id"],
-                                   {"idiomas": sesion.usuario.preferencias.get("idioma_ocr")})
+                                   {"idiomas": sesion.usuario.preferencias.get("idioma_ocr"), "motor": motor})
     except ApiError:
         repo.borrar(sesion.usuario.id, apunte["id"])  # sin trabajo no se deja un apunte huérfano
         raise
     return JSONResponse({"apunte": apunte, "trabajo": trabajo}, status_code=202)
+
+
+class PeticionReanalisis(BaseModel):
+    motor: Literal["local", "ia_remota", "auto"] = "local"
+    sobrescribir_ediciones: bool = False
+
+
+@router.post("/apuntes/{apunte_id}/analisis", status_code=202)
+def reanalizar(apunte_id: str, datos: PeticionReanalisis | None = Body(None), sesion: Sesion = Depends(sesion_actual)):
+    """Vuelve a analizar las fotos ORIGINALES (que siempre se conservan), p. ej. en modo local cuando
+    el servidor IA no está disponible, o con el servidor IA cuando vuelve (BACK-37). Crea una versión
+    nueva: las anteriores, con sus correcciones, siguen en el historial y se pueden restaurar."""
+    datos = datos or PeticionReanalisis()
+    repo = repositorio()
+    repo.obtener(sesion.usuario.id, apunte_id)  # 404 si no es suyo
+    bd = contexto.obtener().bd
+    if bd.uno("SELECT 1 FROM trabajos WHERE apunte_id = ? AND estado IN ('pendiente', 'procesando')", (apunte_id,)):
+        raise ApiError(409, "APUNTE_EN_PROCESO", "El apunte se está analizando. Espera a que termine.")
+    doc = repo.documento(sesion.usuario.id, apunte_id)
+    if not datos.sobrescribir_ediciones and any(b.editado or b.origen == "usuario" for b in doc.bloques):
+        raise ApiError(409, "APUNTE_CON_EDICIONES",
+                       "Este apunte tiene correcciones tuyas. Al volver a analizarlo se crea una versión nueva; "
+                       "tus correcciones quedan en el historial. Confírmalo para continuar.")
+    trabajo = contexto.obtener().trabajos.encolar(sesion.usuario.id, "analisis", apunte_id,
+                                                 {"idiomas": sesion.usuario.preferencias.get("idioma_ocr"),
+                                                  "motor": datos.motor})
+    return JSONResponse({"trabajo": trabajo}, status_code=202)
 
 
 @router.get("/apuntes/{apunte_id}")

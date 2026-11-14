@@ -15,3 +15,5 @@ registraron** y no se reconstruyen.
 | [FULL-30.md](FULL-30.md) | [#94](https://github.com/victorgaelpch/ApuntIA/issues/94) |
 | [FULL-31.md](FULL-31.md) | [#95](https://github.com/victorgaelpch/ApuntIA/issues/95) |
 | [BACK-36.md](BACK-36.md) | [#96](https://github.com/victorgaelpch/ApuntIA/issues/96) |
+| [BACK-37.md](BACK-37.md) | [#97](https://github.com/victorgaelpch/ApuntIA/issues/97) |
+| [FRONT-25.md](FRONT-25.md) | [#98](https://github.com/victorgaelpch/ApuntIA/issues/98) |

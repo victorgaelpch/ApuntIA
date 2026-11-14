@@ -24,6 +24,7 @@ from app.core import contexto
 from app.core.config import settings
 from app.core.errores import ApiError
 from app.datos.apuntes import RepositorioApuntes
+from app.services import analisis_remoto
 from app.services.documento import Bloque, CalidadPagina, Documento, MetricasCalidad
 from app.services.ocr import ErrorOCR
 from app.services.reconocimiento import reconocer_pagina
@@ -106,12 +107,25 @@ def manejar_analisis(trabajo: Trabajo) -> Resultado:
     repo.cambiar_estado(trabajo.apunte_id, "procesando")
     doc = repo.documento(trabajo.usuario_id, trabajo.apunte_id)
     idiomas = trabajo.parametros.get("idiomas") or settings.ocr_idiomas
+    # Motor (BACK-37): «local» (Tesseract, como siempre), «ia_remota» o «auto» (IA si está vinculado).
+    try:
+        motor, aviso_motor = analisis_remoto.resolver_motor(trabajo.parametros.get("motor", "local"))
+    except analisis_remoto.ErrorIATrabajo:
+        repo.cambiar_estado(trabajo.apunte_id, "fallido")
+        raise
+    remoto = analisis_remoto.cliente() if motor == "ia_remota" else None
+    if remoto:
+        analisis_remoto.purgar(ctx.bd, trabajo.usuario_id)
     paginas, bloques, fallidas = [], [], []
     total = len(doc.paginas)
     for i, pagina in enumerate(sorted(doc.paginas, key=lambda p: p.orden)):
-        trabajo.avance("ocr", int(5 + 85 * i / max(1, total)))
+        trabajo.avance("ia_enviando" if remoto else "ocr", int(5 + 85 * i / max(1, total)))
         try:
-            cambios, nuevos = analizar_pagina(trabajo, pagina, idiomas)
+            if remoto:
+                cambios, nuevos = analisis_remoto.analizar_pagina_remota(
+                    trabajo, pagina, lambda d, tipo, mime: _guardar(trabajo, d, tipo, mime), remoto)
+            else:
+                cambios, nuevos = analizar_pagina(trabajo, pagina, idiomas)
             paginas.append(pagina.model_copy(update=cambios))
             bloques += nuevos
         except ErrorOCR as exc:
@@ -126,6 +140,11 @@ def manejar_analisis(trabajo: Trabajo) -> Resultado:
                 raise
             fallidas.append(pagina.orden)
             paginas.append(pagina.model_copy(update={"error": exc.mensaje}))
+        except analisis_remoto.ErrorIATrabajo:
+            # Servidor IA no disponible, sin autorización, sin modelo…: falla el trabajo entero con su
+            # código AI_*. Las fotos y lo ya calculado se conservan; «Reintentar» lo retoma sin repetir.
+            repo.cambiar_estado(trabajo.apunte_id, "fallido")
+            raise
         except ErrorTrabajo as exc:
             fallidas.append(pagina.orden)
             paginas.append(pagina.model_copy(update={"error": exc.mensaje}))
@@ -145,12 +164,14 @@ def manejar_analisis(trabajo: Trabajo) -> Resultado:
     version = repo.nueva_version(trabajo.usuario_id, trabajo.apunte_id, nuevo, "analisis", estado=estado)
     with _bloqueo:
         _creados.pop(trabajo.id, None)
-    resumen = {"version": version, "bloques": len(bloques), "paginas_fallidas": fallidas,
+    resumen = {"version": version, "bloques": len(bloques), "paginas_fallidas": fallidas, "motor": motor,
                "inciertos": sum(b.estado == "incierto" for b in bloques),
                "no_reconocidos": sum(b.estado == "no_reconocido" for b in bloques)}
     if fallidas:
         return Resultado("parcial", resumen,
                          f"No se pudo analizar la página {', '.join(map(str, fallidas))}; el resto está listo.")
+    if aviso_motor:
+        resumen["aviso"] = aviso_motor
     return Resultado("completado", resumen)
 
 

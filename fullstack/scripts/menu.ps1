@@ -18,6 +18,7 @@ $opciones = @(
     @{ Texto = "Instalar o reparar el servidor IA (solo PC con GPU)"; Cmd = "iniciar.bat -Modo instalar-ia";  Script = "ia.ps1";      Args = @("-Accion", "instalar") },
     @{ Texto = "Iniciar el servidor IA (solo PC con GPU)";           Cmd = "iniciar.bat -Modo servidor-ia";  Script = "ia.ps1";      Args = @("-Accion", "iniciar") },
     @{ Texto = "Configurar la conexión con el servidor IA";          Cmd = "iniciar.bat -Modo configurar";   Script = "ia.ps1";      Args = @("-Accion", "configurar") },
+    @{ Texto = "Aprobar o revocar equipos (solo PC con GPU)";       Cmd = "iniciar.bat -Modo dispositivos"; Script = "ia.ps1";      Args = @("-Accion", "dispositivos") },
     @{ Texto = "Diagnosticar";                                       Cmd = "iniciar.bat -Modo diagnostico";  Script = "ia.ps1";      Args = @("-Accion", "diagnostico") },
     @{ Texto = "Detener todo lo que inició ApuntIA";                 Cmd = "detener.bat";                   Script = "detener.ps1"; Args = @() }
 )

@@ -79,8 +79,18 @@ class VigilanteVram(threading.Thread):
             time.sleep(0.25)
 
 
+def _cabecera_admin() -> dict:
+    """Token de administrador local (FULL-31): este medidor solo corre en la PC del servidor."""
+    import os
+
+    from ia_servidor.config import carpeta_datos
+    from ia_servidor.dispositivos import Registro
+    return {"Authorization": "Bearer " + Registro(carpeta_datos(os.environ.get("IA_DATOS", "").strip())).token_admin()}
+
+
 def pedir(url: str, metodo: str = "GET", datos: bytes | None = None, timeout: float = 600) -> tuple[int, dict]:
-    req = urllib.request.Request(url, data=datos, method=metodo, headers={"Content-Type": "image/png"} if datos else {})
+    cabeceras = {**_cabecera_admin(), **({"Content-Type": "image/png"} if datos else {})}
+    req = urllib.request.Request(url, data=datos, method=metodo, headers=cabeceras)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.status, json.loads(r.read())

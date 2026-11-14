@@ -13,3 +13,4 @@ registraron** y no se reconstruyen.
 | [FULL-29.md](FULL-29.md) | [#93](https://github.com/victorgaelpch/ApuntIA/issues/93) |
 | [BACK-35.md](BACK-35.md) | sin Issue en GitHub: crearlo (ver [cronograma](../cronograma-planeado.md)) |
 | [FULL-30.md](FULL-30.md) | [#94](https://github.com/victorgaelpch/ApuntIA/issues/94) |
+| [FULL-31.md](FULL-31.md) | [#95](https://github.com/victorgaelpch/ApuntIA/issues/95) |

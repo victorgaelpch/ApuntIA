@@ -34,3 +34,6 @@ fullstack/.estado/
 # Copias de seguridad
 respaldos/
 fullstack/evaluacion/resultados/
+
+# Servidor IA (FULL-31): registro de dispositivos y token de administrador local
+ia_servidor/.datos/

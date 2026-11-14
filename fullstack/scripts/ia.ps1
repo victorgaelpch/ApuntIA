@@ -7,7 +7,7 @@
 #                    4 no arrancó · 5 falta un paso manual (Ollama o modelo) · 6 diagnóstico con fallos
 # Guías: fullstack/docs/instalacion-servidor-ia.md y fullstack/docs/instalacion-clientes.md
 param(
-    [ValidateSet("instalar", "iniciar", "detener", "diagnostico", "configurar")]
+    [ValidateSet("instalar", "iniciar", "detener", "diagnostico", "configurar", "dispositivos")]
     [Parameter(Mandatory = $true)][string]$Accion,
     [switch]$AceptarDescarga,   # descargar el modelo sin preguntar (automatizaciones)
     [switch]$ConRespaldo,       # descargar también el modelo de respaldo (4B)
@@ -50,6 +50,14 @@ function Find-Ollama {
     $porDefecto = Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe"
     if (Test-Path $porDefecto) { return $porDefecto }
     return $null
+}
+function Get-CabeceraAdmin {
+    # Token de administrador local del servidor IA (ia_servidor\.datos\admin.token, solo en esta PC):
+    # permite ver el detalle de /listo. Nunca se imprime.
+    $datos = if ($env:IA_DATOS) { $env:IA_DATOS } else { Join-Path $IA ".datos" }
+    $f = Join-Path $datos "admin.token"
+    if (Test-Path $f) { return @{ Authorization = "Bearer " + (Get-Content $f -Raw).Trim() } }
+    return @{}
 }
 function Test-OllamaApi { return (Invoke-Json "$OllamaApi/api/version" 3).Estado -eq 200 }
 function Get-ModelosInstalados {
@@ -120,7 +128,7 @@ function Invoke-Diagnostico {
     $cfg = Get-ConfigIA
     $s = Invoke-Json "http://127.0.0.1:$($cfg.Puerto)/salud" 2
     if ($s.Estado -eq 200 -and $s.Cuerpo.servicio -eq "apuntia-ia") {
-        $l = Invoke-Json "http://127.0.0.1:$($cfg.Puerto)/listo" 10
+        $l = Invoke-Json "http://127.0.0.1:$($cfg.Puerto)/listo" 10 (Get-CabeceraAdmin)
         $listo = $l.Estado -eq 200
         Fila $listo "Servidor IA" "en marcha en 127.0.0.1:$($cfg.Puerto); listo: $listo" "Revisa los componentes con: curl http://127.0.0.1:$($cfg.Puerto)/listo"
     } else {
@@ -243,7 +251,7 @@ function Invoke-Iniciar {
         Get-Content (Join-Path $Estado "ia-servidor.err.log") -Tail 15 -ErrorAction SilentlyContinue
         Salir 4
     }
-    $l = Invoke-Json "http://127.0.0.1:$($cfg.Puerto)/listo" 15
+    $l = Invoke-Json "http://127.0.0.1:$($cfg.Puerto)/listo" 15 (Get-CabeceraAdmin)
     if ($l.Estado -eq 200) { Write-Bien "Servidor IA listo (modelo $($cfg.Modelo))." }
     else {
         Write-Aviso "El servidor IA está en marcha pero NO listo:"
@@ -282,8 +290,35 @@ function Invoke-Configurar {
     $r = Invoke-Json ($Url.TrimEnd("/") + "/salud") 5
     if ($r.Estado -eq 200 -and $r.Cuerpo.servicio -eq "apuntia-ia") { Write-Bien "El servidor responde (api $($r.Cuerpo.api_version))." }
     else { Write-Aviso "El servidor no responde ahora. No pasa nada: ApuntIA seguirá en modo local y se puede reintentar." }
-    Write-Aviso "La vinculación autorizada de este equipo (FULL-31) todavía no está implementada: aún no se envían fotos al servidor."
+    # Vinculación (FULL-31): la hace el backend de ApuntIA, que guarda la credencial cifrada en su carpeta de datos.
+    if (Test-ConsolaInteractiva) {
+        if (Preguntar "¿Vincular ahora este equipo con el servidor IA? (el administrador debe aprobar un código)") {
+            $null = Invoke-Vincular @()
+        } else { Write-Host "  Cuando quieras: iniciar.bat -Modo configurar, o desde la interfaz." }
+    } else { Write-Host "  Para vincular: cd back\motori_magenes; python -m herramientas.vincular_ia" }
     Salir 0
+}
+
+function Invoke-Vincular([string[]]$Extra) {
+    $backend = Join-Path $Raiz "back\motori_magenes"
+    $py = Join-Path $backend ".venv\Scripts\python.exe"
+    $comando = if (Test-Path $py) { @($py) } else { Find-Python }
+    if (-not $comando) { Write-Error2 "Hace falta Python 3.10 o superior."; Salir 1 }
+    Push-Location $backend
+    try { & $comando[0] @($comando[1..9] | Where-Object { $_ }) -m herramientas.vincular_ia @Extra; $codigo = $LASTEXITCODE }
+    finally { Pop-Location }
+    return $codigo
+}
+
+# =============================================================================== dispositivos (PC del servidor IA)
+function Invoke-Dispositivos {
+    if (-not (Test-Path $PyVenv)) { Write-Error2 "El servidor IA no está instalado en este equipo (iniciar.bat -Modo instalar-ia)."; Salir 2 }
+    Write-Paso "Aprobar, ver o revocar los equipos que pueden usar este servidor IA"
+    Write-Aviso "Aprueba SOLO códigos que te dicte en ese momento alguien de confianza: dan acceso a la GPU."
+    Import-ArchivoEnv $EnvIA
+    Push-Location $Raiz
+    try { & $PyVenv -m ia_servidor.admin; $codigo = $LASTEXITCODE } finally { Pop-Location }
+    Salir $codigo
 }
 
 switch ($Accion) {
@@ -292,4 +327,5 @@ switch ($Accion) {
     "iniciar" { Invoke-Iniciar }
     "detener" { Invoke-Detener }
     "configurar" { Invoke-Configurar }
+    "dispositivos" { Invoke-Dispositivos }
 }

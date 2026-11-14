@@ -55,10 +55,12 @@ Toda respuesta lleva `X-ApuntIA-Id-Correlacion`, `Cache-Control: no-store` y
 
 | Método y ruta | Respuesta |
 |---------------|-----------|
-| `GET /salud` | `200 {"estado":"ok","servicio":"apuntia-ia","api_version":"1.0"}` — solo dice que el proceso vive |
-| `GET /listo` | `200`/`503` con `componentes`: `ollama` (versión ≥ 0.12.7), `modelo` (instalado, capacidad `vision`, cuantización), `modelo_respaldo`, `en_memoria` (VRAM de `/api/ps`), `disco`, `gpu`, `cola`; y `avisos` |
-| `GET /api/v1/capacidades` | Tareas, formatos, límites, modelos y política de almacenamiento |
-| `POST /api/v1/analisis?tarea=T` | Cuerpo = bytes de la imagen (`Content-Type: image/png`, `image/jpeg` o `image/webp`). **No** multipart |
+| `GET /salud` | Pública. `200 {"estado":"ok","servicio":"apuntia-ia","api_version":"1.0"}` — solo dice que el proceso vive |
+| `POST /api/v1/vinculacion/solicitudes` y `…/{id}/estado` | Públicas: vinculación de un dispositivo ([conexion-remota.md](conexion-remota.md)) |
+| `GET /api/v1/yo` | Con credencial: qué dispositivo es |
+| `GET /listo` | Sin credencial solo `{"listo", "api_version"}`. Con credencial, `200`/`503` con `componentes`: `ollama` (versión ≥ 0.12.7), `modelo` (instalado, capacidad `vision`, cuantización), `modelo_respaldo`, `en_memoria` (VRAM de `/api/ps`), `disco`, `gpu`, `cola`; y `avisos` |
+| `GET /api/v1/capacidades` | Con credencial. Tareas, formatos, límites, modelos y política de almacenamiento |
+| `POST /api/v1/analisis?tarea=T` | Con credencial (`Authorization: Bearer …`; 30/min por dispositivo). Cuerpo = bytes de la imagen (`Content-Type: image/png`, `image/jpeg` o `image/webp`). **No** multipart |
 
 Tareas: `pagina` (por defecto), `texto_impreso`, `texto_manuscrito`, `formula`, `tabla`, `diagrama`.
 
@@ -112,7 +114,7 @@ Respuesta 200 de `/api/v1/analisis`:
 | Cliente | Servidor `api_version` | Resultado |
 |---------|------------------------|-----------|
 | Pide 1.x | 1.x | Compatible: los campos nuevos se añaden sin quitar los existentes |
-| Pide 1.x | 2.x | Incompatible: el cliente (FULL-31) debe comprobar `api_version` en `/salud` y avisar |
+| Pide 1.x | 2.x | Incompatible: el cliente comprueba `api_version` en `/salud` y responde `AI_VERSION` |
 
 Las APIs v1 (`/analisis`) y v2 del backend del cliente no cambian.
 
@@ -143,8 +145,10 @@ Cifras reales de VRAM y latencia: §8.
 ## 5. Seguridad y privacidad
 
 - Ollama solo en loopback: `IA_OLLAMA_URL` debe ser `http://127.0.0.1:…` o el servicio no arranca.
-- El propio servicio solo escucha en 127.0.0.1 hasta que exista la vinculación autenticada de
-  FULL-31; con `IA_HOST=0.0.0.0` sale con código 2 y un mensaje claro.
+- El propio servicio solo escucha en 127.0.0.1 (el túnel se conecta ahí) o en la IP 100.x de
+  Tailscale; con `IA_HOST=0.0.0.0` o una IP de la LAN sale con código 2 y un mensaje claro.
+- Autenticación por dispositivo con vinculación aprobada en la consola de la PC; sin `/docs` ni
+  `/openapi.json` públicos. Detalle: [seguridad-servidor-ia.md](seguridad-servidor-ia.md).
 - Solo se llaman `/api/version`, `/api/tags`, `/api/show`, `/api/ps` y `/api/chat`; nunca
   `/api/pull`, `/api/delete` ni `/api/create`. Se rechazan los modelos `*cloud`.
 - La imagen solo existe en memoria: el cuerpo se lee por trozos con límite (no multipart, que

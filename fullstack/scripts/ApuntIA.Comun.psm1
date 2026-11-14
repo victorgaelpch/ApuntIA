@@ -142,10 +142,10 @@ function Stop-ProcesoPropio([string]$ArchivoPid, [string]$Patron, [string]$Nombr
     return $true
 }
 
-function Invoke-Json([string]$Url, [int]$Segundos = 3) {
+function Invoke-Json([string]$Url, [int]$Segundos = 3, [hashtable]$Cabeceras = @{}) {
     # GET que devuelve @{ Estado = código HTTP o 0; Cuerpo = objeto o $null }. Nunca lanza.
     try {
-        $r = Invoke-WebRequest -Uri $Url -TimeoutSec $Segundos -UseBasicParsing -ErrorAction Stop
+        $r = Invoke-WebRequest -Uri $Url -TimeoutSec $Segundos -UseBasicParsing -Headers $Cabeceras -ErrorAction Stop
         return @{ Estado = [int]$r.StatusCode; Cuerpo = ($r.Content | ConvertFrom-Json) }
     } catch {
         $resp = $_.Exception.Response

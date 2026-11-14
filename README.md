@@ -166,12 +166,12 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [fullstack/docs/ci.md]
 | **Índices** | [toda la documentación transversal](fullstack/docs/README.md) · [documentación de la interfaz](front/docs/README.md) · [dónde va cada documento](fullstack/docs/ESTRUCTURA_DOCUMENTAL.md) |
 | Tickets e Issues | [fichas de todos los Issues, cronograma planificado y bitácoras reales](fullstack/tickets/README.md) · [índice](fullstack/tickets/INDICE.md) |
 | Arquitectura y decisiones | [arquitectura](fullstack/docs/arquitectura.md) · [flujo v2](fullstack/docs/flujo-v2.md) · [datos](fullstack/docs/datos.md) |
-| API | [v1 (`/analisis`)](fullstack/docs/api.md) · [v2 (cuentas, apuntes, PDF)](fullstack/docs/api-v2.md) · [servidor IA (BACK-35)](fullstack/docs/servidor-ia.md) |
+| API | [v1 (`/analisis`)](fullstack/docs/api.md) · [v2 (cuentas, apuntes, PDF)](fullstack/docs/api-v2.md) · [servidor IA (BACK-35)](fullstack/docs/servidor-ia.md) · [conexión remota (FULL-31)](fullstack/docs/conexion-remota.md) |
 | Interfaz | [páginas v2](front/docs/interfaz-v2.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [frontend](front/README.md) |
 | Backend | [instalación y uso](back/motori_magenes/README.md) · [procesamiento y OCR](back/motori_magenes/PROCESAMIENTO.md) |
 | Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [laptop (cliente)](fullstack/docs/instalacion-clientes.md) · [servidor IA](fullstack/docs/instalacion-servidor-ia.md) · [carpeta fullstack](fullstack/README.md) |
-| Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
-| Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
+| Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [servidor IA](fullstack/docs/seguridad-servidor-ia.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
+| Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [recuperar la conexión IA](fullstack/docs/recuperacion-conexion.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
 | Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
 | Entrega | [instalación desde cero, demostración, versión y actualización](fullstack/docs/entrega.md) · [aceptación y evidencias](fullstack/docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](fullstack/docs/alcance.md) · [definición de hecho](fullstack/docs/definicion-de-hecho.md) · [dependencias y licencias](fullstack/docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |

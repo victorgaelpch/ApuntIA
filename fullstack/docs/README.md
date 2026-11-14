@@ -28,6 +28,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [api-v2.md](api-v2.md) | Contrato v2: cuentas, apuntes, trabajos, fórmulas, PDF (FULL-15) |
 | [compatibilidad.md](compatibilidad.md) | Compatibilidad real frontend ↔ backend (FULL-06) |
 | [servidor-ia.md](servidor-ia.md) | Servidor de inferencia IA en la PC con GPU: arquitectura, contrato v1, errores, límites (BACK-35) |
+| [conexion-remota.md](conexion-remota.md) | Vinculación, API `/api/v2/ia`, Tailscale y Cloudflare Tunnel (FULL-31) |
 
 ## Arranque, operación y entrega
 
@@ -40,6 +41,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [ejecutar.md](ejecutar.md) | Ejecución manual de las dos partes, CORS, celular (FULL-04) |
 | [diagnostico.md](diagnostico.md) | Salud, preparación y manejo de fallos (FULL-21) |
 | [respaldo.md](respaldo.md) | Copias de seguridad y recuperación (FULL-23) |
+| [recuperacion-conexion.md](recuperacion-conexion.md) | Códigos `AI_*` de la conexión remota y solución manual (FULL-31) |
 | [entrega.md](entrega.md) | Instalación desde cero, demostración, versión y actualización (FULL-22) |
 
 ## Seguridad y privacidad
@@ -49,6 +51,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [seguridad.md](seguridad.md) | Auditoría transversal de seguridad (FULL-20) |
 | [seguridad-api.md](seguridad-api.md) | Protecciones de la API v2 (BACK-24) |
 | [privacidad.md](privacidad.md) | Política de datos (FULL-20) |
+| [seguridad-servidor-ia.md](seguridad-servidor-ia.md) | Amenazas y controles del servidor IA y la conexión remota (FULL-31) |
 | [dependencias.md](dependencias.md) | Dependencias, vulnerabilidades y licencias |
 
 ## Calidad, pruebas y evidencias

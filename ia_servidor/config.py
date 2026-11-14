@@ -15,6 +15,11 @@ from dataclasses import dataclass, field
 MODELO_VALIDO = re.compile(r"^[a-z0-9][a-z0-9._\-/]{0,120}(:[A-Za-z0-9._\-]{1,80})?$")
 
 
+def carpeta_datos(valor: str = ""):
+    from pathlib import Path
+    return Path(valor) if valor else Path(__file__).resolve().parent / ".datos"
+
+
 class ConfiguracionInvalida(ValueError):
     """La configuración no permite arrancar con seguridad."""
 
@@ -30,6 +35,16 @@ def _entero(nombre: str, defecto: int, minimo: int, maximo: int) -> int:
     if not minimo <= valor <= maximo:
         raise ConfiguracionInvalida(f"{nombre} debe estar entre {minimo} y {maximo}")
     return valor
+
+
+TAILSCALE = ipaddress.ip_network("100.64.0.0/10")  # direcciones de Tailscale (CGNAT)
+
+
+def es_tailscale(host: str) -> bool:
+    try:
+        return ipaddress.ip_address(host) in TAILSCALE
+    except ValueError:
+        return False
 
 
 def es_loopback(host: str) -> bool:
@@ -58,6 +73,8 @@ class Configuracion:
     num_ctx: int = 8192                         # contexto: imagen (~1-2 K tokens) + respuesta; 4096 (defecto de Ollama) se queda corto
     max_tokens: int = 2048                      # tope de tokens generados (incluido el «razonamiento» de modelos thinking)
     min_disco_mb: int = 2048                    # espacio libre mínimo para considerar el equipo listo
+    datos: str = ""                             # registro de dispositivos; vacío = ia_servidor/.datos
+    max_analisis_min: int = 30                  # análisis por minuto y dispositivo (429 al pasarse)
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
     @classmethod
@@ -78,16 +95,18 @@ class Configuracion:
             num_ctx=_entero("IA_NUM_CTX", 8192, 2048, 32768),
             max_tokens=_entero("IA_MAX_TOKENS", 2048, 256, 16384),
             min_disco_mb=_entero("IA_MIN_DISCO_MB", 2048, 0, 10_000_000),
+            datos=os.environ.get("IA_DATOS", "").strip(),
+            max_analisis_min=_entero("IA_MAX_ANALISIS_MIN", 30, 1, 600),
         )
         c.validar()
         return c
 
     def validar(self) -> None:
-        if not es_loopback(self.host):
+        if not (es_loopback(self.host) or es_tailscale(self.host)):
             raise ConfiguracionInvalida(
-                f"IA_HOST={self.host}: el servidor IA solo escucha en 127.0.0.1 hasta que exista la "
-                "vinculación autenticada de dispositivos (FULL-31). Para llegar desde otra red usa el "
-                "túnel documentado, que se conecta a 127.0.0.1.")
+                f"IA_HOST={self.host}: el servidor IA solo escucha en 127.0.0.1 (para el túnel de Cloudflare, "
+                "que se conecta ahí) o en la dirección 100.x de Tailscale. Nunca en 0.0.0.0 ni en la red "
+                "local: así solo se llega por un canal cifrado y con vinculación (FULL-31).")
         partes = urllib.parse.urlsplit(self.ollama_url)
         if partes.scheme != "http" or not partes.hostname or not es_loopback(partes.hostname):
             raise ConfiguracionInvalida("IA_OLLAMA_URL debe ser http://127.0.0.1:<puerto>: Ollama nunca se usa "

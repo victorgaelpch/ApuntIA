@@ -1,11 +1,11 @@
 ﻿# Arranca ApuntIA sin Docker en Windows (FULL-11). Equivale a iniciar.sh.
 # Uso: iniciar.bat [-Puerto N] [-Red] [-SinNavegador] [-SinVenv] [-Reinstalar] [-Comprobar]
-#      iniciar.bat -Modo app|servidor-ia|instalar-ia|diagnostico|configurar|detener   (FULL-30)
+#      iniciar.bat -Modo app|servidor-ia|instalar-ia|diagnostico|configurar|dispositivos|detener   (FULL-30/31)
 #      iniciar.bat            (sin argumentos y en una consola interactiva: menú)
 # Códigos de salida: 0 bien · 1 requisito ausente · 2 dependencias · 3 puerto ocupado · 4 no arrancó
 #                    5 falta un paso manual · 6 diagnóstico con fallos (los dos últimos, solo modos de IA)
 param(
-    [ValidateSet("", "app", "servidor-ia", "instalar-ia", "diagnostico", "configurar", "detener")]
+    [ValidateSet("", "app", "servidor-ia", "instalar-ia", "diagnostico", "configurar", "dispositivos", "detener")]
     [string]$Modo = "",
     [int]$Puerto = 0,
     [switch]$Red,
@@ -25,7 +25,7 @@ $Ps = Join-Path $PSHOME "powershell.exe"; if (-not (Test-Path $Ps)) { $Ps = "pow
 if (-not $Modo -and $PSBoundParameters.Count -eq 0 -and (Test-ConsolaInteractiva)) {
     & $Ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "menu.ps1"); exit $LASTEXITCODE
 }
-$accionIA = @{ "servidor-ia" = "iniciar"; "instalar-ia" = "instalar"; "diagnostico" = "diagnostico"; "configurar" = "configurar" }
+$accionIA = @{ "servidor-ia" = "iniciar"; "instalar-ia" = "instalar"; "diagnostico" = "diagnostico"; "configurar" = "configurar"; "dispositivos" = "dispositivos" }
 if ($accionIA.ContainsKey($Modo)) {
     & $Ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ia.ps1") -Accion $accionIA[$Modo]; exit $LASTEXITCODE
 }

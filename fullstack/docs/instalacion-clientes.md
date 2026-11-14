@@ -32,8 +32,10 @@ en `fullstack\config\.env` como `APUNTIA_IA_URL` (antes deja una copia en `.env.
 - `-Url ""` (o dejarla vacía en el menú) vuelve al modo local.
 - Al iniciar, ApuntIA comprueba en 3 s si el servidor responde y lo **informa**. Si no responde
   (PC apagada, túnel caído, sin Internet), arranca igual en modo local con Tesseract.
-- **Todavía no se envían fotos al servidor IA**: falta la vinculación segura (FULL-31) y la
-  cola remota (BACK-37).
+- Tras guardar la URL ofrece **vincular** el equipo: aparece un código que el administrador aprueba
+  en la PC de casa ([conexion-remota.md](conexion-remota.md#2-vinculación-una-vez-por-laptop)).
+- La integración del análisis remoto en el flujo de apuntes llega con la cola de BACK-37; hoy se
+  prueba con `python -m herramientas.vincular_ia --probar foto.png`.
 
 ## 3. Diagnóstico
 

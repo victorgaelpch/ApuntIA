@@ -29,7 +29,7 @@ del Issue (creación, última modificación, cierre), **no** horas de trabajo.
 
 ## REGISTRO REAL
 
-[bitacora/FULL-32.md](bitacora/FULL-32.md) — 1 sesión(es) real(es) registrada(s)
+[bitacora/FULL-32.md](bitacora/FULL-32.md) — 2 sesión(es) real(es) registrada(s)
 
 ## EVIDENCIA
 

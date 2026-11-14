@@ -97,6 +97,9 @@
         OCR_TIEMPO_AGOTADO: { texto: "Leer el texto de una página tardó demasiado. Prueba con una foto más nítida o más pequeña.", acciones: [] },
         OCR_FALLO: { texto: "No se pudo leer el texto de una página.", acciones: [] },
         ANALISIS_FALLIDO: { texto: "No se pudo analizar ninguna página. Prueba con fotos más nítidas.", acciones: [] },
+        // --- servidor IA remoto (FULL-31)
+        SOLO_EQUIPO_LOCAL: { texto: "Esta acción solo se puede hacer en el propio equipo donde corre ApuntIA.", acciones: [] },
+        AI_URL_INVALIDA: { texto: "Esa dirección no es válida. Usa https://nombre-del-servidor, sin usuario, contraseña ni parámetros.", acciones: [] },
         // --- fórmulas
         LATEX_INVALIDO: { texto: "La fórmula no se puede dibujar: revisa su sintaxis.", acciones: [] },
         LATEX_NO_PERMITIDO: { texto: "La fórmula usa un comando que no está permitido.", acciones: [] },

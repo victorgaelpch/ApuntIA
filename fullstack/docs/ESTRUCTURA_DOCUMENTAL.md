@@ -15,6 +15,7 @@ front/
     ├── interfaz-v2.md       # Páginas con cuenta, estados, accesibilidad (FRONT-11…22)
     ├── pruebas-frontend.md  # Pruebas de interfaz v1 (FRONT-10)
     └── pruebas-interfaz.md  # Suites de interfaz, a11y y responsive (FRONT-21)
+ia_servidor/                 # Servidor de inferencia IA (BACK-35); su guía: fullstack/docs/servidor-ia.md
 back/motori_magenes/
 ├── README.md                # Instalación y uso del backend (BACK-10)
 └── PROCESAMIENTO.md         # Notas técnicas internas del pipeline OpenCV/OCR (junto al código)

@@ -27,6 +27,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [api.md](api.md) | Contrato v1 (`/analisis`, `/salud`) (FULL-03) |
 | [api-v2.md](api-v2.md) | Contrato v2: cuentas, apuntes, trabajos, fórmulas, PDF (FULL-15) |
 | [compatibilidad.md](compatibilidad.md) | Compatibilidad real frontend ↔ backend (FULL-06) |
+| [servidor-ia.md](servidor-ia.md) | Servidor de inferencia IA en la PC con GPU: arquitectura, contrato v1, errores, límites (BACK-35) |
 
 ## Arranque, operación y entrega
 

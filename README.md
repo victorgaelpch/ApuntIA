@@ -15,6 +15,30 @@ flowchart LR
     E --> H["Mis apuntes<br/>versiones · historial"]
 ```
 
+## Dos perfiles de instalación (ApuntIA 3.0)
+
+Puedes usar ApuntIA en **un solo equipo** (como siempre, con Tesseract) o con un **servidor IA** en
+otra PC con GPU que lee mejor manuscrito y fórmulas. El servidor IA es opcional: sin él todo funciona
+en modo local.
+
+| | 💻 App cliente (laptop, sin GPU) | 🖥️ Servidor IA (PC con GPU NVIDIA) |
+|---|---|---|
+| Para qué | crear apuntes, editar, historial, PDF | leer las fotos con `qwen3-vl:8b-instruct` (Ollama) |
+| Requisitos | Windows 10/11 (o Linux/macOS), Python 3.10+, Tesseract 5 **con español**, ~500 MB | Windows 10/11 64 bits, GPU ≥ 8 GB (probado RTX 3060 12 GB), Python 3.10+, ~12 GB de disco |
+| Instalar y arrancar | `iniciar.bat` → «Iniciar ApuntIA» | `iniciar.bat` → «Instalar o reparar el servidor IA» y luego «Iniciar el servidor IA» |
+| Conectar | «Servidor IA» en la app → pedir código | `iniciar.bat -Modo dispositivos` → aprobar el código |
+| Guía | [instalacion-clientes.md](fullstack/docs/instalacion-clientes.md) | [instalacion-servidor-ia.md](fullstack/docs/instalacion-servidor-ia.md) |
+
+Entre redes distintas se usa un túnel HTTPS (Cloudflare Tunnel o Tailscale): [conexion-remota.md](fullstack/docs/conexion-remota.md).
+Consumo medido, modelos y licencias: [modelos-y-requisitos.md](fullstack/docs/modelos-y-requisitos.md) ·
+cómo enseñarlo en 10 minutos con plan B: [exposicion-paso-a-paso.md](fullstack/docs/exposicion-paso-a-paso.md).
+
+```mermaid
+flowchart LR
+    L["💻 Laptop<br/>ApuntIA + PDF + historial"] -- "HTTPS (túnel) · token por equipo" --> S["🖥️ PC con GPU<br/>servidor IA + Ollama<br/>(solo 127.0.0.1)"]
+    L -. "sin servidor: modo local" .-> T["Tesseract"]
+```
+
 ## Qué hace y qué no hace (estado comprobado)
 
 | Función | Estado |
@@ -27,10 +51,11 @@ flowchart LR
 | Fórmulas a LaTeX | ⚠️ Parcial: las fórmulas en una línea (potencias, raíces, fracciones con `/`) sí; las de dos dimensiones (fracciones apiladas, matrices) se conservan como imagen y se pueden escribir en el editor |
 | Tablas fotografiadas | ⚠️ Parcial: se lee el texto de las celdas, no la estructura; la tabla se arma en el editor con «Convertir en tabla» |
 | Editor: corregir bloques, fórmulas con vista previa, tablas, esquemas, versiones, comparación | ✅ Disponible |
-| Información complementaria de Wikipedia, con fuente y consentimiento | ✅ Disponible y **opcional** (necesita Internet) |
-| PDF del apunte | ✅ Disponible, sin Internet |
+| Lectura con el servidor IA (Qwen3-VL 8B en otra PC) | ⚠️ Disponible y **opcional**: cada bloque es una *propuesta sin revisar* junto a su recorte; probado con una foto real de pizarrón (35 bloques, 24 s). La segmentación aún une zonas distintas y el modelo puede equivocarse ([pruebas-y-metricas.md](fullstack/docs/pruebas-y-metricas.md)) |
+| Información complementaria de Wikipedia o Wikilibros, con fuente y consentimiento | ✅ Disponible y **opcional** (necesita Internet) |
+| PDF del apunte | ✅ Disponible, sin Internet; las propuestas de IA sin revisar van marcadas y con su recorte |
 | Mis apuntes: búsqueda, filtros, PDF, borrado | ✅ Disponible |
-| Probado en | Linux con Chromium (pruebas automáticas). Windows, macOS, Firefox, Safari y móviles reales: **pendiente de probar** |
+| Probado en | Linux con Chromium (pruebas automáticas) y Windows 11 (scripts, servidor IA con GPU real, pruebas del backend). Conexión entre dos redes, macOS, Firefox, Safari y móviles reales: **pendiente de probar** |
 
 Resultados de cada escenario de uso (pizarrón, manuscrito, fórmulas, tabla, diagrama, varias páginas…),
 criterios de rechazo y limitaciones: [fullstack/docs/aceptacion.md](fullstack/docs/aceptacion.md).
@@ -44,7 +69,8 @@ criterios de rechazo y limitaciones: [fullstack/docs/aceptacion.md](fullstack/do
 | Pruebas automáticas | Node.js 22+ y `npx playwright install chromium` | ~300 MB | Para instalar |
 
 Tesseract: Linux `sudo apt install tesseract-ocr tesseract-ocr-spa` · macOS `brew install tesseract tesseract-lang` ·
-Windows: instalador de [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) marcando el idioma *Spanish*.
+Windows: instalador de [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki) marcando el idioma *Spanish*
+(sin él, el OCR pierde tildes y eñes; `/api/v2/listo` lo avisa).
 
 ## Inicio rápido
 
@@ -154,6 +180,10 @@ Copias de seguridad: `fullstack/scripts/respaldar.sh` y `restaurar.sh` ([fullsta
 fullstack/scripts/validar.sh
 ```
 
+En Windows: `powershell -ExecutionPolicy Bypass -File fullstack\scripts\validar.ps1` (añade `-Completo`,
+`-Gpu` en la PC del servidor IA o `-Remoto https://<servidor>` desde la laptop). Resultados reales y
+lo que falta por probar: [fullstack/docs/pruebas-y-metricas.md](fullstack/docs/pruebas-y-metricas.md).
+
 Modo rápido (~1 min): pruebas del backend, evaluación real del OCR contra la línea base, búsqueda
 de secretos y reglas de seguridad de la interfaz. `--completo` (~6 min) añade la interfaz y la
 integración de punta a punta con el backend real; `--docker`, la prueba de los contenedores. La CI
@@ -165,15 +195,16 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [fullstack/docs/ci.md]
 |------|-----------|
 | **Índices** | [toda la documentación transversal](fullstack/docs/README.md) · [documentación de la interfaz](front/docs/README.md) · [dónde va cada documento](fullstack/docs/ESTRUCTURA_DOCUMENTAL.md) |
 | Tickets e Issues | [fichas de todos los Issues, cronograma planificado y bitácoras reales](fullstack/tickets/README.md) · [índice](fullstack/tickets/INDICE.md) |
-| Arquitectura y decisiones | [arquitectura](fullstack/docs/arquitectura.md) · [flujo v2](fullstack/docs/flujo-v2.md) · [datos](fullstack/docs/datos.md) |
+| Arquitectura y decisiones | [arquitectura (3.0: dos equipos)](fullstack/docs/arquitectura.md) · [algoritmos](fullstack/docs/algoritmos.md) · [modelos y requisitos](fullstack/docs/modelos-y-requisitos.md) · [flujo v2](fullstack/docs/flujo-v2.md) · [datos](fullstack/docs/datos.md) · [trazabilidad del contenido](fullstack/docs/trazabilidad-contenido.md) |
 | API | [v1 (`/analisis`)](fullstack/docs/api.md) · [v2 (cuentas, apuntes, PDF)](fullstack/docs/api-v2.md) · [servidor IA (BACK-35)](fullstack/docs/servidor-ia.md) · [conexión remota (FULL-31)](fullstack/docs/conexion-remota.md) · [trabajos con IA (BACK-37)](fullstack/docs/trabajos-remotos.md) |
 | Interfaz | [páginas v2](front/docs/interfaz-v2.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [frontend](front/README.md) |
 | Backend | [instalación y uso](back/motori_magenes/README.md) · [procesamiento y OCR](back/motori_magenes/PROCESAMIENTO.md) |
 | Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [laptop (cliente)](fullstack/docs/instalacion-clientes.md) · [servidor IA](fullstack/docs/instalacion-servidor-ia.md) · [carpeta fullstack](fullstack/README.md) |
 | Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [servidor IA](fullstack/docs/seguridad-servidor-ia.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
 | Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [recuperar la conexión IA](fullstack/docs/recuperacion-conexion.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
-| Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [evaluación con IA](fullstack/docs/evaluacion-multimodal.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
-| Entrega | [instalación desde cero, demostración, versión y actualización](fullstack/docs/entrega.md) · [aceptación y evidencias](fullstack/docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
+| PDF e investigación | [generación del PDF](fullstack/docs/generacion-pdf.md) · [investigación verificada](fullstack/docs/investigacion-verificada.md) · [referencias](fullstack/docs/referencias.md) |
+| Calidad | [pruebas y métricas 3.0](fullstack/docs/pruebas-y-metricas.md) · [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [evaluación con IA](fullstack/docs/evaluacion-multimodal.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
+| Entrega | [exposición de ApuntIA 3.0 paso a paso](fullstack/docs/exposicion-paso-a-paso.md) · [instalación desde cero, demostración, versión y actualización](fullstack/docs/entrega.md) · [aceptación y evidencias](fullstack/docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](fullstack/docs/alcance.md) · [definición de hecho](fullstack/docs/definicion-de-hecho.md) · [dependencias y licencias](fullstack/docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 
 ## Datos de ejemplo y licencias
@@ -182,6 +213,7 @@ Las pruebas y la evaluación usan **datos sintéticos** generados por código (f
 con las fuentes DejaVu, cuentas `@example.com`); la única foto real (`back/bd/img/image.png`) es del
 propio proyecto. No subas fotos de apuntes ajenos al repositorio. Las dependencias y sus licencias
 (todas libres: MIT, BSD, Apache-2.0…) están en [fullstack/docs/dependencias.md](fullstack/docs/dependencias.md); Tesseract
-y sus datos de idioma son Apache-2.0; el contenido de Wikipedia es CC BY-SA 4.0 y se cita en el PDF.
+y sus datos de idioma son Apache-2.0; el modelo Qwen3-VL es Apache-2.0 (sus pesos no se suben: los descarga
+Ollama); el contenido de Wikipedia y Wikilibros es CC BY-SA 4.0 y se cita en el PDF.
 
 Proyecto académico ApuntIA.

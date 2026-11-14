@@ -97,7 +97,7 @@ describe("FULL-18 permisos de extremo a extremo", () => {
         } finally {
             // after() lo detendrá y borrará la carpeta temporal
             const detenerReiniciado = reiniciado.detener;
-            reiniciado.detener = async () => { await detenerReiniciado(); require("node:fs").rmSync(datos, { recursive: true, force: true }); };
+            reiniciado.detener = async () => { await detenerReiniciado(); require("node:fs").rmSync(datos, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 }); };
             backend = reiniciado;
         }
     });

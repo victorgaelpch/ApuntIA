@@ -11,3 +11,4 @@ registraron** y no se reconstruyen.
 | Bitácora | Issue |
 |----------|-------|
 | [FULL-29.md](FULL-29.md) | [#93](https://github.com/victorgaelpch/ApuntIA/issues/93) |
+| [BACK-35.md](BACK-35.md) | sin Issue en GitHub: crearlo (ver [cronograma](../cronograma-planeado.md)) |

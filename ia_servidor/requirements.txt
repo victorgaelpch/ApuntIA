@@ -1,0 +1,9 @@
+# Dependencias del servidor IA (BACK-35). Subconjunto de las del backend, con las MISMAS
+# versiones probadas: instalar con
+#   pip install -r ia_servidor/requirements.txt -c back/motori_magenes/constraints.txt
+# No incluye PyTorch, CUDA ni modelos: la inferencia la hace Ollama (instalado aparte, FULL-30).
+fastapi>=0.110,<1.0              # MIT
+uvicorn[standard]>=0.27,<1.0     # BSD-3-Clause
+pillow>=10.0,<14                 # MIT-CMU (lectura de cabeceras: protección contra bombas)
+opencv-python-headless>=4.8,<6   # Apache-2.0 (calidad y perspectiva, compartidas con el backend)
+numpy>=1.26,<3                   # BSD-3-Clause

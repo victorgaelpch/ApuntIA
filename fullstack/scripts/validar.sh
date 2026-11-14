@@ -44,6 +44,7 @@ junit_py() { [ -n "$INFORMES" ] && echo "--junitxml=$INFORMES/$1.xml"; }
 
 # ------------------------------------------------------------------ rápido
 paso "Backend: pytest" bash -c "cd back/motori_magenes && '$PY' -m pytest -p no:cacheprovider $(junit_py backend)"
+paso "Servidor IA: pytest con Ollama simulado (BACK-35)" bash -c "'$PY' -m pytest ia_servidor/tests $(junit_py servidor-ia)"
 if command -v tesseract >/dev/null 2>&1; then
     paso "Backend: evaluación real del OCR y las fórmulas" bash -c "cd back/motori_magenes && '$PY' -m pytest -p no:cacheprovider -m evaluacion $(junit_py evaluacion)"
     paso "Banco de evaluación: comparación con la línea base (FULL-19)" \

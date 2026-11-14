@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from ia_servidor.app import crear_app
 from ia_servidor.config import Configuracion
+from ia_servidor.dispositivos import Registro
 from ia_servidor.ollama import ClienteOllama
 from ia_servidor.servicio import Servicio
 
@@ -70,10 +71,22 @@ def png(ancho=640, alto=480) -> bytes:
 
 @pytest.fixture
 def armar(tmp_path):
-    def _armar(ollama=None, **config):
+    def _armar(ollama=None, autenticado=True, **config):
         ollama = ollama or OllamaFalso()
         cfg = Configuracion(**config)
         cfg.validar()
         servicio = Servicio(cfg, ClienteOllama(cfg.ollama_url, ollama), leer_gpu=gpu_falsa, carpeta_modelos=tmp_path)
-        return TestClient(crear_app(cfg, servicio)), ollama, servicio
+        registro = Registro(tmp_path / "datos")
+        cliente = TestClient(crear_app(cfg, servicio, registro))
+        cliente.registro = registro
+        if autenticado:  # vinculación real: solicitar → aprobar en «consola» → recibir el token
+            cliente.headers["Authorization"] = "Bearer " + vincular(cliente, registro)
+        return cliente, ollama, servicio
     return _armar
+
+
+def vincular(cliente, registro, dispositivo_id="laptop-profesor-0001", nombre="Laptop del profesor") -> str:
+    s = cliente.post("/api/v1/vinculacion/solicitudes", json={"dispositivo_id": dispositivo_id, "nombre": nombre}).json()
+    registro.resolver(s["codigo"], aprobar=True)
+    r = cliente.post(f"/api/v1/vinculacion/solicitudes/{s['solicitud_id']}/estado", json={"secreto": s["secreto"]}).json()
+    return r["token"]

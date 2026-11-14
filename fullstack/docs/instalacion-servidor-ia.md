@@ -63,8 +63,9 @@ También puedes bajar el instalador `OllamaSetup.exe` de <https://ollama.com/dow
 | Acción | Menú | Comando |
 |--------|------|---------|
 | Iniciar el servidor IA (y Ollama si no está abierto) | 3 | `iniciar.bat -Modo servidor-ia` |
-| Ver qué falta | 5 | `iniciar.bat -Modo diagnostico` |
-| Detener lo que inició ApuntIA | 6 | `detener.bat` |
+| Ver qué falta | 6 | `iniciar.bat -Modo diagnostico` |
+| Aprobar, ver o revocar equipos | 5 | `iniciar.bat -Modo dispositivos` |
+| Detener lo que inició ApuntIA | 7 | `detener.bat` |
 
 - `detener.bat` solo termina procesos cuyo PID registró ApuntIA y cuya línea de órdenes sigue
   siendo la suya (`ia_servidor`, `ollama serve`). Si abriste Ollama desde el menú Inicio, no lo

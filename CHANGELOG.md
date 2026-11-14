@@ -8,6 +8,14 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Conexión remota segura** (FULL-31): vinculación de un solo uso aprobada en la consola de la PC
+  del servidor (`iniciar.bat -Modo dispositivos`), token individual revocable (el servidor guarda
+  solo su hash), credencial cifrada con DPAPI en la laptop y enviada solo al origen vinculado, sin
+  redirecciones, con reintentos, circuit breaker y códigos `AI_*`. Rutas `/api/v2/ia/*` (estado,
+  configuración, vinculación, diagnóstico) y `python -m herramientas.vincular_ia`. Guías de
+  Tailscale Serve y Cloudflare Tunnel (sin probar aún entre dos redes reales).
+- Servidor IA, pipeline 1.1 (BACK-35): prompts cortos y texto plano, `qwen3-vl:8b-instruct` y
+  `4b-instruct` por defecto (la etiqueta `qwen3-vl:8b` es la variante «thinking»), medido en la RTX 3060.
 - **Servidor de inferencia IA** (BACK-35): `ia_servidor/` (FastAPI) para la PC con GPU, con contrato
   v1 (`/salud`, `/listo`, `/api/v1/capacidades`, `/api/v1/analisis`), errores con código y
   `reintentable`, una inferencia a la vez, respaldo `qwen3-vl:4b` ante falta de memoria y Ollama

@@ -60,10 +60,12 @@ class OpcionesPDF:
     estilo: str = "extendido"            # basico: portada + transcripción + complementos; extendido: + resumen…
     incluir_originales: bool = False     # anexo con las fotos originales
     incluir_complementos: bool = True    # ampliaciones aceptadas (siempre separadas y citadas)
+    incluir_recortes_ia: bool = True     # recorte de la foto junto a cada propuesta del servidor IA sin revisar
 
     @property
     def clave(self) -> str:
-        return f"{self.estilo}|o{int(self.incluir_originales)}|c{int(self.incluir_complementos)}"
+        base = f"{self.estilo}|o{int(self.incluir_originales)}|c{int(self.incluir_complementos)}"
+        return base if self.incluir_recortes_ia else base + "|r0"   # la clave por defecto no cambia
 
 
 _fuentes_registradas = False
@@ -244,8 +246,9 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
     for aviso in estructura.avisos:
         h.append(Paragraph(texto_seguro("⚠ " + aviso), e["subportada"]))
     h.append(Spacer(1, 1.5 * cm))
-    h.append(Paragraph("La transcripción proviene de tus fotos. Las partes corregidas por ti y las inciertas van "
-                       "marcadas; la información de fuentes externas aparece aparte y citada.", e["nota"]))
+    h.append(Paragraph("La transcripción proviene de tus fotos. Las partes corregidas por ti, las inciertas y las "
+                       "propuestas por el servidor IA van marcadas; la información de fuentes externas aparece "
+                       "aparte y citada.", e["nota"]))
     from reportlab.platypus.doctemplate import NextPageTemplate
     h += [NextPageTemplate("contenido"), PageBreak()]
 
@@ -259,14 +262,27 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
     for seccion in estructura.secciones:
         if seccion.titulo != "Contenido" or len(estructura.secciones) > 1:
             h.append(_titulo(seccion.titulo, e["h2"], 1))
-        for b in seccion.bloques:
+        # Una región que el servidor IA dividió en varias partes (BACK-38) comparte recorte: se
+        # muestra una sola vez, al final del grupo, para que el PDF no repita la misma foto.
+        mostrados: set[str] = set()
+        pendiente: str | None = None
+        bloques = seccion.bloques
+        for i, b in enumerate(bloques):
+            if i == 0 or bloques[i - 1]["recorte"] != b["recorte"]:
+                mostrados.clear()            # «ya mostrado» vale solo dentro del grupo de la misma región
             etiquetas = []
+            if b.get("ia"):
+                etiquetas.append("propuesta del servidor IA: " + ("revisada" if b.get("revisado") else "sin revisar"))
             if b["editado"]:
                 etiquetas.append("corregido por ti")
             if b["estado"] == "incierto":
                 etiquetas.append("reconocimiento incierto: revisar")
             if etiquetas:
                 h.append(Paragraph(" · ".join(etiquetas), e["etiqueta"]))
+            # Una propuesta de IA sin revisar nunca va sola: se acompaña del recorte de la foto para compararla.
+            if (b.get("ia") and not b.get("revisado") and not b["editado"] and opciones.incluir_recortes_ia
+                    and b["recorte"] and (b["texto"].strip() or b["latex"])):
+                pendiente = b["recorte"]
             if b["tipo"] == "formula":
                 png = None
                 if b["latex"]:
@@ -279,19 +295,31 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
                     img.hAlign = "CENTER"
                     h.append(img)
                     h.append(Spacer(1, 4))
-                elif b["recorte"]:
+                elif b["recorte"] and b["recorte"] not in mostrados:
                     h += imagen_o_aviso(b["recorte"], "Fórmula conservada como imagen (no se pudo verificar)", 0.25)
+                    mostrados.add(b["recorte"])
                 elif b["texto"]:
+                    # Sin dibujo y con el recorte ya puesto: LaTeX literal y aviso, nunca otra expresión.
                     h.append(Paragraph(texto_seguro(b["texto"]), e["mono"]))
+                    h.append(Paragraph("Fórmula que no se pudo dibujar: compárala con el recorte de esta región.",
+                                       e["nota"]))
             elif b["tipo"] == "tabla" and b["tabla"]:
                 h += [_tabla(b["tabla"]["encabezados"], b["tabla"]["filas"], ancho, e), Spacer(1, 8)]
             elif b["texto"].strip():
                 h.append(Paragraph(texto_seguro(b["texto"]), e["cuerpo"]))
-            elif b["recorte"]:
+            elif b["recorte"] and b["recorte"] not in mostrados:
                 pie = {"imagen": "Esquema o dibujo del apunte",
                        "manuscrito": "Fragmento manuscrito no transcrito (imagen original)"}.get(
                     b["tipo"], "Fragmento no transcrito (imagen original)")
                 h += imagen_o_aviso(b["recorte"], pie)
+                mostrados.add(b["recorte"])
+            sigue_region = i + 1 < len(bloques) and b["recorte"] and bloques[i + 1]["recorte"] == b["recorte"]
+            if pendiente and not sigue_region:
+                if pendiente not in mostrados:
+                    h += imagen_o_aviso(pendiente, "Recorte de la foto: compáralo con la propuesta del servidor IA",
+                                        0.25)
+                    mostrados.add(pendiente)
+                pendiente = None
 
     # ---------------------------------------------------------------- extendido (todo sale del apunte)
     if opciones.estilo == "extendido":

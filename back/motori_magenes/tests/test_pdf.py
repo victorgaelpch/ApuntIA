@@ -246,3 +246,74 @@ def test_borrar_apunte_borra_sus_pdf(apunte):
     assert c.get(f"/api/v2/exportaciones/{eid}/pdf").status_code == 404
     assert datos.bd.uno("SELECT COUNT(*) AS n FROM archivos WHERE tipo = 'pdf'")["n"] == 0
     assert not any(p.is_file() for p in (datos.data_dir / "tmp").rglob("*")) if (datos.data_dir / "tmp").exists() else True
+
+
+# ------------------------------------------------------------------ BACK-38: propuestas del servidor IA
+def doc_con_ia(revisado=False):
+    from app.services.documento import Procedencia
+    doc = doc_ejemplo()
+    ia = Procedencia(motor="ia_remota", version="qwen3-vl:8b-instruct", reconocimiento="documento/opencv")
+    doc.bloques[5] = doc.bloques[5].model_copy(update={"procedencia": ia, "recorte": "rIA", "revisado": revisado,
+                                                       "revision": "sin_confirmar"})
+    return doc
+
+
+def test_propuesta_ia_sin_revisar_va_marcada_y_con_su_recorte():
+    leidos = []
+    datos, _ = pdf(doc_con_ia(), leer=lambda a: leidos.append(a) or png())
+    _, texto = texto_de(datos)
+    assert "propuesta del servidor IA: sin revisar" in texto
+    assert "Recorte de la foto: compáralo con la propuesta del servidor IA" in texto
+    assert "1 bloque(s) son propuestas del servidor IA sin revisar" in texto     # aviso en la portada
+    assert "rIA" in leidos
+    assert "La integral acumula el área bajo la curva" in texto                 # el texto propuesto sigue ahí
+
+
+def test_propuesta_ia_revisada_no_lleva_recorte_ni_aviso():
+    leidos = []
+    datos, _ = pdf(doc_con_ia(revisado=True), leer=lambda a: leidos.append(a) or png())
+    _, texto = texto_de(datos)
+    assert "propuesta del servidor IA: revisada" in texto
+    assert "Recorte de la foto" not in texto and "sin revisar" not in texto
+    assert "rIA" not in leidos
+
+
+def test_sin_recortes_ia_si_se_pide_y_la_clave_por_defecto_no_cambia():
+    assert OpcionesPDF().clave == "extendido|o0|c1"           # exportaciones ya hechas siguen valiendo
+    opciones = OpcionesPDF(incluir_recortes_ia=False)
+    assert opciones.clave == "extendido|o0|c1|r0"
+    leidos = []
+    _, texto = texto_de(pdf(doc_con_ia(), opciones, leer=lambda a: leidos.append(a) or png())[0])
+    assert "propuesta del servidor IA: sin revisar" in texto     # la etiqueta nunca se quita
+    assert "rIA" not in leidos
+
+
+def test_documento_sin_ia_no_cambia():
+    _, texto = texto_de(pdf()[0])
+    assert "servidor IA: " not in texto and "Recorte de la foto" not in texto
+
+
+def test_region_dividida_muestra_su_recorte_una_sola_vez():
+    from app.services.documento import Procedencia
+    doc = doc_ejemplo()
+    ia = Procedencia(motor="ia_remota", version="m", reconocimiento="documento/opencv")
+    parte = lambda i, tipo, texto, latex=None: Bloque(
+        id=f"p1b7_{i}", pagina="p1", orden=20 + i, tipo=tipo, origen="ocr", texto=texto, texto_original=texto,
+        latex=latex, latex_original=latex, latex_valido=True if latex else None, recorte="rG", procedencia=ia,
+        revision="sin_confirmar")
+    doc.bloques += [parte(1, "formula", "x^2", "x^{2}"), parte(2, "formula", r"\frac{1}{2", r"\frac{1}{2"),
+                    parte(3, "texto", "Isosceles Right")]
+    leidos = []
+    _, texto = texto_de(pdf(doc, leer=lambda a: leidos.append(a) or png())[0])
+    assert leidos.count("rG") == 1                       # la fórmula no dibujable usa el recorte; no se repite
+    assert texto.count("Recorte de la foto: compáralo") == 0
+    assert "Fórmula conservada como imagen" in texto and "Isosceles Right" in texto
+
+
+def test_lo_derivado_no_usa_propuestas_de_ia_sin_revisar():
+    doc = doc_con_ia()                 # bloque 6 (texto de Integrales) = propuesta IA sin revisar
+    e = estructurar(doc)
+    assert not any("integral acumula" in f for f in e.resumen)
+    assert any(b["id"] == "b6" for s in e.secciones for b in s.bloques)    # pero sí está en la transcripción
+    e2 = estructurar(doc_con_ia(revisado=True))
+    assert any("integral acumula" in f for f in e2.resumen)

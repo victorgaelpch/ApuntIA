@@ -37,7 +37,7 @@ from app.core import contexto
 from app.core.config import settings
 from app.datos.apuntes import RepositorioApuntes
 from app.services.documento import Ampliacion, Documento, Fuente
-from app.services.estructura import DEFINICION, estructurar
+from app.services.estructura import DEFINICION, es_ia, estructurar
 from app.services.trabajos import ErrorTrabajo, Resultado, Trabajo
 
 logger = logging.getLogger("apuntia.investigacion")
@@ -109,17 +109,33 @@ class ProveedorNinguno(Proveedor):
         raise ProveedorNoDisponible("La investigación está desactivada en este servidor.")
 
 
-class ProveedorWikipedia(Proveedor):
-    """API REST pública de Wikipedia (contenido CC BY-SA 4.0). Hosts fijos."""
-    nombre = "wikipedia"
+class _SoloHosts(urllib.request.HTTPRedirectHandler):
+    """Redirecciones solo a los mismos hosts fijos y por https (BACK-38: nada de saltos a IPs internas)."""
+
+    def __init__(self, hosts: set[str]):
+        self.hosts = hosts
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        destino = urllib.parse.urlsplit(newurl)
+        if destino.scheme != "https" or (destino.hostname or "") not in self.hosts:
+            raise ProveedorNoDisponible("Redirección a un host no permitido.")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+class ProveedorMediaWiki(Proveedor):
+    """API REST pública de un proyecto Wikimedia (contenido CC BY-SA 4.0). Hosts fijos: es/en.<dominio>."""
+    nombre = "mediawiki"
+    dominio = ""
+    autor = ""
 
     def __init__(self, timeout: float | None = None, abrir=None):
         self.timeout = timeout or settings.investigacion_timeout_s
-        self._abrir = abrir or urllib.request.urlopen
+        self.hosts = {f"{i}.{self.dominio}" for i in IDIOMAS_WIKIPEDIA}
+        self._abrir = abrir or urllib.request.build_opener(_SoloHosts(self.hosts)).open
 
     def _json(self, url: str) -> dict:
         host = urllib.parse.urlsplit(url).hostname or ""
-        if not url.startswith("https://") or host not in {f"{i}.wikipedia.org" for i in IDIOMAS_WIKIPEDIA}:
+        if not url.startswith("https://") or host not in self.hosts:
             raise ProveedorNoDisponible("URL de proveedor no permitida.")  # defensa en profundidad (SSRF)
         peticion = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
         try:
@@ -134,22 +150,90 @@ class ProveedorWikipedia(Proveedor):
 
     def buscar(self, concepto: str, idioma: str) -> Hallazgo | None:
         idioma = idioma if idioma in IDIOMAS_WIKIPEDIA else "es"
-        base = f"https://{idioma}.wikipedia.org"
+        base = f"https://{idioma}.{self.dominio}"
         datos = self._json(f"{base}/w/rest.php/v1/search/page?" + urllib.parse.urlencode({"q": concepto, "limit": 3}))
         for pagina in (datos.get("pages") or [])[:3]:
             clave = str(pagina.get("key") or "")
             if not clave:
                 continue
-            resumen = self._json(f"{base}/api/rest_v1/page/summary/" + urllib.parse.quote(clave, safe=""))
-            if not resumen or resumen.get("type") != "standard":  # desambiguaciones, vacías…
+            resumen = self._resumen(base, clave)
+            if resumen is None:
                 continue
-            fragmento = limpiar_texto(resumen.get("extract", ""))
+            titulo, fragmento = limpiar_texto(resumen[0] or clave)[:300], limpiar_texto(resumen[1])
             # La URL citada se construye aquí con la clave, no se copia de la respuesta.
             url = f"{base}/wiki/" + urllib.parse.quote(clave, safe="")
             if fragmento:
-                return Hallazgo(concepto, limpiar_texto(resumen.get("title") or clave)[:300], url, fragmento,
-                                self.nombre, "CC BY-SA 4.0", "Colaboradores de Wikipedia")
+                return Hallazgo(concepto, titulo, url, fragmento, self.nombre, "CC BY-SA 4.0", self.autor)
         return None
+
+    def _resumen(self, base: str, clave: str) -> tuple[str, str] | None:
+        """(título, extracto) de la página, o None si no sirve (desambiguación, vacía…)."""
+        resumen = self._json(f"{base}/api/rest_v1/page/summary/" + urllib.parse.quote(clave, safe=""))
+        if not resumen or resumen.get("type") != "standard":
+            return None
+        return str(resumen.get("title") or ""), str(resumen.get("extract") or "")
+
+
+class ProveedorWikipedia(ProveedorMediaWiki):
+    nombre, dominio, autor = "wikipedia", "wikipedia.org", "Colaboradores de Wikipedia"
+
+
+class ProveedorWikilibros(ProveedorMediaWiki):
+    """Libros de texto abiertos (BACK-38): misma API y licencia que Wikipedia, otro host fijo."""
+    nombre, dominio, autor = "wikilibros", "wikibooks.org", "Colaboradores de Wikilibros"
+
+    def _resumen(self, base: str, clave: str) -> tuple[str, str] | None:
+        # Las páginas de un libro empiezan por secciones y su «summary» REST llega vacío
+        # (comprobado el 14/11/2026): se usa TextExtracts en texto plano, sin los títulos «== … ==».
+        datos = self._json(f"{base}/w/api.php?" + urllib.parse.urlencode({
+            "action": "query", "prop": "extracts", "explaintext": 1, "exchars": 1200, "format": "json",
+            "formatversion": 2, "titles": clave}))
+        paginas = (datos.get("query") or {}).get("pages") or []
+        if not paginas or paginas[0].get("missing"):
+            return None
+        texto = re.sub(r"^=+[^=\n]*=+\s*$", " ", str(paginas[0].get("extract") or ""), flags=re.M)
+        return str(paginas[0].get("title") or ""), texto
+
+
+class ProveedorCadena(Proveedor):
+    """Varias fuentes en orden de preferencia: la primera con resultado gana.
+
+    Si una fuente no responde se prueba la siguiente; solo es «no disponible» si fallan todas.
+    """
+
+    def __init__(self, proveedores: list[Proveedor]):
+        self.proveedores = proveedores
+        self.nombre = "+".join(p.nombre for p in proveedores)
+
+    def disponible(self) -> bool:
+        return any(p.disponible() for p in self.proveedores)
+
+    def buscar(self, concepto: str, idioma: str) -> Hallazgo | None:
+        fallos = 0
+        for p in self.proveedores:
+            try:
+                hallazgo = p.buscar(concepto, idioma)
+            except ProveedorNoDisponible:
+                fallos += 1
+                continue
+            if hallazgo is not None:
+                return hallazgo
+        if fallos == len(self.proveedores):
+            raise ProveedorNoDisponible("Ninguna fuente respondió.")
+        return None
+
+
+PROVEEDORES = {"wikipedia": ProveedorWikipedia, "wikilibros": ProveedorWikilibros}
+
+
+def crear_proveedor(configuracion: str) -> Proveedor:
+    """«wikipedia», «wikilibros», «wikipedia,wikilibros» o «ninguno». Nombres desconocidos: se ignoran."""
+    nombres = [n.strip() for n in configuracion.split(",") if n.strip() in PROVEEDORES]
+    if not nombres:
+        return ProveedorNinguno()
+    if len(nombres) == 1:
+        return PROVEEDORES[nombres[0]]()
+    return ProveedorCadena([PROVEEDORES[n]() for n in dict.fromkeys(nombres)])
 
 
 _proveedor: Proveedor | None = None
@@ -161,7 +245,7 @@ CACHE_MAX, CACHE_TTL_S = 200, 24 * 3600
 def proveedor() -> Proveedor:
     global _proveedor
     if _proveedor is None:
-        _proveedor = ProveedorWikipedia() if settings.investigacion_proveedor == "wikipedia" else ProveedorNinguno()
+        _proveedor = crear_proveedor(settings.investigacion_proveedor)
     return _proveedor
 
 
@@ -190,8 +274,13 @@ def buscar_con_cache(concepto: str, idioma: str) -> Hallazgo | None:
 # ------------------------------------------------------------------ conceptos y contraste
 
 def conceptos_sugeridos(doc: Documento) -> list[str]:
-    """Candidatos para investigar, sacados del propio apunte (el usuario elige)."""
-    e = estructurar(doc)
+    """Candidatos para investigar, sacados del propio apunte (el usuario elige).
+
+    BACK-38: solo de bloques confirmados; una propuesta del servidor IA sin revisar ni corregir
+    puede estar mal leída y no debe decidir qué se busca fuera.
+    """
+    confirmados = [b for b in doc.bloques if not (es_ia(b) and not b.revisado and not b.editado)]
+    e = estructurar(doc.model_copy(update={"bloques": confirmados}))
     vistos, salida = set(), []
     for c in [g["concepto"] for g in e.glosario] + [s.titulo for s in e.secciones if s.titulo != "Contenido"] \
             + e.conceptos:

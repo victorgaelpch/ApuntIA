@@ -75,6 +75,11 @@ def resumen_extractivo(frases: list[str], maximo: int = 3) -> list[str]:
     return [frases[i] for i in sorted(puntuadas[:maximo])]
 
 
+def es_ia(b) -> bool:
+    """El bloque lo propuso el servidor IA (BACK-37): nunca es una transcripción confirmada."""
+    return bool(b.procedencia and b.procedencia.motor == "ia_remota")
+
+
 def estructurar(doc: Documento, tipo_fuente: str = "") -> ApunteEstructurado:
     bloques = sorted(doc.bloques, key=lambda b: b.orden)
     secciones: list[Seccion] = []
@@ -89,8 +94,14 @@ def estructurar(doc: Documento, tipo_fuente: str = "") -> ApunteEstructurado:
             continue
         datos = {"id": b.id, "tipo": b.tipo, "texto": b.texto, "latex": b.latex if b.latex_valido is not False else None,
                  "tabla": b.tabla.model_dump() if b.tabla else None, "recorte": b.recorte,
-                 "estado": b.estado, "editado": b.editado, "pagina": b.pagina}
+                 "estado": b.estado, "editado": b.editado, "pagina": b.pagina,
+                 "ia": es_ia(b), "revisado": b.revisado}
         actual.bloques.append(datos)
+        # BACK-38: lo derivado (resumen, glosario, ejemplos, fórmulas) solo sale de lo confirmado; una
+        # propuesta del servidor IA sin revisar ni corregir aparece en la transcripción, marcada, y nada más.
+        if es_ia(b) and not b.revisado and not b.editado:
+            pendientes += b.tipo == "manuscrito" and not b.texto
+            continue
         if b.tipo == "formula":
             formulas.append({"texto": b.texto, "latex": datos["latex"], "recorte": b.recorte})
         elif b.tipo == "tabla" and b.tabla:
@@ -124,6 +135,10 @@ def estructurar(doc: Documento, tipo_fuente: str = "") -> ApunteEstructurado:
         avisos.append(f"{inciertos} bloque(s) tienen reconocimiento incierto: revísalos antes de compartir el PDF.")
     if pendientes:
         avisos.append(f"{pendientes} fragmento(s) no se pudieron leer y se incluyen como imagen.")
+    ia_sin_revisar = sum(es_ia(b) and not b.revisado and not b.editado and bool(b.texto or b.latex) for b in bloques)
+    if ia_sin_revisar:
+        avisos.append(f"{ia_sin_revisar} bloque(s) son propuestas del servidor IA sin revisar: se incluyen junto a "
+                      "su recorte de la foto; compáralos antes de compartir el PDF.")
     complementos = [{"concepto": a.concepto, "texto": a.texto, "fuente": a.fuente.model_dump(),
                      "discrepancia": a.discrepancia}
                     for a in doc.ampliaciones if a.estado == "aceptada"]

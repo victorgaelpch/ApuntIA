@@ -364,5 +364,5 @@ def test_bomba_de_descompresion_se_rechaza_sin_descomprimir(client, nuevo_client
     c = nuevo_cliente()
     c.registrar()
     r = c.post("/api/v2/apuntes", data={"tipos": "cuaderno"}, files=[("paginas", ("b.png", bomba, "image/png"))])
-    # Contrato v2: fotos inválidas → 400 con el código de la página (docs/api-v2.md §6)
+    # Contrato v2: fotos inválidas → 400 con el código de la página (fullstack/docs/api-v2.md §6)
     assert r.status_code == 400 and r.json()["error"]["codigo"] == "IMAGEN_DEMASIADO_GRANDE"

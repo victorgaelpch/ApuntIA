@@ -1,7 +1,7 @@
 // Validación de imágenes en el navegador (FRONT-02).
 //
 // Avisa al usuario antes de enviar, con los mismos criterios que el backend
-// (docs/api.md): formato real JPEG/PNG/WEBP por firma binaria, archivo no
+// (fullstack/docs/api.md): formato real JPEG/PNG/WEBP por firma binaria, archivo no
 // vacío y tamaño máximo. El atributo accept del <input> solo filtra el
 // selector y se puede saltar (arrastrar, "Todos los archivos", extensión
 // cambiada), y el backend vuelve a validarlo todo.

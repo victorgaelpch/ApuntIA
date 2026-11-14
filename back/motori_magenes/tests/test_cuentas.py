@@ -1,4 +1,4 @@
-"""Autenticación y perfil (BACK-23). Contrato: docs/api-v2.md §4."""
+"""Autenticación y perfil (BACK-23). Contrato: fullstack/docs/api-v2.md §4."""
 
 import time
 

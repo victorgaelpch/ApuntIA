@@ -18,7 +18,7 @@ def holamundo():
 
 @router.get("/salud")
 def salud():
-    """Estado del servicio y límites vigentes (ver docs/api.md)."""
+    """Estado del servicio y límites vigentes (ver fullstack/docs/api.md)."""
     return {
         "estado": "ok",
         "version": settings.version,

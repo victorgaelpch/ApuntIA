@@ -1,13 +1,13 @@
 # Procesamiento de imágenes – detalles técnicos
 
 Decisiones, parámetros y mediciones de cada etapa del backend. Para instalarlo y ejecutarlo, ver
-[`README.md`](README.md); para el contrato HTTP, ver [`docs/api.md`](../../docs/api.md).
+[`README.md`](README.md); para el contrato HTTP, ver [`fullstack/docs/api.md`](../../fullstack/docs/api.md).
 
 Orden del pipeline: **validar → redimensionar → perspectiva → ruido → mejora → (grises) → PNG**.
 
 ## Validación de imágenes (BACK-02)
 
-El contrato completo está en [`docs/api.md`](../../docs/api.md). `POST /analisis` comprueba, en este orden:
+El contrato completo está en [`fullstack/docs/api.md`](../../fullstack/docs/api.md). `POST /analisis` comprueba, en este orden:
 
 1. Que exista el campo `file` → si no, `400 ARCHIVO_AUSENTE`.
 2. Que no esté vacío → si lo está, `400 ARCHIVO_VACIO`.
@@ -73,7 +73,7 @@ Resultados con las muestras de `herramientas/muestras.py` (`python -m herramient
 | Sin pizarrón / 20 fondos de ruido | `no_detectada`, 0 falsos positivos | — |
 | Foto real `bd/img/image.png` | `no_detectada` | — |
 
-![Antes y después](../../docs/evidencias/back-04-perspectiva.jpg)
+![Antes y después](../../fullstack/docs/evidencias/back-04-perspectiva.jpg)
 
 **Limitación conocida:** en la foto real `bd/img/image.png` el pizarrón **se sale del encuadre** por arriba y por abajo, y es blanco sobre pared blanca, así que no hay cuatro esquinas visibles. Se devuelve sin rectificar en lugar de deformarla con un cuadrilátero falso. Para estos casos, una mejora futura sería intersecar las rectas del marco (Hough).
 
@@ -101,12 +101,12 @@ Comparación con `python -m herramientas.evaluar_ruido`, sobre un pizarrón de 1
 | **combinado** | **36.2** | **170.3** | **100 %** | 26 |
 | *NL-means h=7 (descartado)* | 23.0 | — | — | 902 |
 
-![Recorte: con ruido, mediana, gaussiano, bilateral, combinado](../../docs/evidencias/back-06-ruido.jpg)
+![Recorte: con ruido, mediana, gaussiano, bilateral, combinado](../../fullstack/docs/evidencias/back-06-ruido.jpg)
 
 - El **gaussiano** borra escritura: el contraste del texto cae a 159 y la nitidez al 17 %.
 - El **bilateral** solo no elimina la sal y pimienta, porque trata esos puntos como bordes.
 - La **mediana** quita los puntos, pero deja grano.
-- La **combinación** recupera la nitidez original sin perder contraste. Es la opción por defecto; el contrato (`docs/api.md`) se actualizó con este valor.
+- La **combinación** recupera la nitidez original sin perder contraste. Es la opción por defecto; el contrato (`fullstack/docs/api.md`) se actualizó con este valor.
 
 ## Calidad y nitidez (BACK-05)
 
@@ -127,7 +127,7 @@ Comparación con `python -m herramientas.evaluar_mejora`. Contraste = diferencia
 | CLAHE + enfoque (foto con pared) | 177.4 / 201.5 / 1.1 | 87.6 / 98.4 / 0.0 | 111.8 / 125.2 / 0.2 |
 | Iluminación + enfoque (pizarrón rectificado) | 169.7 / 194.2 / 0.3 | **156.3 / 179.9** / 0.1 | **172.0 / 198.6** / 0.4 |
 
-![Antes y después: foto real, oscura y con sombra](../../docs/evidencias/back-05-mejora.jpg)
+![Antes y después: foto real, oscura y con sombra](../../fullstack/docs/evidencias/back-05-mejora.jpg)
 
 **Decisiones y limitaciones:**
 - La normalización de iluminación duplica el contraste en fotos oscuras o con sombra. Pero, aplicada a una foto con pared o muebles, aclara las zonas oscuras y hace visibles los bloques del JPEG. Por eso solo se usa cuando la imagen ya es el pizarrón rectificado.
@@ -387,7 +387,7 @@ adaptativo diera problemas en algún equipo).
 | **Consenso** en lo «reconocido»: una relectura; si no coincide, revisión con la otra lectura como alternativa | Tesseract da confianza alta a errores («eltema», 0,91; «x?» por «x²», 0,95). En el banco FULL-19 los textos falsos dados por seguros bajan de 6 a 3 |
 | **Fórmulas** por lectura especializada: una línea, solo caracteres matemáticos, y se aceptan si dan LaTeX válido con confianza ≥ 0,50; «reconocida» solo con **dos** lecturas iguales y confianza ≥ 0,85 | Una lectura con confianza 0,00 producía LaTeX «válido» sin sentido (`a w 2 + b 7 \cdot 2 = c^{2}`): ser LaTeX válido no prueba que sea lo escrito |
 | `F = ma`, `v = d/t` se detectan como fórmula (igualdad corta entre variables) | Antes quedaban como texto |
-| pix2tex **no** se integra | Ver `docs/evaluacion.md` §7: 4/10 fórmulas 2D, pero inventa símbolos y cambia números sin avisar; ~6 GB con PyTorch |
+| pix2tex **no** se integra | Ver `fullstack/docs/evaluacion.md` §7: 4/10 fórmulas 2D, pero inventa símbolos y cambia números sin avisar; ~6 GB con PyTorch |
 
 ### Diagnóstico de calidad
 
@@ -413,7 +413,7 @@ inventadas) y `revision` (`lecturas_distintas`, `sin_confirmar`, `formula_sin_co
 `calidad_insuficiente`). Cada página trae `calidad` (nivel y métricas). Los tres campos de bloque
 son **inmutables** al guardar (`documento.fusionar`): elegir una alternativa en el editor es una
 corrección del usuario (`editado: true`, `texto_original` intacto). Los apuntes anteriores no
-tienen estos campos y siguen siendo válidos. Detalle en `docs/api-v2.md` §3.
+tienen estos campos y siguen siendo válidos. Detalle en `fullstack/docs/api-v2.md` §3.
 
 ### Límites y rendimiento
 

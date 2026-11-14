@@ -1,4 +1,4 @@
-"""Endurecimiento transversal de la API (BACK-24). Guía: docs/seguridad-api.md.
+"""Endurecimiento transversal de la API (BACK-24). Guía: fullstack/docs/seguridad-api.md.
 
   - `CabecerasSeguridad`: nosniff, sin marcos, sin Referer, sin caché para los
     datos privados de /api/v2 y una CSP que no permite ejecutar nada en las

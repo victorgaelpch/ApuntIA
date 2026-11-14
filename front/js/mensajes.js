@@ -1,6 +1,6 @@
 // Catálogo de mensajes para el usuario (FRONT-08).
 //
-// Cada código, ya sea del contrato de la API (docs/api.md y docs/api-v2.md), de
+// Cada código, ya sea del contrato de la API (fullstack/docs/api.md y fullstack/docs/api-v2.md), de
 // validación en el navegador, de la cámara o de red, se traduce a:
 //   texto:    mensaje público, en lenguaje sencillo y orientado a la solución
 //   acciones: lo que se ofrece para resolverlo (ids que app.js convierte en botones;
@@ -68,7 +68,7 @@
         RUTA_NO_ENCONTRADA: { texto: "La dirección del servidor no es la correcta. Revisa la configuración de la API.", acciones: ["reintentar"] },
         SERVIDOR_REQUERIDO: { texto: "Abre ApuntIA desde el servidor (por ejemplo http://localhost:8000/inicio) para usar tu cuenta.", acciones: [] },
 
-        // ===== API v2 (docs/api-v2.md §6), agrupados por etapa =====
+        // ===== API v2 (fullstack/docs/api-v2.md §6), agrupados por etapa =====
         // --- cuenta y sesión
         NO_AUTENTICADO: { texto: "Tu sesión no es válida o caducó. Inicia sesión de nuevo.", acciones: [] },
         CREDENCIALES_INVALIDAS: { texto: "Email o contraseña incorrectos.", acciones: [] },

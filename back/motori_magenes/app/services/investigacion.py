@@ -1,6 +1,6 @@
 """Investigación opcional con fuentes citables (BACK-18).
 
-Principios (docs/api-v2.md §7):
+Principios (fullstack/docs/api-v2.md §7):
   - Solo con consentimiento explícito por petición Y la preferencia
     `investigacion_permitida` del perfil activada.
   - Al proveedor solo se envían los CONCEPTOS elegidos (palabras clave cortas),

@@ -1,7 +1,7 @@
 // Compatibilidad de datos entre frontend y backend (FULL-06).
 //
 // Captura las peticiones reales que hace el navegador y las respuestas reales
-// de FastAPI, y las compara con el contrato (docs/api.md), incluidos los casos límite.
+// de FastAPI, y las compara con el contrato (fullstack/docs/api.md), incluidos los casos límite.
 //   npm run test:integracion
 const { test, describe, before, after } = require("node:test");
 const assert = require("node:assert/strict");
@@ -172,7 +172,7 @@ describe("Compatibilidad frontend ↔ backend", () => {
     });
 
     test("todos los códigos de error del backend tienen mensaje en el frontend", async () => {
-        const contrato = fs.readFileSync(path.join(RAIZ, "docs", "api.md"), "utf8");
+        const contrato = fs.readFileSync(path.join(RAIZ, "fullstack", "docs", "api.md"), "utf8");
         const codigosContrato = [...contrato.matchAll(/^\| \d{3} \| `([A-Z_]+)` \|/gm)].map((m) => m[1]);
         const codigosBackend = new Set();
         for (const archivo of ["app/core/errores.py", "app/services/validacion.py"]) {

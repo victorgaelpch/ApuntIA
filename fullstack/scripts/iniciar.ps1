@@ -59,7 +59,7 @@ if (Get-Command tesseract -ErrorAction SilentlyContinue) {
     Aviso "Instálalo desde https://github.com/UB-Mannheim/tesseract/wiki (incluye el idioma Spanish) o define TESSERACT_CMD."
 }
 
-# Backend Spring Boot: el repositorio NO tiene uno (ver docs/arranque.md); si se añade, se detecta.
+# Backend Spring Boot: el repositorio NO tiene uno (ver fullstack/docs/arranque.md); si se añade, se detecta.
 $Spring = Get-ChildItem (Join-Path $Raiz "back") -Directory | Where-Object {
     $_.FullName -ne $Backend -and ((Test-Path (Join-Path $_.FullName "pom.xml")) -or (Test-Path (Join-Path $_.FullName "build.gradle")))
 } | Select-Object -First 1

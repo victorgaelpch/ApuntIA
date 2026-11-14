@@ -25,11 +25,11 @@ EXCLUIDOS = {"maqueta.html", "js/index.js", "css/index.css.map"}
 
 
 class EstaticosInterfaz(StaticFiles):
-    """StaticFiles que solo entrega recursos de la interfaz (no tests/ ni README)."""
+    """StaticFiles que solo entrega recursos de la interfaz (no tests/, docs/ ni README)."""
 
     async def get_response(self, path, scope):
         partes = Path(path).parts
-        if ((partes and partes[0] in ("tests", "node_modules")) or Path(path).suffix.lower() not in EXTENSIONES
+        if ((partes and partes[0] in ("tests", "node_modules", "docs")) or Path(path).suffix.lower() not in EXTENSIONES
                 or Path(path).as_posix() in EXCLUIDOS):
             from starlette.exceptions import HTTPException
             raise HTTPException(status_code=404)

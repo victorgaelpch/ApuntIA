@@ -1,4 +1,4 @@
-"""Rutas de trabajos de la API v2 (BACK-27). Contrato: docs/api-v2.md §5."""
+"""Rutas de trabajos de la API v2 (BACK-27). Contrato: fullstack/docs/api-v2.md §5."""
 
 from fastapi import APIRouter, Depends
 

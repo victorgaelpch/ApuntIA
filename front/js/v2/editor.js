@@ -401,18 +401,33 @@
         });
     }
 
+    // FRONT-26: un bloque del servidor IA es una PROPUESTA (sin confianza calibrada) hasta que la
+    // persona lo compara con su recorte y lo marca como revisado.
+    const esIA = (b) => b.origen === "ocr" && b.procedencia && b.procedencia.motor === "ia_remota";
+
+    function chipOrigen(b, confianza) {
+        if (b.origen !== "ocr") return h("span", { class: "estado-chip", text: "Añadido por ti" });
+        if (esIA(b)) {
+            return h("span", { class: `estado-chip ${b.revisado ? "estado-reconocido" : "estado-incierto"}`,
+                               title: "Transcripción propuesta por el servidor IA",
+                               text: b.estado === "no_reconocido" ? "IA: sin leer" : `Propuesta de IA · ${b.revisado ? "revisada" : "sin revisar"}` });
+        }
+        return h("span", { class: `estado-chip estado-${b.estado}`, title: "Confianza del reconocimiento",
+                           text: `${ESTADO_BLOQUE[b.estado] || b.estado}${confianza}` });
+    }
+
     function tarjetaBloque(b, n) {
         const soloLectura = !editable();
         const tipos = ["titulo", "texto", "manuscrito", "formula"].concat(b.tabla ? ["tabla"] : [], b.recorte ? ["imagen"] : []);
         const confianza = typeof b.confianza === "number" ? ` ${Math.round(b.confianza * 100)} %` : "";
-        const tarjeta = h("article", { class: "bloque", "data-bloque": b.id, "data-estado": b.origen === "ocr" ? b.estado : "usuario",
+        const tarjeta = h("article", { class: `bloque${esIA(b) ? " propuesta-ia" : ""}`, "data-bloque": b.id,
+                                       "data-estado": b.origen === "ocr" ? b.estado : "usuario",
+                                       "data-origen": esIA(b) ? "ia" : b.origen, "data-revisado": esIA(b) ? String(Boolean(b.revisado)) : null,
                                        "aria-current": String(b.id === E.seleccionado), "aria-labelledby": `titulo-${b.id}`, tabindex: "-1",
                                        onfocusin: () => seleccionar(b.id, false) },
             h("div", { class: "bloque__cabecera" },
                 h("span", { class: "bloque__titulo", id: `titulo-${b.id}`, text: `Bloque ${n}` }),
-                b.origen === "ocr" ? h("span", { class: `estado-chip estado-${b.estado}`, title: "Confianza del reconocimiento",
-                                                text: `${ESTADO_BLOQUE[b.estado] || b.estado}${confianza}` })
-                                   : h("span", { class: "estado-chip", text: "Añadido por ti" }),
+                chipOrigen(b, confianza),
                 h("span", { class: "etiqueta-editado", hidden: !editado(b), text: "corregido" }),
                 h("label", { class: "sr-only", for: `tipo-${b.id}`, text: `Tipo del bloque ${n}` }),
                 h("select", { id: `tipo-${b.id}`, disabled: soloLectura, onchange: (e) => cambiarTipo(b, e.target.value) },
@@ -420,11 +435,23 @@
         const cuerpo = h("div", { class: "bloque__cuerpo" });
         (E.renderizadores[b.tipo] || renderTexto)(b, cuerpo, { soloLectura, n, urlArchivo, marcarCambio, tarjeta });
         tarjeta.append(cuerpo);
-        if (b.palabras_dudosas && b.palabras_dudosas.length && b.estado !== "reconocido") {
-            tarjeta.append(h("p", { class: "bloque__dudosas", text: `Palabras dudosas: ${b.palabras_dudosas.slice(0, 12).join(", ")}` }));
-        }
-        if (b.origen === "ocr" && b.revision && b.estado !== "reconocido" && MOTIVO_REVISION[b.revision]) {
-            tarjeta.append(h("p", { class: "bloque__motivo", text: MOTIVO_REVISION[b.revision] }));
+        if (esIA(b)) {
+            // Dudas que el propio modelo marcó ([?]) y aviso de símbolos que suelen confundirse.
+            if ((b.palabras_dudosas || []).length) {
+                tarjeta.append(h("p", { class: "bloque__dudosas", text: `Dudas del modelo: ${b.palabras_dudosas.slice(0, 6).join("; ")}` }));
+            }
+            if (!b.revisado) {
+                tarjeta.append(h("p", { class: "bloque__motivo", text: b.tipo === "formula"
+                    ? "Propuesta del servidor IA: compárala con el recorte. Revisa los símbolos que se confunden (6/8, +/−, i/j/k, exponentes y subíndices)."
+                    : "Propuesta del servidor IA: compárala con el recorte antes de darla por buena." }));
+            }
+        } else {
+            if (b.palabras_dudosas && b.palabras_dudosas.length && b.estado !== "reconocido") {
+                tarjeta.append(h("p", { class: "bloque__dudosas", text: `Palabras dudosas: ${b.palabras_dudosas.slice(0, 12).join(", ")}` }));
+            }
+            if (b.origen === "ocr" && b.revision && b.estado !== "reconocido" && MOTIVO_REVISION[b.revision]) {
+                tarjeta.append(h("p", { class: "bloque__motivo", text: MOTIVO_REVISION[b.revision] }));
+            }
         }
         // Otras lecturas reales de la foto: un clic las usa (sigue siendo una corrección del usuario).
         if (b.origen === "ocr" && (b.alternativas || []).length && !soloLectura) {
@@ -445,6 +472,10 @@
                               "aria-label": `Subir el bloque ${n}` }),
                 h("button", { type: "button", class: "btn sm", dataset: { accion: "bajar" }, onclick: () => moverBloque(b.id, 1), text: "↓",
                               "aria-label": `Bajar el bloque ${n}` }),
+                esIA(b) && b.estado !== "no_reconocido"
+                    ? h("button", { type: "button", class: "btn sm", dataset: { accion: "revisado" }, "aria-pressed": String(Boolean(b.revisado)),
+                                    text: b.revisado ? "Marcar como pendiente" : "Marcar como revisado",
+                                    onclick: () => { b.revisado = !b.revisado; marcarCambio(); pintarBloques(); } }) : null,
                 b.texto_original && b.texto !== b.texto_original
                     ? h("button", { type: "button", class: "btn sm", dataset: { accion: "restaurar" }, text: "Volver al texto reconocido",
                                     onclick: () => { b.texto = b.texto_original; marcarCambio(); pintarBloques(); } }) : null,
@@ -458,7 +489,8 @@
 
     // Texto, título y manuscrito: el texto en un textarea, junto al recorte si es dudoso.
     function renderTexto(b, cuerpo, { soloLectura, n }) {
-        if (b.recorte && (b.estado !== "reconocido" || ["manuscrito", "imagen"].includes(b.tipo))) {
+        // Las propuestas de la IA SIEMPRE se muestran junto a su recorte: es la fuente para revisarlas.
+        if (b.recorte && (esIA(b) || b.estado !== "reconocido" || ["manuscrito", "imagen"].includes(b.tipo))) {
             cuerpo.append(h("img", { class: "bloque__recorte", src: urlArchivo(b.recorte), alt: `Recorte de la foto del bloque ${n}`, loading: "lazy" }));
         }
         const area = h("textarea", { id: `texto-${b.id}`, rows: String(Math.min(12, Math.max(2, (b.texto || "").split("\n").length + 1))),

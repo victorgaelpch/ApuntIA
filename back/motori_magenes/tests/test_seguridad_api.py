@@ -6,6 +6,7 @@ nueva sin su prueba de acceso cruzado.
 """
 
 import logging
+import sys
 
 import pytest
 from fastapi.testclient import TestClient
@@ -352,6 +353,7 @@ def _bomba_png(lado=20000) -> bytes:
             + trozo(b"IDAT", idat) + trozo(b"IEND", b""))
 
 
+@pytest.mark.skipif(sys.platform == "win32", reason="mide la memoria con `resource`, que solo existe en Unix (corre en CI Linux)")
 def test_bomba_de_descompresion_se_rechaza_sin_descomprimir(client, nuevo_cliente):
     import resource
     import time as reloj

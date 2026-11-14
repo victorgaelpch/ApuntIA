@@ -34,7 +34,12 @@ TAREAS = {
                 "Después escribe ETIQUETAS: y copia los textos que aparecen en él.",
     "pagina": "Transcribe todo el contenido de la página en orden de lectura; escribe las fórmulas en LaTeX entre $ y $. "
               "Si algo no se lee, escribe [?]. Responde solo con la transcripción.",
+    # Una región de la página (tarea «documento», BACK-36): no se sabe de antemano qué contiene.
+    "region": "Transcribe esta parte de un pizarrón o cuaderno tal como está escrita, sin corregir nada: el texto tal cual "
+              r"y las fórmulas en LaTeX entre $ y $ (usa \frac y \sqrt). Si es solo un dibujo o una gráfica, responde "
+              "DIBUJO: y descríbelo en una frase. Si algo no se lee, escribe [?].",
 }
+TAREAS_PUBLICAS = sorted(set(TAREAS) - {"region"} | {"documento"})
 MAX_CARACTERES = 30000
 
 
@@ -89,6 +94,17 @@ def construir(tarea: str, contenido: str) -> RespuestaModelo | None:
                 if llaves_desbalanceadas(l):
                     dudas.append(f"LaTeX con llaves desbalanceadas en la línea {k}")
             return RespuestaModelo(texto=latex, latex=latex, dudas=dudas)
+        if tarea == "region":
+            if re.match(r"(?i)^\s*DIBUJO\s*:", t):
+                return RespuestaModelo(descripcion=re.sub(r"(?i)^\s*DIBUJO\s*:\s*", "", t), dudas=dudas)
+            lineas = [l for l in t.splitlines() if l.strip()]
+            matematicas = sum(bool(re.search(r"\$|\\[a-zA-Z]+", l)) for l in lineas)
+            if lineas and matematicas >= len(lineas) / 2:   # mayoritariamente fórmulas
+                latex = "\n".join(l.strip().strip("$").strip() for l in lineas)
+                dudas += [f"LaTeX con llaves desbalanceadas en la línea {k}"
+                          for k, l in enumerate(latex.splitlines(), 1) if llaves_desbalanceadas(l)]
+                return RespuestaModelo(texto=t, latex=latex, dudas=dudas)
+            return RespuestaModelo(texto=t, dudas=dudas)
         if tarea == "diagrama":
             m = re.search(r"(?i)ETIQUETAS\s*:", t)
             descripcion, etiquetas = (t[:m.start()], t[m.end():]) if m else (t, "")

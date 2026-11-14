@@ -1,6 +1,6 @@
 # Bitácora real — FULL-31 (#95)
 
-- Sesión real: 2026-11-13 23:48 – 2026-11-14 00:06 (America/Mexico_City). Responsable: Claude Code
+- Sesión real: 2026-11-13 23:48 – 2026-11-14 00:08 (America/Mexico_City). Responsable: Claude Code
   (asistente de IA) a petición del equipo, en la PC servidor; **falta revisión humana y la prueba
   entre dos redes reales**. Actividad: vinculación y autorización en `ia_servidor` (registro con
   hashes, consola de administración, límites), cliente remoto del backend (DPAPI, vínculo al

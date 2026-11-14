@@ -16,6 +16,7 @@ Compara con la línea base de Tesseract guardada en `fullstack/evaluacion/linea-
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import json
 import subprocess
@@ -40,8 +41,15 @@ def normalizar_latex(texto: str) -> str:
     r"""LaTeX comparable: sin espacios, $, \left/\right ni llaves alrededor de un solo símbolo
     (x^{2} == x^2). Así el CER mide errores de lectura, no de estilo."""
     t = re.sub(r"\\(left|right)\b", "", texto.replace("$", ""))
+    t = re.sub(r"\\(text|mathrm|operatorname)\{([^{}]*)\}", r"\2", t)   # \text{opposite} == opposite
+    t = t.replace("²", "^2").replace("³", "^3")
     t = re.sub(r"([\^_])\{(\\?[A-Za-z0-9])\}", r"\1\2", t)
     return "\n".join(re.sub(r"\s+", "", linea) for linea in t.splitlines() if linea.strip())
+
+
+SIMBOLOS = {r"\theta": "θ", r"\alpha": "α", r"\beta": "β", r"\pi": "π", r"\pm": "±", r"\Delta": "Δ",
+            r"\heartsuit": "♥", r"\degree": "°", "^\\circ": "°", r"\circ": "°"}
+FUNCIONES = ("sin", "cos", "tan", "csc", "sec", "cot")
 
 
 def notacion_equivalente(texto: str) -> str:
@@ -52,11 +60,32 @@ def notacion_equivalente(texto: str) -> str:
     for _ in range(3):  # fracciones y raíces anidadas sencillas
         t = re.sub(r"\\frac\{([^{}]*)\}\{([^{}]*)\}", lambda m: f"{_grupo(m[1])}/{_grupo(m[2])}", t)
         t = re.sub(r"\\sqrt\{([^{}]*)\}", r"sqrt(\1)", t)
-    return t.replace(r"\cdot", "*")
+    t = t.replace(r"\cdot", "*").replace("√", "sqrt")
+    for orden, simbolo in SIMBOLOS.items():   # LaTeX y Unicode cuentan igual: \pi == π
+        t = t.replace(orden, simbolo)
+    for f in FUNCIONES:                          # \sin == sin
+        t = t.replace("\\" + f, f)
+    return t
 
 
 def _grupo(s: str) -> str:
-    return s if re.fullmatch(r"\\?[A-Za-z0-9.]+", s) else f"({s})"
+    return s if re.fullmatch(r"\\?[A-Za-zα-ωΑ-Ω0-9.]+", s) else f"({s})"
+
+
+def cobertura(salida: str, elementos: list[str], umbral: float = 0.25) -> tuple[float, list[str]]:
+    """Fracción de `elementos` que aparecen en `salida` sin depender del orden de lectura: cada
+    elemento se compara con cada línea de la salida y con 2-3 líneas seguidas unidas (el modelo
+    puede partir una fórmula), y cuenta si el CER en notación equivalente es <= `umbral`."""
+    from herramientas.metricas import cer
+    lineas = [notacion_equivalente(l).lower() for l in salida.splitlines() if l.strip()]
+    lineas = [l for l in lineas if l]
+    ventanas = [("".join(lineas[i:i + n])) for n in (1, 2, 3) for i in range(len(lineas) - n + 1)]
+    faltan = []
+    for e in elementos:
+        objetivo = notacion_equivalente(e).lower()
+        if not ventanas or min(cer(v, objetivo) for v in ventanas) > umbral:
+            faltan.append(e)
+    return (1 - len(faltan) / len(elementos) if elementos else 1.0), faltan
 
 
 class VigilanteVram(threading.Thread):
@@ -98,14 +127,154 @@ def pedir(url: str, metodo: str = "GET", datos: bytes | None = None, timeout: fl
         return e.code, json.loads(e.read() or b"{}")
 
 
+ESCRITURAS = {"impreso", "manuscrito", "formula", "tabla", "diagrama", "pagina"}
+
+
+def cargar_corpus(carpeta: Path) -> list:
+    """Corpus privado de fotos reales (BACK-36), FUERA de Git (fullstack/evaluacion/privado/).
+
+    carpeta/verdad.json: {"nombre": {"archivo": "foto.jpg", "tipo_fuente": "pizarron|cuaderno",
+    "escritura": "impreso|manuscrito|formula|tabla|diagrama|pagina", "lineas": [...], "latex": [...],
+    "permiso": "quién autorizó su uso y cuándo"}}. Mismo formato que el corpus sintético.
+    Ver fullstack/docs/evaluacion-multimodal.md."""
+    from types import SimpleNamespace
+
+    import numpy as np
+    verdad = json.loads((carpeta / "verdad.json").read_text(encoding="utf-8"))
+    muestras = []
+    for nombre, v in verdad.items():
+        if v.get("escritura") not in ESCRITURAS:
+            raise ValueError(f"{nombre}: «escritura» debe ser una de {sorted(ESCRITURAS)}")
+        if not v.get("permiso"):
+            raise ValueError(f"{nombre}: falta «permiso» (quién autorizó usar la foto): no se evalúa sin él")
+        ruta = carpeta / v["archivo"]
+        if ruta.resolve().parent != carpeta.resolve():
+            raise ValueError(f"{nombre}: el archivo debe estar dentro de la carpeta del corpus")
+        imagen = cv2.imdecode(np.fromfile(str(ruta), np.uint8), cv2.IMREAD_COLOR)
+        if imagen is None:
+            raise ValueError(f"{nombre}: no se puede abrir {v['archivo']}")
+        muestras.append(SimpleNamespace(nombre=nombre, escritura=v["escritura"], imagen=imagen,
+                                        lineas=list(v.get("lineas", [])), latex=list(v.get("latex", [])),
+                                        tipo_fuente=v.get("tipo_fuente", ""), archivo=v["archivo"],
+                                        origen=v.get("origen"),  # origen: foto de la que es un recorte
+                                        trampas=list(v.get("trampas", []))))
+    return muestras
+
+
+def fidelidad(salida: str, trampas: list[dict]) -> dict:
+    """«Trampas»: errores REALES del original que deben transcribirse tal cual. Para cada una,
+    `literal` (lo escrito) y `corregido` (lo que un modelo «servicial» escribiría). Clasifica:
+    fiel (aparece lo escrito), corregida (aparece la corrección: alucinación de fidelidad) o
+    no_leida. Comparación en notación equivalente, sin mayúsculas."""
+    texto = notacion_equivalente(salida).lower().replace("\n", "")
+    detalle = []
+    for t in trampas:
+        literal = notacion_equivalente(t["literal"]).lower().replace("\n", "")
+        corregido = notacion_equivalente(t["corregido"]).lower().replace("\n", "")
+        estado = "fiel" if literal in texto else "corregida" if corregido in texto else "no_leida"
+        detalle.append({"trampa": t["descripcion"], "estado": estado})
+    return {"fieles": sum(d["estado"] == "fiel" for d in detalle),
+            "corregidas": sum(d["estado"] == "corregida" for d in detalle),
+            "no_leidas": sum(d["estado"] == "no_leida" for d in detalle), "detalle": detalle}
+
+
+def comparar_pagina_y_regiones(muestras: list, salidas: dict) -> list[dict]:
+    """Para cada página completa del corpus cuyas regiones también están (campo «origen»), compara
+    sobre los MISMOS elementos: ¿cuántos aparecen enviando la página entera y cuántos enviando cada
+    región por separado? Mide si segmentar ayuda (decisión de BACK-36)."""
+    resultado = []
+    for p in muestras:
+        if p.escritura != "pagina" or p.nombre not in salidas:
+            continue
+        # todas las regiones manuales de esta página (aunque en esta tanda no se hayan medido)
+        regiones = [m for m in muestras if getattr(m, "origen", None) == getattr(p, "archivo", None)]
+        medidas = [r for r in regiones if r.nombre in salidas]
+        elementos = [e for r in regiones for e in (r.latex or r.lineas)]
+        if not elementos:
+            continue
+        cubiertos = 0
+        for r in medidas:
+            propios = r.latex or r.lineas
+            cob, _ = cobertura(salidas[r.nombre][1], propios)
+            cubiertos += round(cob * len(propios))
+        cob_pagina, faltan = cobertura(salidas[p.nombre][1], elementos)
+        trampas = [t for r in regiones for t in getattr(r, "trampas", [])]
+        fid_regiones = {"fieles": 0, "corregidas": 0, "no_leidas": 0}
+        for r in medidas:
+            f = fidelidad(salidas[r.nombre][1], getattr(r, "trampas", []))
+            for k in fid_regiones:
+                fid_regiones[k] += f[k]
+        elementos_medidos = sum(len(r.latex or r.lineas) for r in medidas)
+        resultado.append({"pagina": p.nombre, "regiones": len(regiones), "elementos": len(elementos),
+                          "cobertura_pagina_completa": round(cob_pagina, 3),
+                          "cobertura_por_regiones": round(cubiertos / elementos_medidos, 3) if elementos_medidos else None,
+                          "faltan_en_pagina_completa": faltan,
+                          "fidelidad_pagina_completa": fidelidad(salidas[p.nombre][1], trampas)})
+        if medidas:
+            resultado[-1]["fidelidad_por_regiones"] = fid_regiones
+        doc = salidas.get(p.nombre + "#documento")
+        if doc:  # segmentación automática (tarea «documento»)
+            cob_doc, faltan_doc = cobertura(doc[1], elementos)
+            resultado[-1].update(cobertura_documento=round(cob_doc, 3), faltan_en_documento=faltan_doc,
+                                 fidelidad_documento=fidelidad(doc[1], trampas))
+    return resultado
+
+
+def reevaluar(informe_ruta: Path, carpeta: Path) -> dict:
+    """Recalcula cobertura, fidelidad y la comparación página/regiones con las salidas YA guardadas
+    en un informe (sin volver a usar la GPU). Útil al mejorar la verdad o las métricas."""
+    informe = json.loads(informe_ruta.read_text(encoding="utf-8"))
+    muestras = {m.nombre: m for m in cargar_corpus(carpeta)}
+    salidas = {}
+    for fila in informe["resultados"]:
+        nombre = fila["muestra"]
+        m = muestras.get(nombre.split("#")[0])  # «pagina#documento» = la página leída por regiones automáticas
+        if m is None or fila.get("http") != 200:
+            continue
+        salida = "\n".join(x for x in (fila.get("texto"), fila.get("latex"), fila.get("descripcion")) if x)
+        salidas[nombre] = (m, salida)
+        if "#" in nombre:
+            continue
+        elementos = m.latex or m.lineas
+        if elementos:
+            cob, faltan = cobertura(salida, elementos)
+            fila["cobertura"], fila["faltan"] = round(cob, 3), faltan
+        if getattr(m, "trampas", None):
+            fila["fidelidad"] = fidelidad(salida, m.trampas)
+    informe["comparacion_pagina_regiones"] = comparar_pagina_y_regiones(list(muestras.values()), salidas)
+    return informe
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--url", default="http://127.0.0.1:8100")
     p.add_argument("--salida", type=Path, default=RAIZ / "fullstack" / "evaluacion" / "resultados")
+    p.add_argument("--corpus", type=Path, help="carpeta con fotos reales y verdad.json (por defecto: corpus sintético)")
+    p.add_argument("--reevaluar", type=Path, help="informe ya guardado: recalcular métricas sin usar la GPU (requiere --corpus)")
+    p.add_argument("--sin-documento", action="store_true", help="no evaluar la tarea «documento» en las páginas completas")
+    p.add_argument("--solo-paginas", action="store_true", help="medir solo las páginas completas (y su tarea «documento»)")
     a = p.parse_args()
+    if a.reevaluar:
+        if not a.corpus:
+            print("--reevaluar necesita --corpus")
+            return 1
+        informe = reevaluar(a.reevaluar, a.corpus)
+        destino = a.reevaluar.with_name(a.reevaluar.stem + "-reevaluado.json")
+        destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
+        for c in informe["comparacion_pagina_regiones"]:
+            for modo, cob, fid in (("página completa", "cobertura_pagina_completa", "fidelidad_pagina_completa"),
+                                   ("regiones manuales", "cobertura_por_regiones", "fidelidad_por_regiones"),
+                                   ("regiones automáticas", "cobertura_documento", "fidelidad_documento")):
+                if c.get(cob) is not None and c.get(fid):
+                    f = c[fid]
+                    print(f"«{c['pagina']}» {modo}: cobertura {c[cob]:.0%}; trampas {f['fieles']} fieles, "
+                          f"{f['corregidas']} corregidas, {f['no_leidas']} no leídas")
+        print("Guardado en", destino)
+        return 0
 
     from herramientas.corpus import corpus
     from herramientas.metricas import cer, wer
+    muestras = cargar_corpus(a.corpus) if a.corpus else corpus()
 
     estado, listo = pedir(a.url + "/listo")
     if estado != 200:
@@ -113,8 +282,9 @@ def main() -> int:
         return 1
     base = {m["muestra"]: m for m in json.loads((RAIZ / "fullstack/evaluacion/linea-base.json").read_text("utf-8"))["texto"]}
     gpu = listo["componentes"].get("gpu", {})
-    resultados = []
-    for i, m in enumerate(corpus()):
+    resultados, salidas = [], {}
+    a_medir = [m for m in muestras if not a.solo_paginas or m.escritura == "pagina"]
+    for i, m in enumerate(a_medir):
         tarea = TAREAS.get(m.escritura, "pagina")
         png = cv2.imencode(".png", m.imagen)[1].tobytes()
         antes = VigilanteVram.leer()
@@ -140,23 +310,66 @@ def main() -> int:
                                                           normalizar_latex("\n".join(m.latex))), 4)
                 fila["cer_notacion_equivalente"] = round(cer(notacion_equivalente(res["latex"] or res["texto"]),
                                                              notacion_equivalente("\n".join(m.latex))), 4)
+            elementos = m.latex or m.lineas
+            if elementos:
+                salida = "\n".join(x for x in (res["texto"], res["latex"], res["descripcion"]) if x)
+                cob, faltan = cobertura(salida, elementos)
+                fila["cobertura"], fila["faltan"] = round(cob, 3), faltan
+            if getattr(m, "trampas", None):
+                fila["fidelidad"] = fidelidad("\n".join(x for x in (res["texto"], res["latex"], res["descripcion"]) if x),
+                                              m.trampas)
+            salidas[m.nombre] = (m, "\n".join(x for x in (res["texto"], res["latex"], res["descripcion"]) if x))
         else:
             fila["error"] = r.get("error", {}).get("codigo")
         print(f"{m.nombre:24} {tarea:17} {estado} {segundos:6.1f}s  pico VRAM {vig.pico} MB  "
-              f"CER {fila.get('cer', fila.get('cer_notacion_equivalente', '—'))} (LaTeX literal {fila.get('cer_latex_normalizado', '—')})  (Tesseract {fila.get('cer_tesseract_linea_base', '—')})")
+              f"CER {fila.get('cer', fila.get('cer_notacion_equivalente', '—'))} (LaTeX literal {fila.get('cer_latex_normalizado', '—')})  "
+              f"cobertura {fila.get('cobertura', '—')}  (Tesseract {fila.get('cer_tesseract_linea_base', '—')})")
         resultados.append(fila)
+        if m.escritura == "pagina" and a.corpus and not a.sin_documento:  # BACK-36: segmentación automática
+            png = cv2.imencode(".png", m.imagen)[1].tobytes()
+            t0 = time.perf_counter()
+            estado, r = pedir(f"{a.url}/api/v1/analisis?tarea=documento", "POST", png)
+            fila_doc = {"muestra": m.nombre + "#documento", "escritura": "documento", "tarea": "documento", "http": estado,
+                        "segundos": round(time.perf_counter() - t0, 2)}
+            if estado == 200:
+                res = r["resultado"]
+                fila_doc.update(modelo=r["modelo"]["nombre"], texto=res["texto"], latex=None, descripcion=None,
+                                segmentacion=res["segmentacion"], bloques=[{k: b[k] for k in ("id", "tipo", "bbox", "estado")}
+                                                                         for b in res["bloques"]])
+                salidas[m.nombre + "#documento"] = (m, res["texto"])
+            else:
+                fila_doc["error"] = r.get("error", {}).get("codigo")
+            print(f"{m.nombre + '#documento':24} documento         {estado} {fila_doc['segundos']:6.1f}s  "
+                  f"{fila_doc.get('segmentacion', {}).get('regiones', '—')} regiones automáticas")
+            resultados.append(fila_doc)
+    comparacion = comparar_pagina_y_regiones(muestras, salidas)
+    for c in comparacion:
+        print(f"Página «{c['pagina']}»: cobertura de los elementos de las {c['regiones']} regiones = "
+              f"{c['cobertura_pagina_completa']:.0%} página completa"
+              + (f", {c['cobertura_por_regiones']:.0%} regiones manuales" if c["cobertura_por_regiones"] is not None else "")
+              + (f", {c['cobertura_documento']:.0%} regiones automáticas" if "cobertura_documento" in c else "")
+              + f" ({c['elementos']} elementos).")
+        for clave in ("fidelidad_pagina_completa", "fidelidad_por_regiones", "fidelidad_documento"):
+            if clave in c:
+                f = c[clave]
+                print(f"   {clave}: {f['fieles']} fieles, {f['corregidas']} corregidas, {f['no_leidas']} no leídas")
     _, ps = pedir(a.url + "/listo")
     informe = {
         "fecha_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "gpu": gpu, "ollama": listo["componentes"].get("ollama"), "modelo": listo["componentes"].get("modelo"),
         "en_memoria_al_final": ps.get("componentes", {}).get("en_memoria"),
-        "nota": "Corpus SINTÉTICO generado por código; no representa fotos reales de clase. CER de Tesseract: "
-                "línea base guardada (otra canalización y otro equipo), solo como referencia.",
+        "corpus": "privado (fotos reales)" if a.corpus else "sintético",
+        "nota": ("Corpus PRIVADO de fotos reales con permiso; el informe contiene texto transcrito: no subirlo a Git."
+                 if a.corpus else
+                 "Corpus SINTÉTICO generado por código; no representa fotos reales de clase. CER de Tesseract: "
+                 "línea base guardada (otra canalización y otro equipo), solo como referencia."),
         "resultados": resultados,
+        "comparacion_pagina_regiones": comparacion,
     }
     a.salida.mkdir(parents=True, exist_ok=True)
     modelo = (listo["componentes"].get("modelo") or {}).get("nombre", "modelo").replace(":", "_").replace("/", "_")
-    destino = a.salida / f"servidor-ia-medicion-{modelo}.json"
+    sufijo = os.environ.get("IA_SEG_HUECO_LINEAS", "")
+    destino = a.salida / f"servidor-ia-medicion-{modelo}{'-privado' if a.corpus else ''}{'-hueco' + sufijo if sufijo else ''}.json"
     destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
     print("Guardado en", destino)
     return 0

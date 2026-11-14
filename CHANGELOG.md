@@ -8,6 +8,9 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Editor de revisión de propuestas de IA** (FRONT-26): etiqueta «Propuesta de IA · sin revisar» sin
+  porcentajes, recorte siempre visible, dudas del modelo, aviso de símbolos confundibles y «Marcar como
+  revisado» (campo `revisado`, opcional y compatible con apuntes anteriores).
 - **Pantalla «Servidor IA»** (FRONT-25): estado con texto, conexión automática/manual/sin IA, vinculación
   con código, diagnóstico paso a paso; selector de reconocimiento al crear apuntes y «Analizar en modo
   local» cuando el servidor IA falla. El navegador nunca recibe el token.

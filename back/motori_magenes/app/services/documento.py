@@ -119,6 +119,9 @@ class Bloque(Base):
     alternativas: list[Alternativa] = Field(default_factory=list, max_length=3)
     procedencia: Procedencia | None = None
     revision: MotivoRevision | None = None   # por qué se pide revisar aunque la confianza sea alta
+    # FRONT-26: la persona marcó el bloque como revisado contra su recorte (lo decide el usuario;
+    # la procedencia y el motivo de revisión originales no cambian).
+    revisado: bool = False
 
     @field_validator("bbox")
     @classmethod

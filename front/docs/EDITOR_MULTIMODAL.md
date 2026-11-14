@@ -63,5 +63,6 @@ Hallazgos reales (no ocultados):
   nunca se presenta como confirmada y siempre va junto a su recorte.
 - Una región devolvió varias líneas de LaTeX y un título en un único bloque «fórmula»; el editor
   admite una fórmula por bloque y no la puede dibujar (en el PDF se usaría la imagen). Además el
-  título salió con la ortografía corregida («Isosceles»). Corrección prevista en BACK-38: dividir
-  las fórmulas multilínea en un bloque por línea y las líneas de texto en bloques de texto.
+  título salió con la ortografía corregida («Isosceles»). **Corregido en BACK-38**: las regiones
+  multilínea se dividen en un bloque por fórmula y las líneas de texto quedan en bloques de texto
+  (mismo recorte); ver [trazabilidad-contenido.md](../../fullstack/docs/trazabilidad-contenido.md) §3.

@@ -58,7 +58,8 @@
 
     // ---------------------------------------------------------------- formulario
     function pintarFormulario() {
-        const prov = info.proveedor === "wikipedia" ? "Wikipedia (es.wikipedia.org o en.wikipedia.org)" : info.proveedor;
+        const nombres = { wikipedia: "Wikipedia (es/en.wikipedia.org)", wikilibros: "Wikilibros, libros de texto abiertos (es/en.wikibooks.org)" };
+        const prov = String(info.proveedor || "").split("+").map((n) => nombres[n] || n).join(" y, si no hay resultado, ");
         const permitida = sesion.usuario && sesion.usuario.preferencias && sesion.usuario.preferencias.investigacion_permitida;
         const avisoEl = $("#avisoInvestigacion");
         $("#chkInvestigar").disabled = !info.disponible || !ed.editable();

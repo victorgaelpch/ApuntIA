@@ -27,6 +27,7 @@ CATALOGO: dict[str, tuple[int, bool, str]] = {
     "MODELO_NO_INSTALADO": (503, False, "El modelo configurado no está instalado en Ollama."),
     "SIN_MEMORIA": (503, True, "El modelo no cabe en la memoria de la GPU en este momento."),
     "TIEMPO_AGOTADO": (504, True, "El modelo tardó demasiado en responder."),
+    "TRABAJO_NO_ENCONTRADO": (404, False, "Ese trabajo no existe o ya caducó: vuelve a enviarlo."),
     "ERROR_INTERNO": (500, True, "Error interno del servidor IA."),
 }
 

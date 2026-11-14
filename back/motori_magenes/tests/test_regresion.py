@@ -18,6 +18,9 @@ from app.services import analisis, investigacion
 from app.services.ocr import ErrorOCR
 from tests.conftest import imagen_pil
 
+# Versión de la última migración (no fija: cada migración nueva la sube).
+ULTIMA_MIGRACION = max(int(a.name[:4]) for a in __import__('app.datos.bd', fromlist=['x']).MIGRACIONES.glob('*.sql'))
+
 
 def esperar(c, tid, limite=30):
     fin = time.time() + limite
@@ -143,13 +146,13 @@ def test_migracion_0004_conserva_exportaciones_antiguas(tmp_path):
     bd.ejecutar("INSERT INTO apuntes (id, usuario_id, titulo, estado, tipo_fuente, version_actual, creado, actualizado)"
                 " VALUES ('a', 'u', 't', 'listo', 'cuaderno', 1, 'f', 'f')")
     bd.ejecutar("INSERT INTO exportaciones VALUES ('e', 'a', 1, 'completado', NULL, 'f')")
-    assert bd.migrar() == ["0004_exportaciones.sql"]
+    assert bd.migrar()[0] == "0004_exportaciones.sql"   # y las posteriores
     fila = bd.uno("SELECT * FROM exportaciones WHERE id = 'e'")
     assert fila["usuario_id"] == "u" and fila["clave"] and fila["estado"] == "completado"
     with pytest.raises(sqlite3.IntegrityError):  # unicidad por (apunte, versión, opciones)
         bd.ejecutar("INSERT INTO exportaciones (id, apunte_id, usuario_id, version, clave, estado, creado, actualizado)"
                     " VALUES ('e2', 'a', 'u', 1, ?, 'pendiente', 'f', 'f')", (fila["clave"],))
-    assert bd.version_esquema() == 4
+    assert bd.version_esquema() == ULTIMA_MIGRACION
     bd.cerrar()
 
 

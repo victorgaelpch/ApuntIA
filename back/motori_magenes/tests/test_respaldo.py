@@ -15,6 +15,9 @@ from app.datos.bd import MIGRACIONES, BaseDatos
 from app.datos.respaldo import ErrorRespaldo
 from herramientas.claves_prueba import clave_de_prueba
 
+# Versión de la última migración (no fija: cada migración nueva la sube).
+ULTIMA_MIGRACION = max(int(a.name[:4]) for a in __import__('app.datos.bd', fromlist=['x']).MIGRACIONES.glob('*.sql'))
+
 
 def esperar(c, tid, limite=60):
     fin = time.time() + limite
@@ -94,7 +97,7 @@ def test_la_copia_se_hace_con_el_servidor_escribiendo(con_datos, tmp_path):
     finally:
         parar.set()
         hilo.join()
-    assert respaldo.verificar(tmp_path / "c.tar.gz")["version_esquema"] == 4
+    assert respaldo.verificar(tmp_path / "c.tar.gz")["version_esquema"] == ULTIMA_MIGRACION
 
 
 def test_verificar_detecta_copias_danadas_o_maliciosas(con_datos, tmp_path):
@@ -156,9 +159,9 @@ def test_restaurar_una_copia_de_una_version_anterior_la_migra(tmp_path):
     copia = tmp_path / "vieja.tar.gz"
     assert respaldo.crear(viejo, copia)["version_esquema"] == 3
     r = respaldo.restaurar(copia, tmp_path / "nuevo")
-    assert r["migraciones_aplicadas"] == ["0004_exportaciones.sql"]
+    assert r["migraciones_aplicadas"][0] == "0004_exportaciones.sql"
     con = sqlite3.connect(tmp_path / "nuevo" / "apuntia.sqlite3")
-    assert con.execute("SELECT MAX(version) FROM schema_migraciones").fetchone()[0] == 4
+    assert con.execute("SELECT MAX(version) FROM schema_migraciones").fetchone()[0] == ULTIMA_MIGRACION
     assert con.execute("SELECT email FROM usuarios").fetchone()[0] == "u@x.com"
 
 
@@ -173,7 +176,7 @@ def test_copia_automatica_antes_de_migrar_al_arrancar(tmp_path):
     bd.migrar(previas)
     bd.cerrar()
     ctx = contexto.reiniciar(datos)   # arranque de la versión nueva: aplica 0004
-    assert ctx.bd.version_esquema() == 4
+    assert ctx.bd.version_esquema() == ULTIMA_MIGRACION
     copias = list((datos / "respaldos").glob("antes-de-migrar-desde-v3-*.sqlite3"))
     assert len(copias) == 1
     assert sqlite3.connect(copias[0]).execute("SELECT MAX(version) FROM schema_migraciones").fetchone()[0] == 3

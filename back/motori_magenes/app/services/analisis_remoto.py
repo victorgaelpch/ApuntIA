@@ -29,7 +29,7 @@ from app.core import contexto
 from app.core.config import settings
 from app.datos.bd import ahora
 from app.services.documento import Bloque, Procedencia
-from app.services.ia_remota import Almacen, ClienteIARemota, ErrorIARemota, codigo_publico
+from app.services.ia_remota import Almacen, ClienteIARemota, ErrorIARemota, codigo_publico, url_efectiva
 from app.services.trabajos import Cancelado, ErrorTrabajo, Trabajo
 
 logger = logging.getLogger("apuntia.analisis_remoto")
@@ -43,8 +43,7 @@ class ErrorIATrabajo(ErrorTrabajo):
 
 def cliente() -> ClienteIARemota:
     almacen = Almacen(contexto.obtener().data_dir)
-    url = almacen.leer().get("url") or settings.ia_url
-    return ClienteIARemota(url, almacen, timeout_s=settings.ia_timeout_s, timeout_analisis_s=settings.ia_timeout_analisis_s)
+    return ClienteIARemota(url_efectiva(almacen, settings.ia_url), almacen, timeout_s=settings.ia_timeout_s, timeout_analisis_s=settings.ia_timeout_analisis_s)
 
 
 def resolver_motor(pedido: str) -> tuple[str, str | None]:

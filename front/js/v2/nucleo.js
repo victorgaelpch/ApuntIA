@@ -237,7 +237,9 @@
 
     const ETAPAS = { validando: "Validando", preprocesando: "Preparando las fotos", ocr: "Leyendo el texto",
                      formulas: "Detectando fórmulas", estructurando: "Organizando el apunte",
-                     investigando: "Consultando fuentes", maquetando: "Maquetando el PDF" };
+                     investigando: "Consultando fuentes", maquetando: "Maquetando el PDF",
+                     ia_enviando: "Enviando la foto al servidor IA", ia_en_cola: "En cola en el servidor IA",
+                     ia_procesando: "El servidor IA está leyendo la foto" };
     const ESTADOS = { pendiente: "En cola", procesando: "Procesando", listo: "Listo", parcial: "Parcial",
                       fallido: "Falló", cancelado: "Cancelado", completado: "Completado" };
 

@@ -64,11 +64,17 @@ Windows (PowerShell o CMD): doble clic en `iniciar.bat`, o:
 iniciar.bat
 ```
 
+En Windows, sin argumentos aparece un **menú**: iniciar ApuntIA, instalar o iniciar el servidor
+IA (solo en la PC con GPU), configurar la conexión, diagnosticar y detener. `iniciar.bat -Modo app`
+arranca directamente, como antes. Guías: [laptop](fullstack/docs/instalacion-clientes.md) ·
+[servidor IA](fullstack/docs/instalacion-servidor-ia.md).
+
 El script comprueba Python, Tesseract y el puerto, crea el entorno virtual, instala dependencias
 (solo si cambian), arranca la aplicación, espera a que responda y abre el navegador. Detalles,
 opciones (`--puerto`, `--red` para el móvil…) y códigos de salida en [fullstack/docs/arranque.md](fullstack/docs/arranque.md).
-> Los scripts de Windows aún **no se han ejecutado en un equipo con Windows**; los de Linux están
-> probados automáticamente y los de macOS comparten el mismo script, sin prueba en un Mac.
+> Los scripts de Windows se ejecutaron en Windows 11 (FULL-30: `-Comprobar`, menú y modos de IA)
+> y la CI los prueba en `windows-latest`; los de Linux están probados automáticamente y los de
+> macOS comparten el mismo script, sin prueba en un Mac.
 
 Para pararla: `./detener.sh` (o `detener.bat`).
 
@@ -163,7 +169,7 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [fullstack/docs/ci.md]
 | API | [v1 (`/analisis`)](fullstack/docs/api.md) · [v2 (cuentas, apuntes, PDF)](fullstack/docs/api-v2.md) · [servidor IA (BACK-35)](fullstack/docs/servidor-ia.md) |
 | Interfaz | [páginas v2](front/docs/interfaz-v2.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [frontend](front/README.md) |
 | Backend | [instalación y uso](back/motori_magenes/README.md) · [procesamiento y OCR](back/motori_magenes/PROCESAMIENTO.md) |
-| Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [carpeta fullstack](fullstack/README.md) |
+| Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [laptop (cliente)](fullstack/docs/instalacion-clientes.md) · [servidor IA](fullstack/docs/instalacion-servidor-ia.md) · [carpeta fullstack](fullstack/README.md) |
 | Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
 | Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
 | Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |

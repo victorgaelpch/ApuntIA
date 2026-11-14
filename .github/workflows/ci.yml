@@ -131,6 +131,27 @@ jobs:
           path: informes/
           retention-days: 14
 
+  windows:
+    name: Windows (scripts .bat/.ps1 y servidor IA)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Funciones y sintaxis de los scripts de PowerShell (FULL-30)
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File fullstack/tests/scripts/windows.pruebas.ps1
+      - name: Arranque clásico sin menú (iniciar.bat -Comprobar)
+        shell: cmd
+        run: iniciar.bat -Comprobar
+      - name: Servidor IA con Ollama simulado (BACK-35) en Windows
+        shell: pwsh
+        run: |
+          pip install -r ia_servidor/requirements.txt -c back/motori_magenes/constraints.txt pytest httpx
+          python -m pytest ia_servidor/tests
+
   docker:
     name: Docker (construcción y prueba de humo)
     runs-on: ubuntu-24.04

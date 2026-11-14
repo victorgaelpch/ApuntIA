@@ -35,6 +35,8 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 |-----------|-----------|
 | [arranque.md](arranque.md) | `iniciar.*` / `detener.*` sin Docker, opciones y códigos de salida (FULL-11) |
 | [docker.md](docker.md) | Docker Compose (FULL-13) |
+| [instalacion-clientes.md](instalacion-clientes.md) | Laptop: menú, `-Modo`, conexión con el servidor IA y diagnóstico (FULL-30) |
+| [instalacion-servidor-ia.md](instalacion-servidor-ia.md) | PC con GPU: Ollama, modelo, arranque y errores (FULL-30) |
 | [ejecutar.md](ejecutar.md) | Ejecución manual de las dos partes, CORS, celular (FULL-04) |
 | [diagnostico.md](diagnostico.md) | Salud, preparación y manejo de fallos (FULL-21) |
 | [respaldo.md](respaldo.md) | Copias de seguridad y recuperación (FULL-23) |

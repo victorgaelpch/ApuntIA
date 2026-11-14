@@ -1,7 +1,12 @@
 ﻿# Arranca ApuntIA sin Docker en Windows (FULL-11). Equivale a iniciar.sh.
 # Uso: iniciar.bat [-Puerto N] [-Red] [-SinNavegador] [-SinVenv] [-Reinstalar] [-Comprobar]
+#      iniciar.bat -Modo app|servidor-ia|instalar-ia|diagnostico|configurar|detener   (FULL-30)
+#      iniciar.bat            (sin argumentos y en una consola interactiva: menú)
 # Códigos de salida: 0 bien · 1 requisito ausente · 2 dependencias · 3 puerto ocupado · 4 no arrancó
+#                    5 falta un paso manual · 6 diagnóstico con fallos (los dos últimos, solo modos de IA)
 param(
+    [ValidateSet("", "app", "servidor-ia", "instalar-ia", "diagnostico", "configurar", "detener")]
+    [string]$Modo = "",
     [int]$Puerto = 0,
     [switch]$Red,
     [switch]$SinNavegador,
@@ -11,6 +16,21 @@ param(
 )
 $ErrorActionPreference = "Stop"
 $Raiz = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+
+# ------------------------------------------------------------------ modos y menú (FULL-30)
+# Sin argumentos y con una persona delante → menú. Con cualquier argumento, sin consola
+# (CI, tareas programadas) o con APUNTIA_SIN_MENU=1 → arranque clásico de siempre.
+Import-Module (Join-Path $PSScriptRoot "ApuntIA.Comun.psm1") -Force -DisableNameChecking
+$Ps = Join-Path $PSHOME "powershell.exe"; if (-not (Test-Path $Ps)) { $Ps = "powershell" }
+if (-not $Modo -and $PSBoundParameters.Count -eq 0 -and (Test-ConsolaInteractiva)) {
+    & $Ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "menu.ps1"); exit $LASTEXITCODE
+}
+$accionIA = @{ "servidor-ia" = "iniciar"; "instalar-ia" = "instalar"; "diagnostico" = "diagnostico"; "configurar" = "configurar" }
+if ($accionIA.ContainsKey($Modo)) {
+    & $Ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "ia.ps1") -Accion $accionIA[$Modo]; exit $LASTEXITCODE
+}
+if ($Modo -eq "detener") { & $Ps -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "detener.ps1"); exit $LASTEXITCODE }
+# $Modo vacío o "app": ApuntIA cliente. Nunca instala Ollama, CUDA ni modelos.
 $Backend = Join-Path $Raiz "back\motori_magenes"
 $Estado = Join-Path $Raiz "fullstack\.estado"
 $Config = Join-Path $Raiz "fullstack\config\.env"
@@ -126,6 +146,15 @@ if (-not $listo) {
     exit 4
 }
 Bien "ApuntIA está lista"
+# IA remota (FULL-30): solo se informa; una caída nunca impide usar ApuntIA en modo local.
+if ($env:APUNTIA_IA_URL) {
+    if (Test-UrlServidorIA $env:APUNTIA_IA_URL) { Aviso "APUNTIA_IA_URL no es válida: se ignora (modo local). Corrígela con iniciar.bat -Modo configurar" }
+    else {
+        $ia = Invoke-Json ($env:APUNTIA_IA_URL.TrimEnd("/") + "/salud") 3
+        if ($ia.Estado -eq 200) { Bien "Servidor IA remoto disponible: $($env:APUNTIA_IA_URL)" }
+        else { Aviso "Servidor IA remoto sin respuesta: se usa el modo local. Diagnóstico: iniciar.bat -Modo diagnostico" }
+    }
+}
 Write-Host ""
 Write-Host "  Mejorar una foto (sin cuenta):  $Url/inicio"
 Write-Host "  Apuntes con cuenta:             $Url/front/apuntes.html"

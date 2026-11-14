@@ -25,7 +25,8 @@ import cv2
 from ia_servidor import API_VERSION, PIPELINE_VERSION, compartido, gpu
 from ia_servidor.config import Configuracion
 from ia_servidor.errores import ErrorIA
-from ia_servidor.esquemas import TAREAS, construir, prompt
+from ia_servidor.esquemas import TAREAS, TAREAS_PUBLICAS, construir, prompt
+from ia_servidor.segmentacion import regiones_opencv
 from ia_servidor.imagen import reducir, validar
 from ia_servidor.ollama import VERSION_MINIMA, ClienteOllama, version_tupla
 
@@ -46,7 +47,7 @@ class Servicio:
         c = self.config
         return {
             "api_version": API_VERSION, "pipeline_version": PIPELINE_VERSION,
-            "tareas": sorted(TAREAS), "formatos": list(c.formatos),
+            "tareas": TAREAS_PUBLICAS, "formatos": list(c.formatos),
             "limites": {"max_mb": c.max_mb, "max_megapixeles": c.max_megapixeles,
                         "max_lado_enviado_al_modelo": c.max_lado_modelo, "inferencias_simultaneas": c.max_inferencias,
                         "espera_maxima_en_cola_s": c.espera_cola_s, "timeout_inferencia_s": c.timeout_s},
@@ -95,46 +96,55 @@ class Servicio:
             return None
 
     # ------------------------------------------------------------------ análisis
-    def analizar(self, datos: bytes, tarea: str, id_correlacion: str) -> dict:
-        inicio = time.perf_counter()
-        if tarea not in TAREAS:
-            raise ErrorIA("TAREA_INVALIDA", tarea[:40])
-        img = validar(datos, self.config.max_mb, self.config.max_megapixeles)
-        calidad = compartido.diagnosticar(img.imagen)
-        enviada = reducir(img.imagen, self.config.max_lado_modelo)
+    def _b64(self, imagen) -> tuple[str, int]:
+        enviada = reducir(imagen, self.config.max_lado_modelo)
         ok, png = cv2.imencode(".png", enviada)
         if not ok:
             raise ErrorIA("IMAGEN_CORRUPTA", "no se pudo codificar para el modelo")
-        imagen_b64 = base64.b64encode(png.tobytes()).decode("ascii")
-        del png
+        return base64.b64encode(png.tobytes()).decode("ascii"), int(max(enviada.shape[:2]))
+
+    def _con_respaldo(self, estado: dict, tarea: str, imagen_b64: str):
+        """Inferencia con el modelo vigente; ante falta de VRAM pasa UNA vez al de respaldo y lo
+        mantiene para el resto del documento. `estado`: {"modelo", "respaldo_usado"}."""
+        try:
+            return self._inferir(estado["modelo"], tarea, imagen_b64)
+        except ErrorIA as e:
+            if (e.codigo != "SIN_MEMORIA" or estado["respaldo_usado"] or not self.config.modelo_respaldo
+                    or self.config.modelo_respaldo not in self.ollama.modelos()):
+                raise
+            logger.warning("ia: sin memoria con %s; se reintenta con %s", estado["modelo"], self.config.modelo_respaldo)
+            estado.update(modelo=self.config.modelo_respaldo, respaldo_usado=True)
+            return self._inferir(estado["modelo"], tarea, imagen_b64)
+
+    def analizar(self, datos: bytes, tarea: str, id_correlacion: str) -> dict:
+        inicio = time.perf_counter()
+        if tarea not in TAREAS_PUBLICAS:
+            raise ErrorIA("TAREA_INVALIDA", tarea[:40])
+        img = validar(datos, self.config.max_mb, self.config.max_megapixeles)
+        calidad = compartido.diagnosticar(img.imagen)
+        if tarea == "documento":
+            return self._documento(img, calidad, id_correlacion, inicio)
+        imagen_b64, lado = self._b64(img.imagen)
 
         if not self._turnos.acquire(timeout=self.config.espera_cola_s):
             raise ErrorIA("OCUPADO", "cola llena")
         try:
-            modelo, respaldo_usado = self.config.modelo, False
-            try:
-                salida, stats = self._inferir(modelo, tarea, imagen_b64)
-            except ErrorIA as e:
-                if e.codigo != "SIN_MEMORIA" or not self.config.modelo_respaldo:
-                    raise
-                if self.config.modelo_respaldo not in self.ollama.modelos():
-                    raise
-                logger.warning("ia: sin memoria con %s; se reintenta con %s", modelo, self.config.modelo_respaldo)
-                modelo, respaldo_usado = self.config.modelo_respaldo, True
-                salida, stats = self._inferir(modelo, tarea, imagen_b64)
+            estado = {"modelo": self.config.modelo, "respaldo_usado": False}
+            salida, stats = self._con_respaldo(estado, tarea, imagen_b64)
+            modelo, respaldo_usado = estado["modelo"], estado["respaldo_usado"]
         finally:
             self._turnos.release()
 
         total = round(time.perf_counter() - inicio, 2)
         logger.info("ia: id=%s tarea=%s modelo=%s bytes=%d lado=%d segundos=%s tokens=%s ilegible=%s caracteres=%d",
-                    id_correlacion, tarea, modelo, img.bytes, max(enviada.shape[:2]), total,
+                    id_correlacion, tarea, modelo, img.bytes, lado, total,
                     stats.get("tokens_salida"), salida.ilegible, len(salida.texto))  # métricas, nunca contenido
         return {
             "api_version": API_VERSION, "pipeline_version": PIPELINE_VERSION, "id_correlacion": id_correlacion,
             "tarea": tarea,
             "modelo": {"nombre": modelo, "respaldo_usado": respaldo_usado},
             "imagen": {"formato": img.formato, "ancho": img.ancho, "alto": img.alto, "bytes": img.bytes,
-                       "lado_enviado_al_modelo": int(max(enviada.shape[:2]))},
+                       "lado_enviado_al_modelo": lado},
             "calidad": calidad,
             "resultado": {
                 "estado": "ilegible" if salida.ilegible else "propuesta",
@@ -143,6 +153,55 @@ class Servicio:
                 "dudas": salida.dudas,
             },
             "metricas": {"segundos_total": total, **stats},
+        }
+
+    # ------------------------------------------------------------------ documento por regiones (BACK-36)
+    def _documento(self, img, calidad: dict, id_correlacion: str, inicio: float) -> dict:
+        """Segmenta la página (OpenCV, sin GPU) y lee cada región por separado: medido, conserva lo
+        escrito mucho mejor que enviar la página entera (evaluacion-multimodal.md §5). Devuelve
+        bloques compatibles con el editor (id p1bN, orden, tipo, bbox en píxeles del original)."""
+        regiones = regiones_opencv(img.imagen, hueco_lineas=self.config.seg_hueco_lineas)[: self.config.max_regiones]
+        if not self._turnos.acquire(timeout=self.config.espera_cola_s):
+            raise ErrorIA("OCUPADO", "cola llena")
+        bloques, tokens, segundos_modelo = [], 0, 0.0
+        estado = {"modelo": self.config.modelo, "respaldo_usado": False}
+        try:
+            for n, r in enumerate(regiones, 1):
+                x0, y0, x1, y1 = r.bbox
+                b64, _ = self._b64(img.imagen[y0:y1, x0:x1])
+                salida, stats = self._con_respaldo(estado, "region", b64)
+                tokens += stats.get("tokens_salida") or 0
+                segundos_modelo += stats.get("segundos_modelo") or 0
+                if salida.ilegible:
+                    tipo, estado_b = "manuscrito", "no_reconocido"
+                elif salida.descripcion and not salida.texto:
+                    tipo, estado_b = "imagen", "reconocido"
+                else:
+                    tipo = "formula" if salida.latex else "texto"
+                    estado_b = "incierto" if salida.dudas else "reconocido"
+                bloques.append({"id": f"p1b{n}", "pagina": "p1", "orden": n, "tipo": tipo, "bbox": [x0, y0, x1, y1],
+                                "origen": "ocr", "estado": estado_b, "texto": salida.texto, "latex": salida.latex,
+                                "descripcion": salida.descripcion, "dudas": salida.dudas,
+                                "procedencia": {"motor": "ollama", "version": estado["modelo"],
+                                                "reconocimiento": f"documento/{r.origen}"}})
+        finally:
+            self._turnos.release()
+        total = round(time.perf_counter() - inicio, 2)
+        logger.info("ia: id=%s tarea=documento modelo=%s bytes=%d regiones=%d segundos=%s tokens=%d",
+                    id_correlacion, estado["modelo"], img.bytes, len(bloques), total, tokens)
+        texto = "\n".join(b["latex"] or b["texto"] or ("DIBUJO: " + (b["descripcion"] or "")) for b in bloques)
+        return {
+            "api_version": API_VERSION, "pipeline_version": PIPELINE_VERSION, "id_correlacion": id_correlacion,
+            "tarea": "documento", "modelo": {"nombre": estado["modelo"], "respaldo_usado": estado["respaldo_usado"]},
+            "imagen": {"formato": img.formato, "ancho": img.ancho, "alto": img.alto, "bytes": img.bytes,
+                       "lado_enviado_al_modelo": None},
+            "calidad": calidad,
+            "resultado": {"estado": "propuesta" if bloques else "ilegible", "revision_requerida": True, "origen": "imagen",
+                          "texto": texto, "latex": None, "descripcion": None,
+                          "dudas": [d for b in bloques for d in b["dudas"]], "bloques": bloques,
+                          "segmentacion": {"metodo": "opencv", "regiones": len(bloques),
+                                           "hueco_lineas": self.config.seg_hueco_lineas}},
+            "metricas": {"segundos_total": total, "tokens_salida": tokens, "segundos_modelo": round(segundos_modelo, 2)},
         }
 
     def _inferir(self, modelo: str, tarea: str, imagen_b64: str):

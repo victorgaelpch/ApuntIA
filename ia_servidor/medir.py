@@ -16,6 +16,7 @@ Compara con la línea base de Tesseract guardada en `fullstack/evaluacion/linea-
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import json
 import subprocess
@@ -185,28 +186,37 @@ def comparar_pagina_y_regiones(muestras: list, salidas: dict) -> list[dict]:
     for p in muestras:
         if p.escritura != "pagina" or p.nombre not in salidas:
             continue
-        regiones = [m for m in muestras if getattr(m, "origen", None) == getattr(p, "archivo", None) and m.nombre in salidas]
-        elementos, cubiertos = [], 0
-        for r in regiones:
-            propios = r.latex or r.lineas
-            elementos += propios
-            cob, _ = cobertura(salidas[r.nombre][1], propios)
-            cubiertos += round(cob * len(propios))
+        # todas las regiones manuales de esta página (aunque en esta tanda no se hayan medido)
+        regiones = [m for m in muestras if getattr(m, "origen", None) == getattr(p, "archivo", None)]
+        medidas = [r for r in regiones if r.nombre in salidas]
+        elementos = [e for r in regiones for e in (r.latex or r.lineas)]
         if not elementos:
             continue
+        cubiertos = 0
+        for r in medidas:
+            propios = r.latex or r.lineas
+            cob, _ = cobertura(salidas[r.nombre][1], propios)
+            cubiertos += round(cob * len(propios))
         cob_pagina, faltan = cobertura(salidas[p.nombre][1], elementos)
         trampas = [t for r in regiones for t in getattr(r, "trampas", [])]
         fid_regiones = {"fieles": 0, "corregidas": 0, "no_leidas": 0}
-        for r in regiones:
+        for r in medidas:
             f = fidelidad(salidas[r.nombre][1], getattr(r, "trampas", []))
             for k in fid_regiones:
                 fid_regiones[k] += f[k]
+        elementos_medidos = sum(len(r.latex or r.lineas) for r in medidas)
         resultado.append({"pagina": p.nombre, "regiones": len(regiones), "elementos": len(elementos),
                           "cobertura_pagina_completa": round(cob_pagina, 3),
-                          "cobertura_por_regiones": round(cubiertos / len(elementos), 3),
+                          "cobertura_por_regiones": round(cubiertos / elementos_medidos, 3) if elementos_medidos else None,
                           "faltan_en_pagina_completa": faltan,
-                          "fidelidad_pagina_completa": fidelidad(salidas[p.nombre][1], trampas),
-                          "fidelidad_por_regiones": fid_regiones})
+                          "fidelidad_pagina_completa": fidelidad(salidas[p.nombre][1], trampas)})
+        if medidas:
+            resultado[-1]["fidelidad_por_regiones"] = fid_regiones
+        doc = salidas.get(p.nombre + "#documento")
+        if doc:  # segmentación automática (tarea «documento»)
+            cob_doc, faltan_doc = cobertura(doc[1], elementos)
+            resultado[-1].update(cobertura_documento=round(cob_doc, 3), faltan_en_documento=faltan_doc,
+                                 fidelidad_documento=fidelidad(doc[1], trampas))
     return resultado
 
 
@@ -217,11 +227,14 @@ def reevaluar(informe_ruta: Path, carpeta: Path) -> dict:
     muestras = {m.nombre: m for m in cargar_corpus(carpeta)}
     salidas = {}
     for fila in informe["resultados"]:
-        m = muestras.get(fila["muestra"])
+        nombre = fila["muestra"]
+        m = muestras.get(nombre.split("#")[0])  # «pagina#documento» = la página leída por regiones automáticas
         if m is None or fila.get("http") != 200:
             continue
         salida = "\n".join(x for x in (fila.get("texto"), fila.get("latex"), fila.get("descripcion")) if x)
-        salidas[m.nombre] = (m, salida)
+        salidas[nombre] = (m, salida)
+        if "#" in nombre:
+            continue
         elementos = m.latex or m.lineas
         if elementos:
             cob, faltan = cobertura(salida, elementos)
@@ -238,6 +251,8 @@ def main() -> int:
     p.add_argument("--salida", type=Path, default=RAIZ / "fullstack" / "evaluacion" / "resultados")
     p.add_argument("--corpus", type=Path, help="carpeta con fotos reales y verdad.json (por defecto: corpus sintético)")
     p.add_argument("--reevaluar", type=Path, help="informe ya guardado: recalcular métricas sin usar la GPU (requiere --corpus)")
+    p.add_argument("--sin-documento", action="store_true", help="no evaluar la tarea «documento» en las páginas completas")
+    p.add_argument("--solo-paginas", action="store_true", help="medir solo las páginas completas (y su tarea «documento»)")
     a = p.parse_args()
     if a.reevaluar:
         if not a.corpus:
@@ -247,10 +262,13 @@ def main() -> int:
         destino = a.reevaluar.with_name(a.reevaluar.stem + "-reevaluado.json")
         destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
         for c in informe["comparacion_pagina_regiones"]:
-            fp, fr = c["fidelidad_pagina_completa"], c["fidelidad_por_regiones"]
-            print(f"«{c['pagina']}»: cobertura {c['cobertura_pagina_completa']:.0%} página / {c['cobertura_por_regiones']:.0%} regiones; "
-                  f"fidelidad página: {fp['fieles']} fieles, {fp['corregidas']} corregidas, {fp['no_leidas']} no leídas; "
-                  f"regiones: {fr['fieles']} fieles, {fr['corregidas']} corregidas, {fr['no_leidas']} no leídas")
+            for modo, cob, fid in (("página completa", "cobertura_pagina_completa", "fidelidad_pagina_completa"),
+                                   ("regiones manuales", "cobertura_por_regiones", "fidelidad_por_regiones"),
+                                   ("regiones automáticas", "cobertura_documento", "fidelidad_documento")):
+                if c.get(cob) is not None and c.get(fid):
+                    f = c[fid]
+                    print(f"«{c['pagina']}» {modo}: cobertura {c[cob]:.0%}; trampas {f['fieles']} fieles, "
+                          f"{f['corregidas']} corregidas, {f['no_leidas']} no leídas")
         print("Guardado en", destino)
         return 0
 
@@ -265,7 +283,8 @@ def main() -> int:
     base = {m["muestra"]: m for m in json.loads((RAIZ / "fullstack/evaluacion/linea-base.json").read_text("utf-8"))["texto"]}
     gpu = listo["componentes"].get("gpu", {})
     resultados, salidas = [], {}
-    for i, m in enumerate(muestras):
+    a_medir = [m for m in muestras if not a.solo_paginas or m.escritura == "pagina"]
+    for i, m in enumerate(a_medir):
         tarea = TAREAS.get(m.escritura, "pagina")
         png = cv2.imencode(".png", m.imagen)[1].tobytes()
         antes = VigilanteVram.leer()
@@ -306,11 +325,32 @@ def main() -> int:
               f"CER {fila.get('cer', fila.get('cer_notacion_equivalente', '—'))} (LaTeX literal {fila.get('cer_latex_normalizado', '—')})  "
               f"cobertura {fila.get('cobertura', '—')}  (Tesseract {fila.get('cer_tesseract_linea_base', '—')})")
         resultados.append(fila)
+        if m.escritura == "pagina" and a.corpus and not a.sin_documento:  # BACK-36: segmentación automática
+            png = cv2.imencode(".png", m.imagen)[1].tobytes()
+            t0 = time.perf_counter()
+            estado, r = pedir(f"{a.url}/api/v1/analisis?tarea=documento", "POST", png)
+            fila_doc = {"muestra": m.nombre + "#documento", "escritura": "documento", "tarea": "documento", "http": estado,
+                        "segundos": round(time.perf_counter() - t0, 2)}
+            if estado == 200:
+                res = r["resultado"]
+                fila_doc.update(modelo=r["modelo"]["nombre"], texto=res["texto"], latex=None, descripcion=None,
+                                segmentacion=res["segmentacion"], bloques=[{k: b[k] for k in ("id", "tipo", "bbox", "estado")}
+                                                                         for b in res["bloques"]])
+                salidas[m.nombre + "#documento"] = (m, res["texto"])
+            print(f"{m.nombre + '#documento':24} documento         {estado} {fila_doc['segundos']:6.1f}s  "
+                  f"{fila_doc.get('segmentacion', {}).get('regiones', '—')} regiones automáticas")
+            resultados.append(fila_doc)
     comparacion = comparar_pagina_y_regiones(muestras, salidas)
     for c in comparacion:
         print(f"Página «{c['pagina']}»: cobertura de los elementos de las {c['regiones']} regiones = "
-              f"{c['cobertura_pagina_completa']:.0%} enviando la página completa, {c['cobertura_por_regiones']:.0%} "
-              f"enviando cada región ({c['elementos']} elementos).")
+              f"{c['cobertura_pagina_completa']:.0%} página completa"
+              + (f", {c['cobertura_por_regiones']:.0%} regiones manuales" if c["cobertura_por_regiones"] is not None else "")
+              + (f", {c['cobertura_documento']:.0%} regiones automáticas" if "cobertura_documento" in c else "")
+              + f" ({c['elementos']} elementos).")
+        for clave in ("fidelidad_pagina_completa", "fidelidad_por_regiones", "fidelidad_documento"):
+            if clave in c:
+                f = c[clave]
+                print(f"   {clave}: {f['fieles']} fieles, {f['corregidas']} corregidas, {f['no_leidas']} no leídas")
     _, ps = pedir(a.url + "/listo")
     informe = {
         "fecha_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -326,7 +366,8 @@ def main() -> int:
     }
     a.salida.mkdir(parents=True, exist_ok=True)
     modelo = (listo["componentes"].get("modelo") or {}).get("nombre", "modelo").replace(":", "_").replace("/", "_")
-    destino = a.salida / f"servidor-ia-medicion-{modelo}{'-privado' if a.corpus else ''}.json"
+    sufijo = os.environ.get("IA_SEG_HUECO_LINEAS", "")
+    destino = a.salida / f"servidor-ia-medicion-{modelo}{'-privado' if a.corpus else ''}{'-hueco' + sufijo if sufijo else ''}.json"
     destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
     print("Guardado en", destino)
     return 0

@@ -7,4 +7,4 @@ datos: eso sigue en el ApuntIA del cliente. Guía: fullstack/docs/servidor-ia.md
 """
 
 API_VERSION = "1.0"          # contrato HTTP de este servicio (fullstack/docs/servidor-ia.md §3)
-PIPELINE_VERSION = "1.1.0"   # 1.1: prompt corto y texto plano; el servidor arma el resultado
+PIPELINE_VERSION = "1.2.0"   # 1.1: prompt corto y texto plano; 1.2: tarea «documento» por regiones (BACK-36)

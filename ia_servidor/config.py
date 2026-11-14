@@ -47,6 +47,19 @@ def es_tailscale(host: str) -> bool:
         return False
 
 
+def _decimal(nombre: str, defecto: float, minimo: float, maximo: float) -> float:
+    crudo = os.environ.get(nombre, "").strip()
+    if not crudo:
+        return defecto
+    try:
+        valor = float(crudo)
+    except ValueError:
+        raise ConfiguracionInvalida(f"{nombre} debe ser un número") from None
+    if not minimo <= valor <= maximo:
+        raise ConfiguracionInvalida(f"{nombre} debe estar entre {minimo} y {maximo}")
+    return valor
+
+
 def es_loopback(host: str) -> bool:
     if host == "localhost":
         return True
@@ -75,6 +88,8 @@ class Configuracion:
     min_disco_mb: int = 2048                    # espacio libre mínimo para considerar el equipo listo
     datos: str = ""                             # registro de dispositivos; vacío = ia_servidor/.datos
     max_analisis_min: int = 30                  # análisis por minuto y dispositivo (429 al pasarse)
+    max_regiones: int = 40                      # tarea «documento»: regiones como máximo por página
+    seg_hueco_lineas: float = 0.6               # unir líneas del mismo párrafo (alturas de letra; 0 = no unir)
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
     @classmethod
@@ -97,6 +112,8 @@ class Configuracion:
             min_disco_mb=_entero("IA_MIN_DISCO_MB", 2048, 0, 10_000_000),
             datos=os.environ.get("IA_DATOS", "").strip(),
             max_analisis_min=_entero("IA_MAX_ANALISIS_MIN", 30, 1, 600),
+            max_regiones=_entero("IA_MAX_REGIONES", 40, 1, 200),
+            seg_hueco_lineas=_decimal("IA_SEG_HUECO_LINEAS", 0.6, 0.0, 3.0),
         )
         c.validar()
         return c

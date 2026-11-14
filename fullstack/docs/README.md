@@ -14,7 +14,9 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 
 | Documento | Contenido |
 |-----------|-----------|
-| [arquitectura.md](arquitectura.md) | Componentes, despliegue, configuración y árbol del repositorio (FULL-10) |
+| [arquitectura.md](arquitectura.md) | Componentes, despliegue, configuración y árbol del repositorio (FULL-10); ApuntIA 3.0 con dos equipos (FULL-32) |
+| [algoritmos.md](algoritmos.md) | Qué algoritmos usa el código, con parámetros reales, coste, motivos y límites (FULL-32) |
+| [modelos-y-requisitos.md](modelos-y-requisitos.md) | Perfiles laptop/PC, modelos, licencias y consumo medido de la RTX 3060 (FULL-32) |
 | [flujo.md](flujo.md) | Requerimientos, flujo v1, errores y alcance (FULL-01, FULL-05) |
 | [flujo-v2.md](flujo-v2.md) | De la foto al PDF: interfaz, API, trabajos, almacenamiento (FULL-16) |
 | [datos.md](datos.md) | Base de datos, archivos privados y migraciones (BACK-22) |
@@ -47,6 +49,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [respaldo.md](respaldo.md) | Copias de seguridad y recuperación (FULL-23) |
 | [recuperacion-conexion.md](recuperacion-conexion.md) | Códigos `AI_*` de la conexión remota y solución manual (FULL-31) |
 | [entrega.md](entrega.md) | Instalación desde cero, demostración, versión y actualización (FULL-22) |
+| [exposicion-paso-a-paso.md](exposicion-paso-a-paso.md) | Demostración de 10 minutos con el servidor IA, plan B y lista de puesta en marcha en casa (FULL-32) |
 
 ## Seguridad y privacidad
 
@@ -65,6 +68,8 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [ci.md](ci.md) | Pruebas y CI de todo el proyecto (FULL-17) |
 | [pruebas-backend.md](pruebas-backend.md) | Pruebas del backend (BACK-25) |
 | [pruebas-integracion.md](pruebas-integracion.md) | Integración interfaz + FastAPI reales (FULL-07) |
+| [pruebas-y-metricas.md](pruebas-y-metricas.md) | Niveles de validación (validar.sh/ps1, GPU, red), resultados reales y matriz pendiente (FULL-32) |
+| [referencias.md](referencias.md) | Bibliografía de algoritmos, modelos, conexión y licencias (FULL-32) |
 | [evaluacion.md](evaluacion.md) | Banco de evaluación y métricas de OCR, fórmulas y PDF (FULL-19, BACK-28) |
 | [evaluacion-multimodal.md](evaluacion-multimodal.md) | Corpus privado de fotos reales, métricas y decisiones del reconocimiento con IA (BACK-36) |
 | [aceptacion.md](aceptacion.md) | Aceptación educativa y evidencias de entrega (FULL-24) |

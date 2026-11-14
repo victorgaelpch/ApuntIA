@@ -67,6 +67,28 @@ Nginx y los scripts de arranque/copia.
 - **Revisiones hechas en esta auditoría:** historial de Git sin secretos (231 rutas), `pip-audit` sin
   vulnerabilidades conocidas (noviembre de 2026), bomba de descompresión, cabecera `X-Forwarded-For`.
 
+### Revisión de ApuntIA 3.0 (FULL-32, 14/11/2026)
+
+Hecha en la PC del servidor IA (Windows 11) sobre la rama `feature/FULL-32-cierre`; resultados, no
+estimaciones:
+
+| Control | Resultado | Evidencia |
+|---------|-----------|-----------|
+| Secretos en el árbol y en todo el historial | ninguno (513 rutas) | `buscar_secretos.py` |
+| Dependencias Python con vulnerabilidades conocidas | 0 (backend, dev y servidor IA) | `pip-audit -r … -r ia_servidor/requirements.txt` (ahora también en CI) |
+| Dependencias npm | 0 | `npm audit` |
+| Puertos de la PC del servidor | solo `127.0.0.1:8100` y `127.0.0.1:11434`; ninguna regla de firewall nueva | `Get-NetTCPConnection`, `Get-NetFirewallRule` |
+| IDOR, CSRF/CORS, subidas, XSS, límites de tamaño | en verde | `tests/test_seguridad_api.py` (cubre todas las rutas con recurso, incluidas las de IA) |
+| SSRF de la investigación | solo hosts fijos de Wikimedia por https; **redirecciones a otro host rechazadas** (nuevo) | `tests/test_investigacion.py` |
+| SSRF/fuga del token del servidor IA | el token solo se envía al origen vinculado, sin redirecciones | `tests/test_ia_remota.py` (FULL-31) |
+| Tokens por cliente, revocables, guardados como hash | sí | [seguridad-servidor-ia.md](seguridad-servidor-ia.md) |
+| Registros sin contenido de apuntes ni cabeceras de autorización | sí (métricas sin conceptos ni texto) | revisión de `investigacion.py`, `ia_remota.py`, `ia_servidor` |
+| Licencia del modelo | Apache 2.0, leída del modelo instalado | `ollama show qwen3-vl:8b-instruct --license` |
+| Copias de seguridad en Windows | **fallaban** (conexiones SQLite abiertas y rutas con `\`): corregido; en Windows la copia la protege la ACL del perfil (no hay permisos 0600) | `tests/test_respaldo.py` en Windows |
+
+No revisado aquí: la configuración real del túnel (Cloudflare Access / ACL de Tailscale) del dueño
+del proyecto, que se hará en la prueba entre dos redes ([pruebas-y-metricas.md §3](pruebas-y-metricas.md)).
+
 ## 4. Riesgos abiertos (no resueltos)
 
 | Riesgo | Por qué sigue | Qué hacer |
@@ -78,6 +100,8 @@ Nginx y los scripts de arranque/copia.
 | Registro revela que un email existe | Inherente a crear cuentas con email | Mensaje que no confirma de quién es; límite por IP |
 | Límites por IP detrás de un NAT (aula) | Toda la clase comparte IP | Subir `MAX_REGISTROS_HORA` en ese caso |
 | Interfaz probada solo en Chromium | Entorno de pruebas | Probar en Firefox/Safari antes de la entrega |
+| Conexión entre dos redes sin probar | Falta la cuenta del túnel del dueño | Prueba con `validar.ps1 -Remoto` antes de la exposición |
+| El servidor IA ve la foto completa | La necesita para leerla | Solo se envía al servidor propio vinculado; nunca a servicios de terceros |
 
 ## 5. Lista de comprobación de seguridad para cada versión
 

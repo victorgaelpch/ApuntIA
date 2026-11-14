@@ -91,6 +91,14 @@ class Registro:
                 if time.monotonic() > fin:
                     raise ErrorVinculacion("OCUPADO", 503, "El registro de dispositivos está ocupado; reintenta.")
                 time.sleep(0.05)
+            except PermissionError:
+                # Windows: mientras otro hilo borra el cerrojo («delete pending»), crearlo da
+                # acceso denegado en vez de FileExistsError. Es el mismo caso: ocupado, reintentar.
+                if os.name != "nt":
+                    raise
+                if time.monotonic() > fin:
+                    raise ErrorVinculacion("OCUPADO", 503, "El registro de dispositivos está ocupado; reintenta.")
+                time.sleep(0.05)
         try:
             yield
         finally:

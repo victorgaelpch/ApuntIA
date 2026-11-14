@@ -16,6 +16,7 @@ Compara con la línea base de Tesseract guardada en `fullstack/evaluacion/linea-
 from __future__ import annotations
 
 import argparse
+import re
 import json
 import subprocess
 import threading
@@ -33,6 +34,29 @@ RAIZ = Path(__file__).resolve().parents[1]
 TAREAS = {"impreso": "texto_impreso", "manuscrito": "texto_manuscrito", "formula": "formula",
           "diagrama": "diagrama", "tabla": "tabla"}
 COMPARABLE = {"impreso", "manuscrito", "tabla"}
+
+
+def normalizar_latex(texto: str) -> str:
+    r"""LaTeX comparable: sin espacios, $, \left/\right ni llaves alrededor de un solo símbolo
+    (x^{2} == x^2). Así el CER mide errores de lectura, no de estilo."""
+    t = re.sub(r"\\(left|right)\b", "", texto.replace("$", ""))
+    t = re.sub(r"([\^_])\{(\\?[A-Za-z0-9])\}", r"\1\2", t)
+    return "\n".join(re.sub(r"\s+", "", linea) for linea in t.splitlines() if linea.strip())
+
+
+def notacion_equivalente(texto: str) -> str:
+    r"""Como normalizar_latex, pero además trata como iguales notaciones equivalentes de una misma
+    expresión: \frac{a}{b} == a/b, \sqrt{x} == sqrt(x), \cdot == *. NO es una comprobación
+    matemática completa (eso sería SymPy, BACK-36): solo evita penalizar el estilo de escritura."""
+    t = normalizar_latex(texto)
+    for _ in range(3):  # fracciones y raíces anidadas sencillas
+        t = re.sub(r"\\frac\{([^{}]*)\}\{([^{}]*)\}", lambda m: f"{_grupo(m[1])}/{_grupo(m[2])}", t)
+        t = re.sub(r"\\sqrt\{([^{}]*)\}", r"sqrt(\1)", t)
+    return t.replace(r"\cdot", "*")
+
+
+def _grupo(s: str) -> str:
+    return s if re.fullmatch(r"\\?[A-Za-z0-9.]+", s) else f"({s})"
 
 
 class VigilanteVram(threading.Thread):
@@ -101,10 +125,15 @@ def main() -> int:
                 fila["cer"], fila["wer"] = round(cer(res["texto"], real), 4), round(wer(res["texto"], real), 4)
                 if m.nombre in base and base[m.nombre].get("cer") is not None:
                     fila["cer_tesseract_linea_base"] = base[m.nombre]["cer"]
+            if m.escritura == "formula" and m.latex:
+                fila["cer_latex_normalizado"] = round(cer(normalizar_latex(res["latex"] or res["texto"]),
+                                                          normalizar_latex("\n".join(m.latex))), 4)
+                fila["cer_notacion_equivalente"] = round(cer(notacion_equivalente(res["latex"] or res["texto"]),
+                                                             notacion_equivalente("\n".join(m.latex))), 4)
         else:
             fila["error"] = r.get("error", {}).get("codigo")
         print(f"{m.nombre:24} {tarea:17} {estado} {segundos:6.1f}s  pico VRAM {vig.pico} MB  "
-              f"CER {fila.get('cer', '—')}  (Tesseract {fila.get('cer_tesseract_linea_base', '—')})")
+              f"CER {fila.get('cer', fila.get('cer_notacion_equivalente', '—'))} (LaTeX literal {fila.get('cer_latex_normalizado', '—')})  (Tesseract {fila.get('cer_tesseract_linea_base', '—')})")
         resultados.append(fila)
     _, ps = pedir(a.url + "/listo")
     informe = {
@@ -116,7 +145,8 @@ def main() -> int:
         "resultados": resultados,
     }
     a.salida.mkdir(parents=True, exist_ok=True)
-    destino = a.salida / "servidor-ia-medicion.json"
+    modelo = (listo["componentes"].get("modelo") or {}).get("nombre", "modelo").replace(":", "_").replace("/", "_")
+    destino = a.salida / f"servidor-ia-medicion-{modelo}.json"
     destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
     print("Guardado en", destino)
     return 0

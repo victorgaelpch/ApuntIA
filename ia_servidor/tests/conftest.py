@@ -12,15 +12,15 @@ from ia_servidor.config import Configuracion
 from ia_servidor.ollama import ClienteOllama
 from ia_servidor.servicio import Servicio
 
-RESPUESTA_OK = {"ilegible": False, "texto": "Derivada de x^2", "latex": "\\frac{d}{dx}x^2 = 2x",
-                "descripcion": None, "dudas": ["la última letra podría ser «z»"]}
+# Respuesta en texto plano, como la pide el servidor desde la versión 1.1 del pipeline.
+RESPUESTA_OK = "\\frac{d}{dx}x^2 = 2x\nE = m[?]^2"
 
 
 class OllamaFalso:
     """Transporte que imita la API de Ollama. `chat` es una lista de respuestas por llamada:
-    dict (contenido JSON), str (contenido literal), (estado, texto) o una excepción."""
+    str (contenido literal), (estado, texto) o una excepción."""
 
-    def __init__(self, chat=None, modelos=("qwen3-vl:8b",), version="0.12.10", capacidades=("completion", "vision")):
+    def __init__(self, chat=None, modelos=("qwen3-vl:8b-instruct",), version="0.12.10", capacidades=("completion", "vision")):
         self.chat = list(chat if chat is not None else [RESPUESTA_OK])
         self.modelos = list(modelos)
         self.version = version

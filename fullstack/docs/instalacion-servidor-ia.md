@@ -17,7 +17,7 @@ necesita nada de esto ([instalacion-clientes.md](instalacion-clientes.md)). Qué
 |-----------|--------|--------|
 | Windows | 10 22H2 o 11, 64 bits | <https://docs.ollama.com/windows> |
 | Controlador NVIDIA | 551.61 o superior | <https://docs.ollama.com/windows> |
-| GPU | 12 GB de VRAM para `qwen3-vl:8b` con margen; con menos de 8 GB usar `qwen3-vl:4b` | tamaños de <https://ollama.com/library/qwen3-vl> |
+| GPU | 12 GB de VRAM para `qwen3-vl:8b-instruct` con margen; con menos de 8 GB usar `qwen3-vl:4b-instruct` | tamaños de <https://ollama.com/library/qwen3-vl> |
 | Disco | ~12 GB libres: Ollama ≥ 4 GB + modelo 6,2 GB (+3,3 GB el de respaldo) + entorno de Python | ídem |
 | Python | 3.10 o superior | — |
 | Ollama | 0.12.7 o superior | «Qwen3-VL models require Ollama 0.12.7» (ollama.com) |
@@ -50,7 +50,7 @@ Para automatizar sin preguntas: `powershell -ExecutionPolicy Bypass -File fullst
 
 ```bat
 winget install --id Ollama.Ollama --exact --source winget
-ollama pull qwen3-vl:8b
+ollama pull qwen3-vl:8b-instruct
 py -3 -m venv ia_servidor\.venv
 ia_servidor\.venv\Scripts\python -m pip install -r ia_servidor\requirements.txt -c back\motori_magenes\constraints.txt
 copy ia_servidor\.env.example ia_servidor\.env
@@ -76,12 +76,19 @@ También puedes bajar el instalador `OllamaSetup.exe` de <https://ollama.com/dow
   `iniciar.bat -Modo servidor-ia` (Programador de tareas → Crear tarea básica). Revisa
   también que la PC no se suspenda (Configuración → Sistema → Energía).
 
+### Qué variante del modelo
+
+Usa las variantes **`-instruct`**. En Ollama, `qwen3-vl:8b` (sin sufijo) es la variante
+«thinking»: razona antes de responder, ignora `think: false` y en esta PC tardó minutos o no
+terminó con fórmulas ([servidor-ia.md §8](servidor-ia.md#8-medición-real-en-la-pc-destino-13112026)).
+Si ya la descargaste y no la usas, se puede borrar con `ollama rm qwen3-vl:8b` (libera 6,2 GB).
+
 ## 4. Errores frecuentes y solución manual
 
 | Síntoma / código | Causa | Solución |
 |------------------|-------|----------|
 | Salida 5, «Falta Ollama» | No instalado | `winget install --id Ollama.Ollama --exact --source winget` y repetir |
-| Salida 5, «Modelo sin descargar» | Se respondió «no» o no hay consola | `ollama pull qwen3-vl:8b` |
+| Salida 5, «Modelo sin descargar» | Se respondió «no» o no hay consola | `ollama pull qwen3-vl:8b-instruct` |
 | Salida 2 en pip | Sin Internet, proxy o disco | Revisar la conexión; repetir (se reanuda) |
 | Salida 2 en `ollama pull` | Corte de red o disco lleno | Repetir: continúa la descarga; liberar espacio |
 | «Ollama … es antiguo» | Versión < 0.12.7 | `winget upgrade --id Ollama.Ollama` |

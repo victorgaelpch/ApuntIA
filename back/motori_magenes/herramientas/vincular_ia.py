@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 from app.core.config import settings
-from app.services.ia_remota import Almacen, ClienteIARemota, ErrorIARemota, SOLUCIONES, validar_url
+from app.services.ia_remota import Almacen, ClienteIARemota, ErrorIARemota, SOLUCIONES, url_efectiva, validar_url
 
 
 def _cliente(url_arg: str | None) -> ClienteIARemota:
@@ -30,8 +30,8 @@ def _cliente(url_arg: str | None) -> ClienteIARemota:
         motivo = validar_url(url_arg.rstrip("/"))
         if motivo:
             raise ErrorIARemota("AI_URL_INVALIDA", motivo)
-        almacen.actualizar(url=url_arg.rstrip("/"))
-    url = almacen.leer().get("url") or settings.ia_url
+        almacen.actualizar(modo="manual", url=url_arg.rstrip("/"))
+    url = url_efectiva(almacen, settings.ia_url)
     return ClienteIARemota(url, almacen, timeout_s=settings.ia_timeout_s, timeout_analisis_s=settings.ia_timeout_analisis_s)
 
 

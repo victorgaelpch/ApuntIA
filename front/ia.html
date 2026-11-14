@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Servidor IA — ApuntIA</title>
+<meta name="description" content="Estado, conexión, vinculación y diagnóstico del servidor IA de ApuntIA.">
+<meta name="theme-color" content="#0f332d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/principal.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<header class="site-header">
+  <div class="site-header__in">
+    <a class="brand" href="/inicio" aria-label="ApuntIA, ir al inicio">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#0a7d62"/><path d="M14 35 24 12l10 23M18.5 28h11" stroke="#fff" stroke-width="3.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="24" cy="12" r="3" fill="#ffd666"/></svg>
+      <div><strong>APUNTIA</strong><small>Apuntes Inteligentes</small></div>
+    </a>
+    <nav class="site-nav" id="navPrincipal" aria-label="Navegación principal"></nav>
+  </div>
+</header>
+
+<main class="app-main" id="main">
+  <h1>Servidor IA</h1>
+  <p class="lead">El reconocimiento avanzado (manuscritos, fórmulas, tablas) se hace en una PC con GPU, normalmente en casa.
+    Esa PC puede estar apagada: <strong>ApuntIA sigue funcionando sin ella</strong> en modo local
+    (lectura básica, edición, historial, PDF y «Mejorar una foto»).</p>
+  <div class="aviso" id="avisoIA" hidden></div>
+
+  <section class="tarjeta" aria-labelledby="tituloEstadoIA">
+    <h2 id="tituloEstadoIA">Estado</h2>
+    <p class="estado-ia" id="estadoIA" data-estado="cargando" role="status" aria-live="polite">
+      <span class="estado-ia__punto" aria-hidden="true"></span><span id="estadoIATexto">Comprobando…</span>
+    </p>
+    <p class="ayuda" id="estadoIADetalle"></p>
+    <div class="botones"><button type="button" class="btn" id="btComprobarIA">Comprobar ahora</button></div>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloConexionIA">
+    <h2 id="tituloConexionIA">Conexión</h2>
+    <fieldset class="opciones-ia">
+      <legend>¿Cómo quieres usar el servidor IA?</legend>
+      <label><input type="radio" name="modoIA" value="auto" checked> <span><strong>Automático</strong> (recomendado): la dirección configurada al instalar ApuntIA.</span></label>
+      <label><input type="radio" name="modoIA" value="manual"> <span><strong>Manual</strong>: escribir otra dirección.</span></label>
+      <label><input type="radio" name="modoIA" value="local"> <span><strong>Continuar sin IA</strong>: solo reconocimiento local.</span></label>
+    </fieldset>
+    <form id="formUrlIA" novalidate hidden>
+      <div class="campo">
+        <label for="inpUrlIA">Dirección del servidor IA</label>
+        <input type="url" id="inpUrlIA" inputmode="url" autocomplete="off" spellcheck="false" maxlength="300"
+               placeholder="https://ia.ejemplo.org" aria-describedby="inpUrlIAAyuda inpUrlIAError">
+        <small id="inpUrlIAAyuda">Solo https:// y sin usuario, contraseña ni parámetros. La dirección no da acceso por sí sola:
+          cambiarla obliga a vincular este equipo de nuevo.</small>
+        <span class="error-campo" id="inpUrlIAError"></span>
+      </div>
+      <div class="botones"><button type="submit" class="btn primary">Guardar dirección</button></div>
+    </form>
+    <p class="ayuda">Dirección actual: <code id="urlIAActual">—</code></p>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloVinculoIA">
+    <h2 id="tituloVinculoIA">Vincular este equipo</h2>
+    <p>La primera vez, quien administra la PC del servidor IA debe <strong>aprobar</strong> este equipo.
+      Pide un código, díctaselo y espera aquí: la página se actualiza sola.</p>
+    <div id="cajaCodigoIA" hidden>
+      <p class="codigo-ia" aria-live="polite">Código: <strong id="codigoIA"></strong></p>
+      <p class="ayuda" id="codigoIAAyuda">En la PC del servidor: <code>iniciar.bat -Modo dispositivos</code> → aprobar este código.
+        Caduca en <span id="codigoIACaduca"></span>.</p>
+    </div>
+    <p class="ayuda" id="estadoVinculoIA" role="status" aria-live="polite"></p>
+    <div class="botones">
+      <button type="button" class="btn primary" id="btVincularIA">Pedir código</button>
+      <button type="button" class="btn danger" id="btDesvincularIA" hidden>Desvincular este equipo</button>
+    </div>
+  </section>
+
+  <section class="tarjeta" aria-labelledby="tituloDiagIA">
+    <h2 id="tituloDiagIA">Diagnóstico</h2>
+    <p>Comprueba paso a paso la dirección, el nombre (DNS), la conexión segura, la credencial y el modelo.</p>
+    <div class="botones"><button type="button" class="btn" id="btDiagnosticoIA">Diagnosticar</button></div>
+    <ol class="diagnostico-ia" id="listaDiagnosticoIA" aria-live="polite"></ol>
+  </section>
+</main>
+<script src="js/config.js"></script>
+<script src="js/mensajes.js"></script>
+<script src="js/v2/nucleo.js"></script>
+<script src="js/v2/ia.js"></script>
+</body>
+</html>

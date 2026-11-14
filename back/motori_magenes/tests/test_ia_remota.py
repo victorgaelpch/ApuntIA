@@ -329,7 +329,7 @@ def test_acciones_solo_desde_el_propio_equipo(nuevo_cliente):
     c.registrar()
     for metodo, ruta in [("put", "/api/v2/ia/configuracion"), ("post", "/api/v2/ia/vinculacion"),
                          ("get", "/api/v2/ia/vinculacion"), ("delete", "/api/v2/ia/vinculacion"), ("get", "/api/v2/ia/diagnostico")]:
-        kw = {"json": {"url": URL}} if metodo == "put" else {}
+        kw = {"json": {"modo": "manual", "url": URL}} if metodo == "put" else {}
         r = getattr(c, metodo)(ruta, **kw)
         assert (r.status_code, r.json()["error"]["codigo"]) == (403, "SOLO_EQUIPO_LOCAL"), ruta
 
@@ -338,18 +338,28 @@ def test_configurar_url_valida_y_rechaza_insegura(datos_tmp, monkeypatch):
     monkeypatch.setattr("app.routers.v2_ia.settings.ia_url", "")
     c = ClienteLocal()
     c.registrar()
-    r = c.put("/api/v2/ia/configuracion", json={"url": "http://ia.ejemplo.org"})
+    r = c.put("/api/v2/ia/configuracion", json={"modo": "manual", "url": "http://ia.ejemplo.org"})
     assert (r.status_code, r.json()["error"]["codigo"]) == (400, "AI_URL_INVALIDA")
-    e = c.put("/api/v2/ia/configuracion", json={"url": URL + "/"}).json()
-    assert e["url"] == URL and e["requiere_vinculacion"] is True
-    assert c.put("/api/v2/ia/configuracion", json={"url": None}).json()["modo"] == "local"
+    e = c.put("/api/v2/ia/configuracion", json={"modo": "manual", "url": URL + "/"}).json()
+    assert e["url"] == URL and e["requiere_vinculacion"] is True and e["configuracion"] == "manual"
+    assert c.put("/api/v2/ia/configuracion", json={"modo": "auto"}).json()["modo"] == "local"   # sin APUNTIA_IA_URL
+
+
+def test_modo_local_desactiva_la_url_de_la_instalacion(datos_tmp, monkeypatch):
+    monkeypatch.setattr("app.routers.v2_ia.settings.ia_url", URL)
+    c = ClienteLocal()
+    c.registrar()
+    assert c.get("/api/v2/ia/estado").json()["url"] == URL
+    e = c.put("/api/v2/ia/configuracion", json={"modo": "local"}).json()
+    assert (e["url"], e["modo"], e["configuracion"]) == (None, "local", "local")
+    assert c.put("/api/v2/ia/configuracion", json={"modo": "auto"}).json()["url"] == URL
 
 
 def test_configurar_exige_csrf(datos_tmp):
     c = ClienteLocal()
     c.registrar()
     c.csrf = "otro"
-    assert c.put("/api/v2/ia/configuracion", json={"url": URL}).status_code == 403
+    assert c.put("/api/v2/ia/configuracion", json={"modo": "manual", "url": URL}).status_code == 403
 
 
 def test_vinculacion_y_diagnostico_por_la_api(datos_tmp, servidor_ia, monkeypatch):

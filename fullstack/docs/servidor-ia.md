@@ -220,7 +220,7 @@ Configuración de esta primera tanda: la del servidor antes de añadir `IA_NUM_C
 
 **Prueba de mitigación sin descargas** (mismo `qwen3-vl:8b`, prompt corto de una línea, sin
 esquema JSON en `format`, contexto 8192, tope 2048 tokens): las tres muestras que fallaban
-terminaron. `formulas_2d` dio 18,7 s, `rac{a}{b} + rac{c}{d}`, `\sqrt{x + 1}` y
+terminaron. `formulas_2d` dio 18,7 s, `\frac{a}{b} + \frac{c}{d}`, `\sqrt{x + 1}` y
 `E = mc^2` correctos (CER 8,6 % contra la verdad, solo por espacios y llaves); `formulas_pizarron`,
 6,0 s, transcripción literal (`a/b + c/d` tal como está dibujado); `pizarron_con_ruido`, 9,9 s
 y CER 0 %. El razonamiento bajó de 10 000–68 000 a 500–860 caracteres. Conclusión: el disparador

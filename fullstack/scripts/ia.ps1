@@ -28,16 +28,20 @@ $EnvCliente = Join-Path $Raiz "fullstack\config\.env"
 $OllamaApi = "http://127.0.0.1:11434"
 $OLLAMA_MINIMA = @(0, 12, 7)        # Qwen3-VL lo exige (ollama.com/library/qwen3-vl)
 $DRIVER_MINIMO = @(551, 61)         # docs.ollama.com/windows
-$TAMANOS = @{ "qwen3-vl:8b" = "6,2 GB"; "qwen3-vl:4b" = "3,3 GB" }
+$TAMANOS = @{ "qwen3-vl:8b-instruct" = "6,2 GB"; "qwen3-vl:4b-instruct" = "3,3 GB"; "qwen3-vl:8b" = "6,2 GB"; "qwen3-vl:4b" = "3,3 GB" }
 New-Item -ItemType Directory -Force -Path $Estado | Out-Null
 
 function Salir($codigo) { exit $codigo }
 function Get-ConfigIA {
     $v = Read-ArchivoEnv $EnvIA
-    $c = @{ Modelo = "qwen3-vl:8b"; Respaldo = "qwen3-vl:4b"; Puerto = 8100 }
+    $c = @{ Modelo = "qwen3-vl:8b-instruct"; Respaldo = "qwen3-vl:4b-instruct"; Puerto = 8100 }
     if ($v["IA_MODELO"]) { $c.Modelo = $v["IA_MODELO"] }
     if ($v.Contains("IA_MODELO_RESPALDO")) { $c.Respaldo = $v["IA_MODELO_RESPALDO"] }
     if ($v["IA_PUERTO"] -match '^\d+$') { $c.Puerto = [int]$v["IA_PUERTO"] }
+    # Igual que el servidor: una variable de entorno ya definida manda sobre ia_servidor\.env.
+    if ($env:IA_MODELO) { $c.Modelo = $env:IA_MODELO }
+    if ($null -ne $env:IA_MODELO_RESPALDO) { $c.Respaldo = $env:IA_MODELO_RESPALDO }
+    if ($env:IA_PUERTO -match '^\d+$') { $c.Puerto = [int]$env:IA_PUERTO }
     return $c
 }
 function Find-Ollama {
@@ -95,7 +99,7 @@ function Invoke-Diagnostico {
     foreach ($g in $gpus) {
         $okDriver = Test-VersionMinima $g.Controlador $DRIVER_MINIMO
         Fila $okDriver "GPU" "$($g.Nombre), controlador $($g.Controlador), VRAM $($g.VramTotalMB) MB ($($g.VramLibreMB) MB libres)" "Actualiza el controlador NVIDIA a 551.61 o superior."
-        if ($g.VramTotalMB -lt 8000) { Fila $null "VRAM" "menos de 8 GB: usa IA_MODELO=qwen3-vl:4b" $null }
+        if ($g.VramTotalMB -lt 8000) { Fila $null "VRAM" "menos de 8 GB: usa IA_MODELO=qwen3-vl:4b-instruct" $null }
     }
     $venvOk = (Test-Path $PyVenv)
     Fila $(if ($venvOk) { $true } else { $null }) "Entorno del servidor IA" $(if ($venvOk) { "ia_servidor\.venv" } else { "no instalado (solo hace falta en la PC del servidor IA)" }) $null
@@ -144,7 +148,7 @@ function Invoke-Instalar {
     if ($mb -ge 0 -and $mb -lt 8192) { Write-Error2 "Solo hay $mb MB libres: hacen falta al menos 8 GB (recomendado 12 GB)."; Salir 1 }
     if ($mb -ge 0 -and $mb -lt 12288) { Write-Aviso "Hay $mb MB libres: justo. Se recomiendan 12 GB." }
     $gpus = Get-InfoGpu
-    if ($gpus.Count -eq 0) { Write-Aviso "No se detecta GPU NVIDIA: el modelo funcionará por CPU y será muy lento. Considera IA_MODELO=qwen3-vl:4b." }
+    if ($gpus.Count -eq 0) { Write-Aviso "No se detecta GPU NVIDIA: el modelo funcionará por CPU y será muy lento. Considera IA_MODELO=qwen3-vl:4b-instruct." }
     foreach ($g in $gpus) {
         Write-Bien "GPU $($g.Nombre) · VRAM $($g.VramTotalMB) MB · controlador $($g.Controlador)"
         if (-not (Test-VersionMinima $g.Controlador $DRIVER_MINIMO)) { Write-Aviso "El controlador es anterior a 551.61: actualízalo desde nvidia.com antes de usar la GPU." }

@@ -15,3 +15,9 @@
   (593 s); medición real con `python -m ia_servidor.medir`; diagnóstico de la variante «thinking»
   (ignora `think:false`, agota el contexto en fórmulas); `IA_NUM_CTX`/`IA_MAX_TOKENS`.
   Evidencia: `fullstack/docs/servidor-ia.md` §8; pytest 40 OK.
+- Sesión real: 2026-11-13 23:00–23:35 (America/Mexico_City). Responsable: Claude Code a petición del
+  dueño del equipo, que autorizó descargar las variantes instruct. Actividad: pipeline 1.1 (prompt
+  corto por tarea, texto plano, el servidor construye el resultado), modelos por defecto
+  `qwen3-vl:8b-instruct` y `4b-instruct`, métricas de fórmulas (LaTeX normalizado y notación
+  equivalente) y comparación real de 3 modelos. Evidencia: `fullstack/docs/servidor-ia.md` §8.2;
+  8b-instruct 11/11 en 3–6 s; pytest 59 OK; pruebas PowerShell 38 OK.

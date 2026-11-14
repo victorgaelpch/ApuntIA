@@ -84,3 +84,27 @@ def test_region_no_es_tarea_publica(armar):
                      headers={"Content-Type": "image/png"})
     assert r.json()["error"]["codigo"] == "TAREA_INVALIDA"
     assert "documento" in cliente.get("/api/v1/capacidades").json()["tareas"]
+
+
+def test_una_region_invalida_no_tumba_el_documento(armar):
+    # 2.ª región: respuesta cortada por longitud (done_reason=length) → «no_reconocido», el resto sigue
+    class Cortada(OllamaFalso):
+        def __call__(self, metodo, url, cuerpo, timeout):
+            estado, datos = super().__call__(metodo, url, cuerpo, timeout)
+            if url.endswith("/api/chat") and len(self.chats()) == 2:
+                datos = datos.replace(b'"done_reason": "stop"', b'"done_reason": "length"')
+            return estado, datos
+    cliente, *_ = armar(Cortada(chat=["uno", "dos", "tres"]))
+    png = cv2.imencode(".png", pizarron())[1].tobytes()
+    r = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"})
+    assert r.status_code == 200
+    estados = [b["estado"] for b in r.json()["resultado"]["bloques"]]
+    assert estados == ["reconocido", "no_reconocido", "reconocido"]
+
+
+def test_ollama_caido_si_detiene_el_documento(armar):
+    import urllib.error
+    cliente, *_ = armar(OllamaFalso(chat=["uno", urllib.error.URLError(ConnectionRefusedError())]))
+    png = cv2.imencode(".png", pizarron())[1].tobytes()
+    r = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"})
+    assert r.status_code == 503 and r.json()["error"]["codigo"] == "NO_DISPONIBLE"

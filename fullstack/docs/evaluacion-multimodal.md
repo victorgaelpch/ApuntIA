@@ -123,3 +123,26 @@ Observaciones literales:
 
 Reproducir: `python -m ia_servidor.medir --corpus fullstack\evaluacion\privado` con cada modelo;
 `--reevaluar INFORME --corpus …` recalcula cobertura y fidelidad sin usar la GPU.
+
+### 5.2 Segmentación automática (tarea `documento`, 14/11/2026)
+
+Misma foto. `regiones_opencv` (sin GPU, 83 ms) propone las regiones y cada una se lee con un prompt
+genérico de región; se compara sobre los mismos 38 elementos y 6 trampas. `IA_SEG_HUECO_LINEAS`
+controla cuánto se unen las líneas de un mismo párrafo (0 = regiones por línea).
+
+| Modelo · hueco | Regiones | Elementos encontrados | Trampas fieles / corregidas / no leídas | Tiempo |
+|----------------|----------|-----------------------|------------------------------------------|--------|
+| 4b-instruct · 0 | 33 | 79 % | 5 / 1 / 0 | 65,9 s |
+| 4b-instruct · 0,2 | 17 | 82 % | 3 / 2 / 1 | 35,4 s |
+| 4b-instruct · 0,6 | — | falló (502: una región sin respuesta válida tumbaba el documento; **corregido**, ahora queda «no reconocida») | — | 29,2 s |
+| 8b-instruct · 0 | 33 | 79 % | 1 / 1 / 4 | 86,1 s |
+| **8b-instruct · 0,2** | **17** | **95 %** | **6 / 0 / 0** | 52,8 s |
+| 8b-instruct · 0,6 | 13 | 100 % | 5 / 1 / 0 | 43,5 s |
+| *Referencia:* 8b, página completa | — | 97 % | 5 / 1 / 0 | 21,3 s |
+
+- Regiones demasiado pequeñas (hueco 0) pierden contexto: cada línea suelta se lee peor.
+- Con regiones automáticas, el 8B supera al 4B (al revés que con los recortes manuales): el 4B es
+  más sensible a recortes imperfectos.
+- **Configuración por defecto provisional**: `qwen3-vl:8b-instruct` y `IA_SEG_HUECO_LINEAS=0.2`
+  (la única combinación sin ninguna trampa corregida). Es una sola foto: revisar con más fotos.
+- Pendiente: *grounding* (cajas propuestas por el VLM) y tablas, que la segmentación aún parte en trozos.

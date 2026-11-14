@@ -337,6 +337,8 @@ def main() -> int:
                                 segmentacion=res["segmentacion"], bloques=[{k: b[k] for k in ("id", "tipo", "bbox", "estado")}
                                                                          for b in res["bloques"]])
                 salidas[m.nombre + "#documento"] = (m, res["texto"])
+            else:
+                fila_doc["error"] = r.get("error", {}).get("codigo")
             print(f"{m.nombre + '#documento':24} documento         {estado} {fila_doc['segundos']:6.1f}s  "
                   f"{fila_doc.get('segmentacion', {}).get('regiones', '—')} regiones automáticas")
             resultados.append(fila_doc)

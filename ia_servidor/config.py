@@ -89,7 +89,7 @@ class Configuracion:
     datos: str = ""                             # registro de dispositivos; vacío = ia_servidor/.datos
     max_analisis_min: int = 30                  # análisis por minuto y dispositivo (429 al pasarse)
     max_regiones: int = 40                      # tarea «documento»: regiones como máximo por página
-    seg_hueco_lineas: float = 0.6               # unir líneas del mismo párrafo (alturas de letra; 0 = no unir)
+    seg_hueco_lineas: float = 0.2               # unir líneas del mismo párrafo (alturas de letra; 0 = no unir). Medido: §5.2
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
     @classmethod
@@ -113,7 +113,7 @@ class Configuracion:
             datos=os.environ.get("IA_DATOS", "").strip(),
             max_analisis_min=_entero("IA_MAX_ANALISIS_MIN", 30, 1, 600),
             max_regiones=_entero("IA_MAX_REGIONES", 40, 1, 200),
-            seg_hueco_lineas=_decimal("IA_SEG_HUECO_LINEAS", 0.6, 0.0, 3.0),
+            seg_hueco_lineas=_decimal("IA_SEG_HUECO_LINEAS", 0.2, 0.0, 3.0),
         )
         c.validar()
         return c

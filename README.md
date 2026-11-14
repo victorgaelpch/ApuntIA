@@ -172,7 +172,7 @@ de GitHub ejecuta lo mismo en cada pull request. Detalle: [fullstack/docs/ci.md]
 | Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [laptop (cliente)](fullstack/docs/instalacion-clientes.md) · [servidor IA](fullstack/docs/instalacion-servidor-ia.md) · [carpeta fullstack](fullstack/README.md) |
 | Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [servidor IA](fullstack/docs/seguridad-servidor-ia.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
 | Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [recuperar la conexión IA](fullstack/docs/recuperacion-conexion.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
-| Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
+| Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [evaluación con IA](fullstack/docs/evaluacion-multimodal.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
 | Entrega | [instalación desde cero, demostración, versión y actualización](fullstack/docs/entrega.md) · [aceptación y evidencias](fullstack/docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
 | Proyecto | [alcance](fullstack/docs/alcance.md) · [definición de hecho](fullstack/docs/definicion-de-hecho.md) · [dependencias y licencias](fullstack/docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 

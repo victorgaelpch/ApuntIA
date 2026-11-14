@@ -8,6 +8,9 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Banco de evaluación con fotos reales** (BACK-36): `python -m ia_servidor.medir --corpus` sobre un corpus
+  privado fuera de Git (permiso obligatorio por foto), con métricas de fórmulas por LaTeX normalizado y
+  notación equivalente. Guía: `fullstack/docs/evaluacion-multimodal.md`.
 - **Conexión remota segura** (FULL-31): vinculación de un solo uso aprobada en la consola de la PC
   del servidor (`iniciar.bat -Modo dispositivos`), token individual revocable (el servidor guarda
   solo su hash), credencial cifrada con DPAPI en la laptop y enviada solo al origen vinculado, sin

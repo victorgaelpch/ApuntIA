@@ -62,6 +62,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [pruebas-backend.md](pruebas-backend.md) | Pruebas del backend (BACK-25) |
 | [pruebas-integracion.md](pruebas-integracion.md) | Integración interfaz + FastAPI reales (FULL-07) |
 | [evaluacion.md](evaluacion.md) | Banco de evaluación y métricas de OCR, fórmulas y PDF (FULL-19, BACK-28) |
+| [evaluacion-multimodal.md](evaluacion-multimodal.md) | Corpus privado de fotos reales, métricas y decisiones del reconocimiento con IA (BACK-36) |
 | [aceptacion.md](aceptacion.md) | Aceptación educativa y evidencias de entrega (FULL-24) |
 | [validacion-ux.md](validacion-ux.md) | Validación de la experiencia de usuario (FULL-09) |
 | [incidencias.md](incidencias.md) | Errores multicapa: causa, solución y evidencia (FULL-08) |

@@ -1,7 +1,7 @@
 # Bitácora real — BACK-38 (#100)
 
-- Sesión real: 2026-11-14 03:05–04:15 aprox. (America/Mexico_City), justo después del commit de FRONT-26
-  (03:02). Responsable: Claude Code (asistente de IA) con autorización del dueño del proyecto; **falta
+- Sesión real: 2026-11-14 03:02–04:01 (America/Mexico_City): del commit de FRONT-26 (03:02) al de
+  BACK-38 `f1beac4` (04:01). Responsable: Claude Code (asistente de IA) con autorización del dueño del proyecto; **falta
   revisión humana**. Actividad: auditoría de investigación (Wikipedia opt-in) y PDF; etiquetas y recortes
   de propuestas de IA en el PDF; división de regiones multilínea; derivados y conceptos solo de lo
   confirmado; Wikilibros como fuente y bloqueo de redirecciones; tres guías y PDFs sintéticos.

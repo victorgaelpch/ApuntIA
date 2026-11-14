@@ -98,14 +98,48 @@ def pedir(url: str, metodo: str = "GET", datos: bytes | None = None, timeout: fl
         return e.code, json.loads(e.read() or b"{}")
 
 
+ESCRITURAS = {"impreso", "manuscrito", "formula", "tabla", "diagrama", "pagina"}
+
+
+def cargar_corpus(carpeta: Path) -> list:
+    """Corpus privado de fotos reales (BACK-36), FUERA de Git (fullstack/evaluacion/privado/).
+
+    carpeta/verdad.json: {"nombre": {"archivo": "foto.jpg", "tipo_fuente": "pizarron|cuaderno",
+    "escritura": "impreso|manuscrito|formula|tabla|diagrama|pagina", "lineas": [...], "latex": [...],
+    "permiso": "quién autorizó su uso y cuándo"}}. Mismo formato que el corpus sintético.
+    Ver fullstack/docs/evaluacion-multimodal.md."""
+    from types import SimpleNamespace
+
+    import numpy as np
+    verdad = json.loads((carpeta / "verdad.json").read_text(encoding="utf-8"))
+    muestras = []
+    for nombre, v in verdad.items():
+        if v.get("escritura") not in ESCRITURAS:
+            raise ValueError(f"{nombre}: «escritura» debe ser una de {sorted(ESCRITURAS)}")
+        if not v.get("permiso"):
+            raise ValueError(f"{nombre}: falta «permiso» (quién autorizó usar la foto): no se evalúa sin él")
+        ruta = carpeta / v["archivo"]
+        if ruta.resolve().parent != carpeta.resolve():
+            raise ValueError(f"{nombre}: el archivo debe estar dentro de la carpeta del corpus")
+        imagen = cv2.imdecode(np.fromfile(str(ruta), np.uint8), cv2.IMREAD_COLOR)
+        if imagen is None:
+            raise ValueError(f"{nombre}: no se puede abrir {v['archivo']}")
+        muestras.append(SimpleNamespace(nombre=nombre, escritura=v["escritura"], imagen=imagen,
+                                        lineas=list(v.get("lineas", [])), latex=list(v.get("latex", [])),
+                                        tipo_fuente=v.get("tipo_fuente", "")))
+    return muestras
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--url", default="http://127.0.0.1:8100")
     p.add_argument("--salida", type=Path, default=RAIZ / "fullstack" / "evaluacion" / "resultados")
+    p.add_argument("--corpus", type=Path, help="carpeta con fotos reales y verdad.json (por defecto: corpus sintético)")
     a = p.parse_args()
 
     from herramientas.corpus import corpus
     from herramientas.metricas import cer, wer
+    muestras = cargar_corpus(a.corpus) if a.corpus else corpus()
 
     estado, listo = pedir(a.url + "/listo")
     if estado != 200:
@@ -114,7 +148,7 @@ def main() -> int:
     base = {m["muestra"]: m for m in json.loads((RAIZ / "fullstack/evaluacion/linea-base.json").read_text("utf-8"))["texto"]}
     gpu = listo["componentes"].get("gpu", {})
     resultados = []
-    for i, m in enumerate(corpus()):
+    for i, m in enumerate(muestras):
         tarea = TAREAS.get(m.escritura, "pagina")
         png = cv2.imencode(".png", m.imagen)[1].tobytes()
         antes = VigilanteVram.leer()
@@ -150,13 +184,16 @@ def main() -> int:
         "fecha_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "gpu": gpu, "ollama": listo["componentes"].get("ollama"), "modelo": listo["componentes"].get("modelo"),
         "en_memoria_al_final": ps.get("componentes", {}).get("en_memoria"),
-        "nota": "Corpus SINTÉTICO generado por código; no representa fotos reales de clase. CER de Tesseract: "
-                "línea base guardada (otra canalización y otro equipo), solo como referencia.",
+        "corpus": "privado (fotos reales)" if a.corpus else "sintético",
+        "nota": ("Corpus PRIVADO de fotos reales con permiso; el informe contiene texto transcrito: no subirlo a Git."
+                 if a.corpus else
+                 "Corpus SINTÉTICO generado por código; no representa fotos reales de clase. CER de Tesseract: "
+                 "línea base guardada (otra canalización y otro equipo), solo como referencia."),
         "resultados": resultados,
     }
     a.salida.mkdir(parents=True, exist_ok=True)
     modelo = (listo["componentes"].get("modelo") or {}).get("nombre", "modelo").replace(":", "_").replace("/", "_")
-    destino = a.salida / f"servidor-ia-medicion-{modelo}.json"
+    destino = a.salida / f"servidor-ia-medicion-{modelo}{'-privado' if a.corpus else ''}.json"
     destino.write_text(json.dumps(informe, ensure_ascii=False, indent=1), encoding="utf-8")
     print("Guardado en", destino)
     return 0

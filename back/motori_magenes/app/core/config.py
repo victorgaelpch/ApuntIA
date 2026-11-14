@@ -42,7 +42,7 @@ class Settings:
 
     version: str = "2.0.0"  # ver CHANGELOG.md
 
-    # Límites de las imágenes recibidas (ver docs/api.md).
+    # Límites de las imágenes recibidas (ver fullstack/docs/api.md).
     max_upload_mb: float = float(os.getenv("MAX_UPLOAD_MB", "10"))
     max_megapixeles: float = float(os.getenv("MAX_MEGAPIXELES", "50"))
 

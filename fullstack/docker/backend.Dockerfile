@@ -2,7 +2,7 @@
 # Construir desde la raíz del repositorio (lo hace fullstack/compose.yaml).
 #
 # Base Ubuntu 24.04 LTS: trae Tesseract 5.3.4, la MISMA versión con la que se midió el OCR
-# (PROCESAMIENTO.md, docs/evaluacion.md), así los resultados en Docker son comparables.
+# (PROCESAMIENTO.md, fullstack/docs/evaluacion.md), así los resultados en Docker son comparables.
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive \

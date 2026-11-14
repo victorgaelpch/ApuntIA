@@ -2,7 +2,7 @@
 
 API que recibe la foto de un pizarrón y la devuelve enderezada, sin ruido y más legible.
 
-- **Contrato de la API** (rutas, campos, códigos de error): [`docs/api.md`](../../docs/api.md)
+- **Contrato de la API** (rutas, campos, códigos de error): [`fullstack/docs/api.md`](../../fullstack/docs/api.md)
 - **Detalles técnicos** del procesamiento (parámetros, mediciones, decisiones): [`PROCESAMIENTO.md`](PROCESAMIENTO.md)
 
 ---
@@ -91,7 +91,7 @@ Para instalar **exactamente** las versiones con las que se probó, por ejemplo s
 pip install -r requirements-dev.txt -c constraints.txt
 ```
 
-Las licencias y el mantenimiento de cada dependencia están en [`docs/dependencias.md`](../../docs/dependencias.md).
+Las licencias y el mantenimiento de cada dependencia están en [`fullstack/docs/dependencias.md`](../../fullstack/docs/dependencias.md).
 
 ### 2.4 bis Instalar Tesseract (OCR, para los apuntes con texto)
 
@@ -156,7 +156,7 @@ Al arrancar verás `Uvicorn running on http://127.0.0.1:8000`. Para detenerlo: `
 | `POST` | `/analisis` | Procesa la foto enviada en el campo `file` y devuelve un PNG |
 | `POST` | `/imagen-memoria` | PNG de ejemplo generado en memoria |
 
-Parámetros opcionales de `/analisis`: `perspectiva` (bool), `ruido` (`ninguno`, `mediana`, `gaussiano`, `bilateral` o `combinado`), `mejorar` (bool) y `grises` (bool). El detalle está en [`docs/api.md`](../../docs/api.md).
+Parámetros opcionales de `/analisis`: `perspectiva` (bool), `ruido` (`ninguno`, `mediana`, `gaussiano`, `bilateral` o `combinado`), `mejorar` (bool) y `grises` (bool). El detalle está en [`fullstack/docs/api.md`](../../fullstack/docs/api.md).
 
 ## 5. Ejemplos de solicitud
 
@@ -217,7 +217,7 @@ curl -X POST "http://127.0.0.1:8000/analisis" -F "file=@README.md"
 python -m pytest
 ```
 
-Resultado esperado (noviembre de 2026): `368 passed, 15 deselected` (las 15 excluidas son la evaluación real del OCR y las de rendimiento, que se lanzan aparte). Las pruebas cubren todas las rutas v1 y v2, los errores del contrato, la seguridad y el pipeline. Guía completa (cobertura, mutaciones, evaluación y rendimiento): [`docs/pruebas-backend.md`](../../docs/pruebas-backend.md).
+Resultado esperado (noviembre de 2026): `368 passed, 15 deselected` (las 15 excluidas son la evaluación real del OCR y las de rendimiento, que se lanzan aparte). Las pruebas cubren todas las rutas v1 y v2, los errores del contrato, la seguridad y el pipeline. Guía completa (cobertura, mutaciones, evaluación y rendimiento): [`fullstack/docs/pruebas-backend.md`](../../fullstack/docs/pruebas-backend.md).
 
 ```bash
 python -m pytest -m evaluacion

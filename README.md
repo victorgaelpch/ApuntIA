@@ -22,7 +22,7 @@ flowchart LR
 | Mejorar una foto (enderezar, ruido, contraste) → PNG, sin cuenta | ✅ Disponible |
 | Cuentas: registro, sesión, recuperación de contraseña, perfil, borrar la cuenta | ✅ Disponible. La recuperación escribe el enlace en un buzón local: **no hay servidor de correo** |
 | Apuntes de 1–20 fotos de pizarrón o cuaderno, en el orden elegido | ✅ Disponible |
-| Reconocimiento de texto impreso (Tesseract 5, español e inglés) | ✅ CER 0,7 % en el banco de pruebas sintético ([evaluación](docs/evaluacion.md)) |
+| Reconocimiento de texto impreso (Tesseract 5, español e inglés) | ✅ CER 0,7 % en el banco de pruebas sintético ([evaluación](fullstack/docs/evaluacion.md)) |
 | Letra manuscrita | ⚠️ Parcial: lo que no se lee con seguridad se marca y se conserva como imagen; no se inventa texto |
 | Fórmulas a LaTeX | ⚠️ Parcial: las fórmulas en una línea (potencias, raíces, fracciones con `/`) sí; las de dos dimensiones (fracciones apiladas, matrices) se conservan como imagen y se pueden escribir en el editor |
 | Tablas fotografiadas | ⚠️ Parcial: se lee el texto de las celdas, no la estructura; la tabla se arma en el editor con «Convertir en tabla» |
@@ -33,7 +33,7 @@ flowchart LR
 | Probado en | Linux con Chromium (pruebas automáticas). Windows, macOS, Firefox, Safari y móviles reales: **pendiente de probar** |
 
 Resultados de cada escenario de uso (pizarrón, manuscrito, fórmulas, tabla, diagrama, varias páginas…),
-criterios de rechazo y limitaciones: [docs/aceptacion.md](docs/aceptacion.md).
+criterios de rechazo y limitaciones: [fullstack/docs/aceptacion.md](fullstack/docs/aceptacion.md).
 
 ## Requisitos
 
@@ -66,7 +66,7 @@ iniciar.bat
 
 El script comprueba Python, Tesseract y el puerto, crea el entorno virtual, instala dependencias
 (solo si cambian), arranca la aplicación, espera a que responda y abre el navegador. Detalles,
-opciones (`--puerto`, `--red` para el móvil…) y códigos de salida en [docs/arranque.md](docs/arranque.md).
+opciones (`--puerto`, `--red` para el móvil…) y códigos de salida en [fullstack/docs/arranque.md](fullstack/docs/arranque.md).
 > Los scripts de Windows aún **no se han ejecutado en un equipo con Windows**; los de Linux están
 > probados automáticamente y los de macOS comparten el mismo script, sin prueba en un Mac.
 
@@ -74,7 +74,7 @@ Para pararla: `./detener.sh` (o `detener.bat`).
 
 **Para una demostración** sin tocar tus datos: `./iniciar.sh --demo` crea una cuenta
 `demo@example.com` con apuntes de ejemplo sintéticos en una carpeta aparte; guía de ~10 minutos en
-[docs/entrega.md](docs/entrega.md#5-guía-de-demostración--10-minutos).
+[fullstack/docs/entrega.md](fullstack/docs/entrega.md#5-guía-de-demostración--10-minutos).
 
 ### Opción B: Docker
 
@@ -82,7 +82,7 @@ Para pararla: `./detener.sh` (o `detener.bat`).
 docker compose -f fullstack/compose.yaml up --build -d
 ```
 
-Para pararla (los datos se conservan): `docker compose -f fullstack/compose.yaml down`. Más en [docs/docker.md](docs/docker.md).
+Para pararla (los datos se conservan): `docker compose -f fullstack/compose.yaml down`. Más en [fullstack/docs/docker.md](fullstack/docs/docker.md).
 
 ### Después de arrancar
 
@@ -107,7 +107,7 @@ Para pararla (los datos se conservan): `docker compose -f fullstack/compose.yaml
 5. **PDF:** en la pestaña «PDF», elige las opciones, genéralo, revísalo y descárgalo.
 6. **Historial:** cada guardado es una versión que puedes comparar o restaurar; todo queda en «Mis apuntes».
 
-Recorrido técnico completo: [docs/flujo-v2.md](docs/flujo-v2.md).
+Recorrido técnico completo: [fullstack/docs/flujo-v2.md](fullstack/docs/flujo-v2.md).
 
 ## Configuración
 
@@ -126,7 +126,7 @@ contraseñas ni claves; no la subas al repositorio. Variables principales:
 | `INVESTIGACION_PROVEEDOR` | `wikipedia` | `ninguno` para trabajar sin Internet |
 | `COOKIE_SEGURA`, `URL_PUBLICA` | 0, vacío | Solo si se publica por HTTPS |
 
-Copias de seguridad: `fullstack/scripts/respaldar.sh` y `restaurar.sh` ([docs/respaldo.md](docs/respaldo.md)).
+Copias de seguridad: `fullstack/scripts/respaldar.sh` y `restaurar.sh` ([fullstack/docs/respaldo.md](fullstack/docs/respaldo.md)).
 
 ## Problemas frecuentes
 
@@ -140,7 +140,7 @@ Copias de seguridad: `fullstack/scripts/respaldar.sh` y `restaurar.sh` ([docs/re
 | Docker: «Cannot connect to the Docker daemon» | Abre Docker Desktop o arranca el servicio de Docker |
 | La página de cuenta dice «Abre ApuntIA desde el servidor» | Usa `http://localhost:8000/…`, no el archivo con doble clic |
 | «Tu espacio está lleno» / «el servidor no tiene espacio» | Borra apuntes antiguos o libera disco; `/api/v2/listo` avisa |
-| Un error con «Referencia: …» | Búscala en el registro: [docs/diagnostico.md](docs/diagnostico.md) |
+| Un error con «Referencia: …» | Búscala en el registro: [fullstack/docs/diagnostico.md](fullstack/docs/diagnostico.md) |
 
 ## Pruebas
 
@@ -151,29 +151,31 @@ fullstack/scripts/validar.sh
 Modo rápido (~1 min): pruebas del backend, evaluación real del OCR contra la línea base, búsqueda
 de secretos y reglas de seguridad de la interfaz. `--completo` (~6 min) añade la interfaz y la
 integración de punta a punta con el backend real; `--docker`, la prueba de los contenedores. La CI
-de GitHub ejecuta lo mismo en cada pull request. Detalle: [docs/ci.md](docs/ci.md).
+de GitHub ejecuta lo mismo en cada pull request. Detalle: [fullstack/docs/ci.md](fullstack/docs/ci.md).
 
 ## Documentación
 
 | Tema | Documento |
 |------|-----------|
-| Arquitectura y decisiones | [arquitectura](docs/arquitectura.md) · [flujo v2](docs/flujo-v2.md) · [datos](docs/datos.md) |
-| API | [v1 (`/analisis`)](docs/api.md) · [v2 (cuentas, apuntes, PDF)](docs/api-v2.md) |
-| Interfaz | [páginas v2](docs/interfaz-v2.md) · [frontend](front/README.md) |
+| **Índices** | [toda la documentación transversal](fullstack/docs/README.md) · [documentación de la interfaz](front/docs/README.md) · [dónde va cada documento](fullstack/docs/ESTRUCTURA_DOCUMENTAL.md) |
+| Tickets e Issues | [fichas de todos los Issues, cronograma planificado y bitácoras reales](fullstack/tickets/README.md) · [índice](fullstack/tickets/INDICE.md) |
+| Arquitectura y decisiones | [arquitectura](fullstack/docs/arquitectura.md) · [flujo v2](fullstack/docs/flujo-v2.md) · [datos](fullstack/docs/datos.md) |
+| API | [v1 (`/analisis`)](fullstack/docs/api.md) · [v2 (cuentas, apuntes, PDF)](fullstack/docs/api-v2.md) |
+| Interfaz | [páginas v2](front/docs/interfaz-v2.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [frontend](front/README.md) |
 | Backend | [instalación y uso](back/motori_magenes/README.md) · [procesamiento y OCR](back/motori_magenes/PROCESAMIENTO.md) |
-| Arranque | [scripts](docs/arranque.md) · [Docker](docs/docker.md) · [carpeta fullstack](fullstack/README.md) |
-| Seguridad y privacidad | [auditoría](docs/seguridad.md) · [API](docs/seguridad-api.md) · [permisos](docs/permisos.md) · [privacidad](docs/privacidad.md) |
-| Operación | [diagnóstico](docs/diagnostico.md) · [copias de seguridad](docs/respaldo.md) |
-| Calidad | [evaluación del OCR y PDF](docs/evaluacion.md) · [pruebas del backend](docs/pruebas-backend.md) · [pruebas de interfaz](docs/pruebas-interfaz.md) · [CI](docs/ci.md) |
-| Entrega | [instalación desde cero, demostración, versión y actualización](docs/entrega.md) · [aceptación y evidencias](docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
-| Proyecto | [alcance](docs/alcance.md) · [definición de hecho](docs/definicion-de-hecho.md) · [dependencias y licencias](docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
+| Arranque | [scripts](fullstack/docs/arranque.md) · [Docker](fullstack/docs/docker.md) · [carpeta fullstack](fullstack/README.md) |
+| Seguridad y privacidad | [auditoría](fullstack/docs/seguridad.md) · [API](fullstack/docs/seguridad-api.md) · [permisos](fullstack/docs/permisos.md) · [privacidad](fullstack/docs/privacidad.md) |
+| Operación | [diagnóstico](fullstack/docs/diagnostico.md) · [copias de seguridad](fullstack/docs/respaldo.md) |
+| Calidad | [evaluación del OCR y PDF](fullstack/docs/evaluacion.md) · [pruebas del backend](fullstack/docs/pruebas-backend.md) · [pruebas de interfaz](front/docs/pruebas-interfaz.md) · [CI](fullstack/docs/ci.md) |
+| Entrega | [instalación desde cero, demostración, versión y actualización](fullstack/docs/entrega.md) · [aceptación y evidencias](fullstack/docs/aceptacion.md) · [cambios por versión](CHANGELOG.md) |
+| Proyecto | [alcance](fullstack/docs/alcance.md) · [definición de hecho](fullstack/docs/definicion-de-hecho.md) · [dependencias y licencias](fullstack/docs/dependencias.md) · [cómo contribuir](CONTRIBUTING.md) |
 
 ## Datos de ejemplo y licencias
 
 Las pruebas y la evaluación usan **datos sintéticos** generados por código (fotos con texto dibujado
 con las fuentes DejaVu, cuentas `@example.com`); la única foto real (`back/bd/img/image.png`) es del
 propio proyecto. No subas fotos de apuntes ajenos al repositorio. Las dependencias y sus licencias
-(todas libres: MIT, BSD, Apache-2.0…) están en [docs/dependencias.md](docs/dependencias.md); Tesseract
+(todas libres: MIT, BSD, Apache-2.0…) están en [fullstack/docs/dependencias.md](fullstack/docs/dependencias.md); Tesseract
 y sus datos de idioma son Apache-2.0; el contenido de Wikipedia es CC BY-SA 4.0 y se cita en el PDF.
 
 Proyecto académico ApuntIA.

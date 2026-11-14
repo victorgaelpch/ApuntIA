@@ -2,12 +2,17 @@
 
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y versiones
 [semánticas](https://semver.org/lang/es/). La versión se ve en `GET /salud` (`"version"`).
-Cómo se publica una versión: [docs/entrega.md](docs/entrega.md#6-lista-de-comprobación-de-la-versión).
+Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entrega.md#6-lista-de-comprobación-de-la-versión).
 
 ## [Sin publicar]
 
 ### Añadido
 
+- **Tickets con trazabilidad real** (FULL-29): `fullstack/tickets/` con una ficha por cada Issue de
+  GitHub (abiertos y cerrados), índice, cronograma PLANIFICADO, plantilla y bitácoras REALES.
+  `fullstack/scripts/sincronizar_tickets.py` pagina la API, separa Pull Requests de Issues, no pisa
+  colisiones de identificador ni notas manuales, funciona sin red con un snapshot y es idempotente.
+- El comprobador de enlaces revisa también imágenes y documentos huérfanos (FULL-29).
 - **Reconocimiento adaptativo** (BACK-28, `RECONOCIMIENTO_MODO=adaptativo` por defecto): diagnóstico
   de calidad de cada foto con avisos concretos y nivel `insuficiente` (se pide repetir la foto y
   nada queda como seguro); el texto girado se endereza; las regiones dudosas se releen con
@@ -20,6 +25,11 @@ Cómo se publica una versión: [docs/entrega.md](docs/entrega.md#6-lista-de-comp
 
 ### Cambiado
 
+- **La documentación se movió** (FULL-29) de `docs/` a `fullstack/docs/` (transversal) y
+  `front/docs/` (interfaz) con `git mv`; enlaces, comentarios, pruebas y CI actualizados.
+  Correspondencia de rutas: `fullstack/docs/ESTRUCTURA_DOCUMENTAL.md`. Las entradas anteriores de
+  este registro mencionan las rutas antiguas tal como eran entonces.
+- `front/docs/` no se sirve al navegador (FastAPI y la imagen Docker web la excluyen).
 - El análisis tarda más: ~1 s por foto en la mediana (antes ~0,4 s). Límites configurables con
   `RECONOCIMIENTO_MAX_VARIANTES`, `RECONOCIMIENTO_MAX_BLOQUES` y `RECONOCIMIENTO_MAX_SEGUNDOS`.
 - Igualdades cortas como `F = ma` se detectan como fórmula.
@@ -72,8 +82,8 @@ el número mayor sube porque cambia el producto, no el contrato v1.
 
 ### Seguridad
 
-Auditoría completa (FULL-20) en [docs/seguridad.md](docs/seguridad.md), con los riesgos que siguen abiertos.
-Escenarios de aceptación, criterios de rechazo, trazabilidad y limitaciones: [docs/aceptacion.md](docs/aceptacion.md) (FULL-24).
+Auditoría completa (FULL-20) en [docs/seguridad.md](fullstack/docs/seguridad.md), con los riesgos que siguen abiertos.
+Escenarios de aceptación, criterios de rechazo, trazabilidad y limitaciones: [docs/aceptacion.md](fullstack/docs/aceptacion.md) (FULL-24).
 
 ## [1.0.0] — 2026-11-03
 

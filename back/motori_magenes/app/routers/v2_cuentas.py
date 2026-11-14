@@ -1,4 +1,4 @@
-"""Rutas de autenticación y perfil de la API v2 (BACK-23). Contrato: docs/api-v2.md §4."""
+"""Rutas de autenticación y perfil de la API v2 (BACK-23). Contrato: fullstack/docs/api-v2.md §4."""
 
 import hashlib
 

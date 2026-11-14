@@ -1,4 +1,4 @@
-"""Investigación opcional y revisión de ampliaciones (BACK-18). Contrato: docs/api-v2.md §5 y §7."""
+"""Investigación opcional y revisión de ampliaciones (BACK-18). Contrato: fullstack/docs/api-v2.md §5 y §7."""
 
 from typing import Literal
 

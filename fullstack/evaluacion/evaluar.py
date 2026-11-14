@@ -1,4 +1,4 @@
-"""Banco de evaluación de ApuntIA (FULL-19). Guía: docs/evaluacion.md.
+"""Banco de evaluación de ApuntIA (FULL-19). Guía: fullstack/docs/evaluacion.md.
 
 Mide la calidad REAL del producto, de punta a punta y por la API (en proceso, con una
 carpeta de datos temporal): cada muestra del corpus sintético etiquetado se sube como un

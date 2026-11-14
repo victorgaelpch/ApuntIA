@@ -1,4 +1,4 @@
-// Cliente de la API de ApuntIA (FRONT-05). Sigue el contrato de docs/api.md.
+// Cliente de la API de ApuntIA (FRONT-05). Sigue el contrato de fullstack/docs/api.md.
 //
 // Uso:
 //   const { blob, perspectiva } = await ApuntIA.api.procesarImagen(archivo, { ruido: "mediana" }, { signal });

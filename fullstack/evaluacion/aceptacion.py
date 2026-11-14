@@ -1,4 +1,4 @@
-"""Escenarios de aceptación educativos de ApuntIA (FULL-24). Guía: docs/aceptacion.md.
+"""Escenarios de aceptación educativos de ApuntIA (FULL-24). Guía: fullstack/docs/aceptacion.md.
 
 Recorre de punta a punta, por la API y con el análisis de producción, los escenarios de uso real
 (pizarrón corto, cuaderno manuscrito, imagen difícil, hoja impresa, fórmulas, tabla, diagrama, varias
@@ -261,7 +261,7 @@ class Aceptacion:
                             "lo aceptado entra con su texto": "rapidez con la que cambia" in texto},
                            {"cada complemento lleva fuente real y licencia (sin citas inventadas)": fuentes_ok and bool(propuestas),
                             "el enlace de la fuente está en el PDF": "https://es.wikipedia.org/wiki/Derivada" in enlaces},
-                           "Fuente simulada con el formato real de la API: la consulta a Wikipedia real se comprueba a mano (docs/aceptacion.md).")
+                           "Fuente simulada con el formato real de la API: la consulta a Wikipedia real se comprueba a mano (fullstack/docs/aceptacion.md).")
 
             # E11 sin conexión: error claro, el apunte sigue igual y no se inventa nada
             investigacion.usar_proveedor(investigacion.ProveedorWikipedia(abrir=WikipediaSimulada(caida=True)))

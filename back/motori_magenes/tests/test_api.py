@@ -1,4 +1,4 @@
-"""Pruebas de los endpoints según el contrato de docs/api.md (BACK-08)."""
+"""Pruebas de los endpoints según el contrato de fullstack/docs/api.md (BACK-08)."""
 
 from urllib.parse import unquote
 

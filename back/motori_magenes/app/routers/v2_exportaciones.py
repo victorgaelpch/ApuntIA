@@ -1,4 +1,4 @@
-"""Exportación a PDF (BACK-20). Contrato: docs/api-v2.md §5."""
+"""Exportación a PDF (BACK-20). Contrato: fullstack/docs/api-v2.md §5."""
 
 import re
 import unicodedata

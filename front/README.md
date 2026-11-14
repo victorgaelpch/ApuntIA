@@ -8,7 +8,7 @@
 | `css/index.css`      | Sistema visual compartido: colores, tipografías, botones, pizarrón, tarjetas.         |
 | `css/principal.css`  | Componentes propios de la pantalla principal: encabezado, zona de resultados, estados. |
 | `js/config.js`       | Configuración: URL de la API, tiempo máximo y límites de los archivos.                |
-| `js/api.js`          | Cliente de la API (FRONT-05): peticiones, cabeceras y errores, según `docs/api.md`.   |
+| `js/api.js`          | Cliente de la API (FRONT-05): peticiones, cabeceras y errores, según `fullstack/docs/api.md`.   |
 | `js/mensajes.js`     | Catálogo de mensajes de error y validación para el usuario (FRONT-08).               |
 | `js/validacion.js`   | Validación en el navegador (FRONT-02): firma binaria, tamaño y archivo vacío.       |
 | `js/camara.js`       | Cámara en vivo con `getUserMedia` y alternativas (FRONT-03).                          |
@@ -78,7 +78,7 @@ Los issues siguientes amplían esta base: cámara en vivo (FRONT-03), indicadore
 - **Ver original:** mientras se mantiene pulsado (ratón, dedo, o Espacio/Enter con teclado), el panel del resultado muestra la imagen original en el mismo lugar, con la etiqueta «Original». No se usa un comparador superpuesto porque la corrección de perspectiva cambia el encuadre y las dimensiones, y las dos imágenes no coincidirían.
 - **Datos:** si el pizarrón se enderezó o no (`X-ApuntIA-Perspectiva`), dimensiones, peso y tiempo de procesamiento. Los datos que falten se omiten.
 - **Tamaño real** abre el PNG en una pestaña nueva para leer los detalles; **Descargar** usa el nombre de `Content-Disposition` (`<nombre>_apuntia.png`).
-- **Resultado vacío o fallido:** una respuesta vacía, que no es imagen o que el navegador no puede decodificar se trata como un error (`RESPUESTA_INVALIDA`) y no deja acciones a medias. No hay resultados que caduquen, porque la API devuelve la imagen directamente (ver `docs/api.md`). La URL temporal del resultado se libera al elegir otra imagen o al volver a procesar.
+- **Resultado vacío o fallido:** una respuesta vacía, que no es imagen o que el navegador no puede decodificar se trata como un error (`RESPUESTA_INVALIDA`) y no deja acciones a medias. No hay resultados que caduquen, porque la API devuelve la imagen directamente (ver `fullstack/docs/api.md`). La URL temporal del resultado se libera al elegir otra imagen o al volver a procesar.
 
 ## Indicadores de carga (FRONT-07)
 

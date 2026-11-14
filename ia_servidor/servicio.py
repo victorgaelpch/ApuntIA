@@ -116,14 +116,14 @@ class Servicio:
             estado.update(modelo=self.config.modelo_respaldo, respaldo_usado=True)
             return self._inferir(estado["modelo"], tarea, imagen_b64)
 
-    def analizar(self, datos: bytes, tarea: str, id_correlacion: str) -> dict:
+    def analizar(self, datos: bytes, tarea: str, id_correlacion: str, progreso=None) -> dict:
         inicio = time.perf_counter()
         if tarea not in TAREAS_PUBLICAS:
             raise ErrorIA("TAREA_INVALIDA", tarea[:40])
         img = validar(datos, self.config.max_mb, self.config.max_megapixeles)
         calidad = compartido.diagnosticar(img.imagen)
         if tarea == "documento":
-            return self._documento(img, calidad, id_correlacion, inicio)
+            return self._documento(img, calidad, id_correlacion, inicio, progreso)
         imagen_b64, lado = self._b64(img.imagen)
 
         if not self._turnos.acquire(timeout=self.config.espera_cola_s):
@@ -156,7 +156,7 @@ class Servicio:
         }
 
     # ------------------------------------------------------------------ documento por regiones (BACK-36)
-    def _documento(self, img, calidad: dict, id_correlacion: str, inicio: float) -> dict:
+    def _documento(self, img, calidad: dict, id_correlacion: str, inicio: float, progreso=None) -> dict:
         """Segmenta la página (OpenCV, sin GPU) y lee cada región por separado: medido, conserva lo
         escrito mucho mejor que enviar la página entera (evaluacion-multimodal.md §5). Devuelve
         bloques compatibles con el editor (id p1bN, orden, tipo, bbox en píxeles del original)."""
@@ -169,7 +169,23 @@ class Servicio:
             for n, r in enumerate(regiones, 1):
                 x0, y0, x1, y1 = r.bbox
                 b64, _ = self._b64(img.imagen[y0:y1, x0:x1])
-                salida, stats = self._con_respaldo(estado, "region", b64)
+                try:
+                    salida, stats = self._con_respaldo(estado, "region", b64)
+                except ErrorIA as e:
+                    # Una región con respuesta inválida (cortada, desbocada) no tumba el documento: queda
+                    # «no reconocida» con su recorte para escribirla a mano. Ollama caído, GPU sin
+                    # memoria o modelo ausente sí detienen todo (afectarían a las demás regiones).
+                    if e.codigo not in ("RESPUESTA_INVALIDA", "IMAGEN_CORRUPTA"):
+                        raise
+                    logger.warning("ia: id=%s región %d sin respuesta válida (%s)", id_correlacion, n, e.codigo)
+                    bloques.append({"id": f"p1b{n}", "pagina": "p1", "orden": n, "tipo": "manuscrito", "bbox": [x0, y0, x1, y1],
+                                    "origen": "ocr", "estado": "no_reconocido", "texto": "", "latex": None, "descripcion": None,
+                                    "dudas": ["el modelo no dio una respuesta válida para esta región: revísala en el recorte"],
+                                    "procedencia": {"motor": "ollama", "version": estado["modelo"],
+                                                    "reconocimiento": f"documento/{r.origen}"}})
+                    continue
+                if progreso:
+                    progreso(n, len(regiones))
                 tokens += stats.get("tokens_salida") or 0
                 segundos_modelo += stats.get("segundos_modelo") or 0
                 if salida.ilegible:

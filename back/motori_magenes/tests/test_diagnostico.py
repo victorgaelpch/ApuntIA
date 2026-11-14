@@ -140,3 +140,19 @@ def test_la_linea_de_acceso_de_uvicorn_no_guarda_consultas():
     diagnostico.SinConsulta().filter(registro)
     assert "secreto" not in registro.getMessage() and "/api/v2/apuntes" in registro.getMessage()
     assert any(isinstance(f, diagnostico.SinConsulta) for f in logging.getLogger("uvicorn.access").filters)
+
+
+def test_listo_avisa_si_faltan_idiomas_del_ocr(client, datos_tmp, monkeypatch):
+    """FULL-32: un Tesseract sin «spa» funciona pero pierde tildes; se avisa sin bloquear."""
+    from app.services import ocr
+
+    class SinEspanol:
+        def info(self):
+            return {"disponible": True, "motor": "tesseract", "version": "5.4.0", "idiomas": ["eng"]}
+
+    monkeypatch.setattr(ocr, "motor_ocr", lambda: SinEspanol())
+    monkeypatch.setattr(settings, "ocr_idiomas", "spa+eng")
+    datos_tmp.trabajos.iniciar()
+    cuerpo = client.get("/api/v2/listo").json()
+    assert cuerpo["dependencias"]["ocr"]["ok"] is True and cuerpo["dependencias"]["ocr"]["faltan_idiomas"] == ["spa"]
+    assert "spa.traineddata" in cuerpo["dependencias"]["ocr"]["detalle"]

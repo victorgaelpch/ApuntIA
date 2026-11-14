@@ -172,6 +172,25 @@ def test_solicitudes_concurrentes_no_se_pisan(armar):
     assert len(set(codigos)) == 4 and len(cliente.registro.pendientes()) == 4
 
 
+def test_el_cerrojo_aguanta_mucha_contencion(tmp_path):
+    # En Windows, crear el cerrojo mientras otro hilo lo borra daba PermissionError (visto en CI).
+    from ia_servidor.dispositivos import Registro
+    registro, errores = Registro(tmp_path), []
+
+    def golpear():
+        for _ in range(100):
+            try:
+                with registro._bloqueo():
+                    pass
+            except Exception as exc:  # noqa: BLE001
+                errores.append(repr(exc))
+
+    hilos = [threading.Thread(target=golpear) for _ in range(8)]
+    [h.start() for h in hilos]
+    [h.join() for h in hilos]
+    assert errores == []
+
+
 # ---------------------------------------------------------------------------- límites y administración
 
 def test_limite_por_dispositivo(armar):

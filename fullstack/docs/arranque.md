@@ -32,6 +32,15 @@ ver [entrega.md §5](entrega.md#5-guía-de-demostración--10-minutos)). En Windo
 Códigos de salida: `0` bien · `1` falta un requisito u opción no válida · `2` dependencias ·
 `3` puerto ocupado · `4` no arrancó.
 
+### Menú y modos en Windows (FULL-30)
+
+`iniciar.bat` sin argumentos, en una consola interactiva, muestra un menú. Con cualquier
+argumento, sin consola o con `APUNTIA_SIN_MENU=1` se comporta exactamente como siempre.
+`-Modo app|servidor-ia|instalar-ia|diagnostico|configurar|detener` elige la acción sin menú.
+Detalles: [instalacion-clientes.md](instalacion-clientes.md) e
+[instalacion-servidor-ia.md](instalacion-servidor-ia.md). `detener.bat` también detiene el
+servidor IA y el Ollama que haya iniciado ApuntIA (nunca otros procesos).
+
 ## 2. `detener`
 
 Lee los PID de `fullstack/.estado/` y termina **solo** procesos que sigan siendo de ApuntIA

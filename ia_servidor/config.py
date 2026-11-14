@@ -46,8 +46,8 @@ class Configuracion:
     host: str = "127.0.0.1"                     # dónde escucha ESTE servicio
     puerto: int = 8100
     ollama_url: str = "http://127.0.0.1:11434"  # Ollama: solo loopback
-    modelo: str = "qwen3-vl:8b"                 # 6,2 GB (Q4_K_M) — ollama.com/library/qwen3-vl
-    modelo_respaldo: str = "qwen3-vl:4b"        # 3,3 GB: perfil de menor consumo, opcional
+    modelo: str = "qwen3-vl:8b-instruct"        # 6,2 GB Q4_K_M, sin «thinking» (servidor-ia.md §8)
+    modelo_respaldo: str = "qwen3-vl:4b-instruct"  # 3,3 GB: perfil de menor consumo, opcional
     max_mb: int = 10
     max_megapixeles: int = 40
     max_lado_modelo: int = 1600                 # px del lado mayor que se envían al modelo
@@ -55,6 +55,8 @@ class Configuracion:
     espera_cola_s: int = 20                     # cuánto espera una petición su turno antes de 429
     timeout_s: int = 180                        # tiempo máximo de una inferencia
     keep_alive: str = "10m"                     # cuánto queda el modelo en VRAM tras usarse
+    num_ctx: int = 8192                         # contexto: imagen (~1-2 K tokens) + respuesta; 4096 (defecto de Ollama) se queda corto
+    max_tokens: int = 2048                      # tope de tokens generados (incluido el «razonamiento» de modelos thinking)
     min_disco_mb: int = 2048                    # espacio libre mínimo para considerar el equipo listo
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
@@ -64,8 +66,8 @@ class Configuracion:
             host=os.environ.get("IA_HOST", "127.0.0.1").strip(),
             puerto=_entero("IA_PUERTO", 8100, 1024, 65535),
             ollama_url=os.environ.get("IA_OLLAMA_URL", "http://127.0.0.1:11434").strip().rstrip("/"),
-            modelo=os.environ.get("IA_MODELO", "qwen3-vl:8b").strip(),
-            modelo_respaldo=os.environ.get("IA_MODELO_RESPALDO", "qwen3-vl:4b").strip(),
+            modelo=os.environ.get("IA_MODELO", "qwen3-vl:8b-instruct").strip(),
+            modelo_respaldo=os.environ.get("IA_MODELO_RESPALDO", "qwen3-vl:4b-instruct").strip(),
             max_mb=_entero("IA_MAX_MB", 10, 1, 50),
             max_megapixeles=_entero("IA_MAX_MEGAPIXELES", 40, 1, 100),
             max_lado_modelo=_entero("IA_MAX_LADO_MODELO", 1600, 448, 4096),
@@ -73,6 +75,8 @@ class Configuracion:
             espera_cola_s=_entero("IA_ESPERA_COLA_S", 20, 0, 600),
             timeout_s=_entero("IA_TIMEOUT_S", 180, 10, 1800),
             keep_alive=os.environ.get("IA_KEEP_ALIVE", "10m").strip(),
+            num_ctx=_entero("IA_NUM_CTX", 8192, 2048, 32768),
+            max_tokens=_entero("IA_MAX_TOKENS", 2048, 256, 16384),
             min_disco_mb=_entero("IA_MIN_DISCO_MB", 2048, 0, 10_000_000),
         )
         c.validar()

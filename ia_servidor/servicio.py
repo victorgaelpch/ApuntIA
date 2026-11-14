@@ -1,7 +1,7 @@
 """Análisis de una imagen con el modelo visual local (BACK-35).
 
 Flujo: validar → diagnosticar calidad → esperar turno (máx. IA_MAX_INFERENCIAS a la vez) →
-inferencia → validar el JSON (un único reintento pidiendo solo JSON) → respuesta del contrato v1.
+inferencia (prompt corto, texto plano) → el servidor construye y valida el resultado → contrato v1.
 
 Ante falta de memoria de la GPU se prueba UNA vez el modelo de respaldo (4B) si está instalado;
 si no, el error vuelve como SIN_MEMORIA reintentable. Nada se guarda en disco: la imagen vive
@@ -25,7 +25,7 @@ import cv2
 from ia_servidor import API_VERSION, PIPELINE_VERSION, compartido, gpu
 from ia_servidor.config import Configuracion
 from ia_servidor.errores import ErrorIA
-from ia_servidor.esquemas import ESQUEMA_MODELO, PROMPT_BASE, PROMPT_REPARAR, TAREAS, interpretar
+from ia_servidor.esquemas import TAREAS, construir, prompt
 from ia_servidor.imagen import reducir, validar
 from ia_servidor.ollama import VERSION_MINIMA, ClienteOllama, version_tupla
 
@@ -146,15 +146,12 @@ class Servicio:
         }
 
     def _inferir(self, modelo: str, tarea: str, imagen_b64: str):
-        mensajes = [{"role": "user", "content": PROMPT_BASE + "Tarea: " + TAREAS[tarea], "images": [imagen_b64]}]
-        r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s)
-        salida = interpretar(r["contenido"])
-        if salida is None:  # un único reintento pidiendo solo el JSON; si vuelve a fallar, error técnico
-            mensajes += [{"role": "assistant", "content": r["contenido"][:2000]},
-                         {"role": "user", "content": PROMPT_REPARAR}]
-            r = self.ollama.chat(modelo, mensajes, ESQUEMA_MODELO, self.config.keep_alive, self.config.timeout_s)
-            salida = interpretar(r["contenido"])
-            if salida is None:
-                raise ErrorIA("RESPUESTA_INVALIDA", "JSON fuera de contrato tras un reintento")
+        # Prompt de una línea y respuesta en texto plano: el servidor construye la estructura (§8).
+        mensajes = [{"role": "user", "content": prompt(tarea), "images": [imagen_b64]}]
+        r = self.ollama.chat(modelo, mensajes, None, self.config.keep_alive, self.config.timeout_s,
+                             self.config.num_ctx, self.config.max_tokens)
+        salida = construir(tarea, r["contenido"])
+        if salida is None:
+            raise ErrorIA("RESPUESTA_INVALIDA", "respuesta del modelo fuera de los límites")
         stats = {k: v for k, v in r.items() if k != "contenido"}
         return salida, stats

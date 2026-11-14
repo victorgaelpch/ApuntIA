@@ -43,7 +43,7 @@ def test_listo_con_todo_correcto(armar):
 
 
 @pytest.mark.parametrize("ollama, motivo", [
-    (OllamaFalso(modelos=()), "ollama pull qwen3-vl:8b"),
+    (OllamaFalso(modelos=()), "ollama pull qwen3-vl:8b-instruct"),
     (OllamaFalso(version="0.11.4"), "0.12.7"),
     (OllamaFalso(capacidades=("completion",)), "vision"),
 ])
@@ -65,7 +65,7 @@ def test_capacidades(armar):
     r = armar()[0].get("/api/v1/capacidades").json()
     assert {"formula", "texto_manuscrito", "tabla", "diagrama", "pagina"} <= set(r["tareas"])
     assert r["limites"]["inferencias_simultaneas"] == 1
-    assert r["modelo"] == {"principal": "qwen3-vl:8b", "respaldo": "qwen3-vl:4b"}
+    assert r["modelo"] == {"principal": "qwen3-vl:8b-instruct", "respaldo": "qwen3-vl:4b-instruct"}
 
 
 # ---------------------------------------------------------------------------- análisis
@@ -77,15 +77,17 @@ def test_analisis_valido_devuelve_contrato(armar):
     j = r.json()
     assert j["api_version"] == API_VERSION and j["pipeline_version"] and j["id_correlacion"] == r.headers["X-ApuntIA-Id-Correlacion"]
     assert j["resultado"] == {"estado": "propuesta", "revision_requerida": True, "origen": "imagen",
-                              "texto": RESPUESTA_OK["texto"], "latex": RESPUESTA_OK["latex"], "descripcion": None,
-                              "dudas": RESPUESTA_OK["dudas"]}
-    assert j["modelo"] == {"nombre": "qwen3-vl:8b", "respaldo_usado": False}
+                              "texto": RESPUESTA_OK, "latex": RESPUESTA_OK, "descripcion": None,
+                              "dudas": ["1 fragmento(s) que el modelo marcó como no legibles ([?])"]}
+    assert j["modelo"] == {"nombre": "qwen3-vl:8b-instruct", "respaldo_usado": False}
     assert j["imagen"]["formato"] == "png" and j["imagen"]["ancho"] == 640
     assert j["calidad"]["disponible"] is True and j["calidad"]["nivel"] in {"buena", "aceptable", "insuficiente"}
     assert "confianza" not in str(j["resultado"])  # un VLM no da confianza calibrada: no se inventa
     chat = ollama.chats()[0]
-    assert chat["model"] == "qwen3-vl:8b" and chat["stream"] is False and chat["options"]["temperature"] == 0
-    assert chat["format"]["properties"]["texto"] and len(chat["messages"][0]["images"]) == 1
+    assert chat["model"] == "qwen3-vl:8b-instruct" and chat["stream"] is False and chat["options"]["temperature"] == 0
+    assert "format" not in chat and len(chat["messages"][0]["images"]) == 1  # un esquema dispara el razonamiento
+    assert len(chat["messages"][0]["content"]) < 400 and "LaTeX" in chat["messages"][0]["content"]  # prompt corto
+    assert chat["options"]["num_ctx"] == 8192 and chat["options"]["num_predict"] == 2048  # siempre acotado
 
 
 def test_imagen_grande_se_reduce_para_el_modelo(armar):
@@ -95,32 +97,30 @@ def test_imagen_grande_se_reduce_para_el_modelo(armar):
 
 
 def test_ilegible(armar):
-    cliente, *_ = armar(OllamaFalso(chat=[{"ilegible": True, "texto": "", "dudas": []}]))
+    cliente, *_ = armar(OllamaFalso(chat=["[ilegible]"]))
     assert analizar(cliente, png()).json()["resultado"]["estado"] == "ilegible"
 
 
-def test_json_invalido_se_reintenta_una_vez(armar):
-    cliente, ollama, _ = armar(OllamaFalso(chat=["no es json", RESPUESTA_OK]))
-    r = analizar(cliente, png())
-    assert r.status_code == 200
-    assert len(ollama.chats()) == 2
-    assert "SOLO con ese objeto JSON" in ollama.chats()[1]["messages"][-1]["content"]
+def test_una_sola_llamada_al_modelo(armar):
+    cliente, ollama, _ = armar()
+    assert analizar(cliente, png()).status_code == 200
+    assert len(ollama.chats()) == 1
 
 
-def test_json_invalido_dos_veces_es_error_y_no_guarda_basura(armar):
-    cliente, *_ = armar(OllamaFalso(chat=["basura", '{"texto": 5, "dudas": "x"}']))
-    r = analizar(cliente, png())
+def test_respuesta_demasiado_larga_es_invalida_y_no_guarda_basura(armar):
+    cliente, *_ = armar(OllamaFalso(chat=["x" * 30001]))
+    r = analizar(cliente, png(), tarea="texto_impreso")
     assert r.status_code == 502
     assert r.json()["error"]["codigo"] == "RESPUESTA_INVALIDA" and r.json()["error"]["reintentable"] is True
 
 
 def test_oom_usa_el_respaldo_si_esta_instalado(armar):
     ollama = OllamaFalso(chat=[(500, '{"error":"CUDA error: out of memory"}'), RESPUESTA_OK],
-                         modelos=("qwen3-vl:8b", "qwen3-vl:4b"))
+                         modelos=("qwen3-vl:8b-instruct", "qwen3-vl:4b-instruct"))
     cliente, *_ = armar(ollama)
     j = analizar(cliente, png()).json()
-    assert j["modelo"] == {"nombre": "qwen3-vl:4b", "respaldo_usado": True}
-    assert [c["model"] for c in ollama.chats()] == ["qwen3-vl:8b", "qwen3-vl:4b"]
+    assert j["modelo"] == {"nombre": "qwen3-vl:4b-instruct", "respaldo_usado": True}
+    assert [c["model"] for c in ollama.chats()] == ["qwen3-vl:8b-instruct", "qwen3-vl:4b-instruct"]
 
 
 def test_oom_sin_respaldo_es_reintentable(armar):
@@ -132,7 +132,7 @@ def test_oom_sin_respaldo_es_reintentable(armar):
 
 
 def test_modelo_no_instalado(armar):
-    cliente, *_ = armar(OllamaFalso(chat=[(404, '{"error":"model \\"qwen3-vl:8b\\" not found, try pulling it first"}')]))
+    cliente, *_ = armar(OllamaFalso(chat=[(404, '{"error":"model \\"qwen3-vl:8b-instruct\\" not found, try pulling it first"}')]))
     r = analizar(cliente, png())
     assert (r.status_code, r.json()["error"]["codigo"], r.json()["error"]["reintentable"]) == (503, "MODELO_NO_INSTALADO", False)
 
@@ -247,7 +247,7 @@ def test_logs_sin_contenido_de_la_imagen(armar, caplog):
         analizar(cliente, png())
     texto = caplog.text
     assert "caracteres=" in texto
-    assert RESPUESTA_OK["texto"] not in texto and "frac" not in texto and "iVBOR" not in texto
+    assert "frac" not in texto and "m[?]" not in texto and "iVBOR" not in texto
 
 
 @pytest.mark.parametrize("cambios, mensaje", [

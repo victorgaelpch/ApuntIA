@@ -8,6 +8,14 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Servidor de inferencia IA** (BACK-35): `ia_servidor/` (FastAPI) para la PC con GPU, con contrato
+  v1 (`/salud`, `/listo`, `/api/v1/capacidades`, `/api/v1/analisis`), errores con código y
+  `reintentable`, una inferencia a la vez, respaldo `qwen3-vl:4b` ante falta de memoria y Ollama
+  solo en loopback. Guía: `fullstack/docs/servidor-ia.md`.
+- **Menú y modos en Windows** (FULL-30): `iniciar.bat` sin argumentos muestra un menú;
+  `-Modo app|servidor-ia|instalar-ia|diagnostico|configurar|detener`. Instalación reanudable
+  del servidor IA (pregunta antes de instalar Ollama o descargar el modelo), diagnóstico y URL del
+  servidor validada. CI nueva en Windows para los scripts.
 - **Tickets con trazabilidad real** (FULL-29): `fullstack/tickets/` con una ficha por cada Issue de
   GitHub (abiertos y cerrados), índice, cronograma PLANIFICADO, plantilla y bitácoras REALES.
   `fullstack/scripts/sincronizar_tickets.py` pagina la API, separa Pull Requests de Issues, no pisa

@@ -100,8 +100,9 @@ del proyecto, que se hará en la prueba entre dos redes ([pruebas-y-metricas.md 
 | Registro revela que un email existe | Inherente a crear cuentas con email | Mensaje que no confirma de quién es; límite por IP |
 | Límites por IP detrás de un NAT (aula) | Toda la clase comparte IP | Subir `MAX_REGISTROS_HORA` en ese caso |
 | Interfaz probada solo en Chromium | Entorno de pruebas | Probar en Firefox/Safari antes de la entrega |
-| Conexión entre dos redes sin probar | Falta la cuenta del túnel del dueño | Prueba con `validar.ps1 -Remoto` antes de la exposición |
-| El servidor IA ve la foto completa | La necesita para leerla | Solo se envía al servidor propio vinculado; nunca a servicios de terceros |
+| Conexión entre dos redes sin probar con la laptop | El túnel se probó por Internet desde la propia PC; falta la laptop en otra red | Pasos en [conexion-remota.md §6](conexion-remota.md); `validar.ps1 -SoloRemoto -Remoto https://…` antes de la exposición |
+| El servidor IA ve la foto completa | La necesita para leerla | Solo se envía al servidor propio vinculado; ApuntIA no la manda a servicios de IA de terceros |
+| Con Cloudflare Tunnel, Cloudflare descifra el HTTPS en su red | Así funciona el túnel: termina TLS en Cloudflare y lo reenvía a la PC | Para fotos de alumnos, Tailscale (cifrado de equipo a equipo); el Quick Tunnel solo para pruebas con imágenes sintéticas |
 
 ## 5. Lista de comprobación de seguridad para cada versión
 

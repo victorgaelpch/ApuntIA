@@ -12,7 +12,7 @@ cifras: 14/11/2026, PC Windows 11 Pro 10.0.26200 (Ryzen 7 5700X, 24 GB, RTX 3060
 | Completo: + integración con backend real y Playwright | `validar.sh --completo` | `validar.ps1 -Completo` | no | no |
 | Docker del cliente | `validar.sh --docker` | — (Docker Desktop) | no | para construir |
 | Servidor IA real (salud, listo, medidor con corpus sintético) | — | `validar.ps1 -Gpu` (en la PC) | **sí** | no |
-| Conexión entre redes (TLS, `/salud`, latencia) | — | `validar.ps1 -Remoto https://<nombre>` (en la laptop) | no | **sí** |
+| Conexión entre redes (TLS, `/salud`, latencia) | — | `validar.ps1 -SoloRemoto -Remoto https://<nombre>` (en la laptop) | no | **sí** |
 
 CI (`.github/workflows/ci.yml`) ejecuta los niveles sin GPU en Ubuntu y, en `windows-latest`, los
 scripts de PowerShell, el servidor IA con Ollama simulado y, desde FULL-32, el respaldo, el PDF, la IA
@@ -36,12 +36,14 @@ No descarga modelos ni usa credenciales reales.
 | Foto real del pizarrón → servidor IA → editor → PDF | completado: 17 regiones → 35 bloques (23 de regiones divididas), 24 s (modelo cargado) / 70 s (en frío), PDF de 10 páginas | [generacion-pdf.md §7](generacion-pdf.md) |
 | Backend matado a mitad de un análisis remoto | retoma el mismo trabajo, 1 sola inferencia en la GPU | [trabajos-remotos.md](trabajos-remotos.md) (BACK-37) |
 | Vinculación, revocación y credencial cifrada (DPAPI) | probadas en la PC | [conexion-remota.md](conexion-remota.md) (FULL-31) |
+| Servidor IA por Internet (Cloudflare Quick Tunnel, cliente en la misma PC) | `/salud` 200 en 521–562 ms; vinculación + diagnóstico 5/5; análisis real de una fórmula sintética con LaTeX exacto (21,7 s en frío) | [conexion-remota.md §4.3](conexion-remota.md) |
+| `validar.ps1 -Remoto` sin `-Python` | el paso remoto pasa, pero las pruebas rápidas fallan si el intérprete por defecto no tiene pytest: en la laptop se usa `-SoloRemoto` | |
 
 ## 3. Matriz manual pendiente (necesita otra red o al dueño del proyecto)
 
 | Caso | Estado | Qué hace falta |
 |------|--------|----------------|
-| Laptop en otra red → túnel HTTPS → PC de casa → análisis → editor → investigación → PDF | **pendiente** | cuenta de Cloudflare (Tunnel con dominio) o Tailscale del dueño; laptop fuera de la red de casa. Pasos: [conexion-remota.md](conexion-remota.md); comprobar con `validar.ps1 -Remoto` |
+| Laptop en otra red → túnel HTTPS → PC de casa → análisis → editor → investigación → PDF | **pendiente** (el túnel ya se probó por Internet desde la propia PC) | la laptop fuera de la red de casa (basta el hotspot del celular); el Quick Tunnel no necesita cuenta. Pasos: [conexion-remota.md §6](conexion-remota.md); comprobar con `validar.ps1 -SoloRemoto -Remoto https://…` |
 | Reconexión automática tras reiniciar la laptop; cambio de servidor; URL manual | pendiente en dos redes (probado en local) | ídem |
 | Túnel caído, PC suspendida, DNS/TLS inválido, caída de Internet a mitad | pendiente en dos redes; cubiertos con simulación en `test_ia_remota.py` / `test_analisis_remoto.py` | ídem |
 | `iniciar.bat` en una ruta con espacios y acentos, usuario sin administrador, segunda instancia | parcial: funciones probadas en `windows.pruebas.ps1`; sin prueba en otra cuenta de Windows | otra cuenta de usuario |

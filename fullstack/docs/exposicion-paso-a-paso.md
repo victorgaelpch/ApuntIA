@@ -20,7 +20,7 @@ si la red de la universidad falla. La demostración clásica sin servidor IA sig
 | ☐ | Servidor IA listo | `iniciar.bat -Modo servidor-ia` y `http://127.0.0.1:8100/listo` → 200 |
 | ☐ | Ollama y el servidor IA solo en 127.0.0.1; firewall sin reglas nuevas | [seguridad-servidor-ia.md](seguridad-servidor-ia.md) |
 | ☐ | Túnel activo (Cloudflare Tunnel o Tailscale Serve) | desde el móvil con datos: `https://<tu-nombre>/salud` → `{"estado":"ok"}` |
-| ☐ | La laptop está vinculada | en la laptop, «Servidor IA» → «Conectado» (o `validar.ps1 -Remoto https://<tu-nombre>`) |
+| ☐ | La laptop está vinculada | en la laptop, «Servidor IA» → «Conectado» (o `validar.ps1 -SoloRemoto -Remoto https://<tu-nombre>`) |
 | ☐ | GPU libre: cerrar juegos y programas que usen la GPU | `nvidia-smi` |
 | ☐ | Registros a mano por si algo falla | `fullstack\.estado\ia-servidor.err.log` y `ollama.log` (sin contenido de apuntes ni tokens) |
 

@@ -12,8 +12,12 @@ falla: [recuperacion-conexion.md](recuperacion-conexion.md).
 > solicitud ya aprobada, diagnóstico completo (5/5), análisis real de fórmulas, revocación
 > (`AI_REVOCADO`) y cambio de URL sin enviar la credencial (`AI_NO_VINCULADO`).
 > Pruebas automáticas: 29 del servidor (vinculación) y 41 del cliente.
-> **Pendiente**: la prueba desde OTRA red real a través de Tailscale o Cloudflare (requiere crear
-> la cuenta o el dominio, una decisión del dueño de la PC) y la interfaz web (FRONT-25).
+> **Probado a través de Internet (14/11/2026, FULL-32)** con un Cloudflare Quick Tunnel (§4.3), sin
+> cuenta: el cliente estaba en la misma PC, pero todo el tráfico salió a Cloudflare y volvió por
+> `https://….trycloudflare.com`. Resultados en §4.3.
+> **Pendiente**: la laptop conectada desde OTRA red (por ejemplo, el hotspot del celular), con los
+> pasos de §6; para el uso diario, Tailscale o un túnel con nombre (necesitan cuenta o dominio,
+> una decisión del dueño de la PC).
 
 ## 1. Piezas
 
@@ -112,8 +116,27 @@ las cabeceras `CF-Access-Client-Id/Secret` (pendiente si se adopta).
 
 ### 4.3 Prueba rápida con Quick Tunnel (solo pruebas)
 
-`cloudflared tunnel --url http://localhost:8100` imprime una URL `https://….trycloudflare.com`.
-Sirve para comprobar la vinculación desde otra red en minutos; luego se cierra con Ctrl+C.
+Instalación (paquete oficial de Cloudflare, sin cuenta ni permisos de administrador):
+`winget install --id Cloudflare.cloudflared --exact --scope user`.
+
+`cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8100` imprime una URL
+`https://….trycloudflare.com`. Sirve para comprobar la vinculación desde otra red en minutos;
+luego se cierra con Ctrl+C. **La URL cambia cada vez** que se abre el túnel, y la credencial va
+ligada a la URL (al cambiarla no se envía: `AI_NO_VINCULADO`). Por eso, con este túnel hay que
+volver a vincular la laptop en cada prueba; para clases de verdad, §4.1 o §4.2. Además, con
+cualquier túnel de Cloudflare el HTTPS termina en la red de Cloudflare (que reenvía la petición a
+la PC): para fotos de alumnos es preferible Tailscale, cifrado de equipo a equipo.
+
+Resultado real (14/11/2026, cloudflared 2026.11.0, cliente en la propia PC con una carpeta de
+datos temporal, sin tocar la configuración del equipo):
+
+| Paso | Resultado |
+|------|-----------|
+| `validar.ps1 -Remoto https://….trycloudflare.com` | `/salud` 200 en 521–562 ms (TLS válido de Cloudflare) |
+| `vincular_ia --url …` → `ia_servidor.admin aprobar` | vinculado; credencial cifrada con DPAPI |
+| `vincular_ia --diagnostico` | 5/5 OK: configuración, DNS, salud/TLS (159 ms), credencial (249 ms), modelo y GPU (226 ms) |
+| `vincular_ia --probar formula.png --tarea formula` (imagen sintética de `\frac{d}{dx}\sin(x)=\cos(x)`) | LaTeX exacto; 21,7 s con el modelo sin cargar · 0,8 s al repetir la misma imagen con el modelo cargado |
+| Al terminar | túnel cerrado, equipo de prueba revocado, modelo descargado de la VRAM |
 
 ## 5. Operación en casa
 
@@ -124,3 +147,22 @@ Sirve para comprobar la vinculación desde otra red en minutos; luego se cierra 
 - Antes de una clase: desde la laptop en OTRA red (por ejemplo, el hotspot del celular),
   `iniciar.bat -Modo diagnostico` debe mostrar «IA remota … responde» y, en
   `python -m herramientas.vincular_ia --diagnostico`, los 5 pasos en OK.
+
+## 6. Prueba entre dos redes, paso a paso (pendiente)
+
+Hace falta: la PC de casa con el servidor IA instalado, la laptop con ApuntIA instalado y una red
+distinta para la laptop (el hotspot del celular basta). Unos 20 minutos. Anota en cada paso la hora,
+OK o el código de error, y pásalo a [pruebas-y-metricas.md](pruebas-y-metricas.md) §3.
+
+| # | Dónde | Qué hacer | Qué debe salir |
+|---|-------|-----------|----------------|
+| 1 | PC | `iniciar.bat -Modo servidor-ia` | el servidor queda escuchando en 127.0.0.1:8100 |
+| 2 | PC | `cloudflared tunnel --no-autoupdate --url http://127.0.0.1:8100` (o `tailscale serve --bg 8100`) y copiar la URL `https://…` | la URL; dejar esa ventana abierta |
+| 3 | Laptop (otra red) | `powershell -ExecutionPolicy Bypass -File fullstack\scripts\validar.ps1 -SoloRemoto -Remoto https://…` | `/salud -> HTTP 200` y «Todo correcto» |
+| 4 | Laptop | `iniciar.bat -Modo configurar` → pegar la URL → «¿Vincular ahora?» | un código como `JX9T-CUGJ` |
+| 5 | PC | `iniciar.bat -Modo dispositivos` → opción 1 → el código → aprobar | en la laptop: «equipo vinculado» |
+| 6 | Laptop | `cd back\motori_magenes` y `python -m herramientas.vincular_ia --diagnostico` | 5 pasos en OK |
+| 7 | Laptop | Abrir ApuntIA, subir una foto con el motor **Servidor IA**, revisar, investigar un concepto, exportar el PDF | bloques marcados como propuesta del servidor IA y PDF descargado |
+| 8 | PC | Ctrl+C en la ventana del túnel a mitad de un análisis | en la laptop: «El servidor IA no está disponible (PC apagada, túnel o Internet caídos). Tu foto se conservó…» y el botón «Analizar en modo local»; nada se pierde |
+| 9 | Ambos | Volver a abrir el túnel (URL nueva) y repetir 4–6 | vuelve a funcionar (con Tailscale la URL no cambia y no hace falta) |
+| 10 | PC | Ctrl+C en el túnel, `iniciar.bat -Modo detener` y, si era una prueba, revocar el equipo (`iniciar.bat -Modo dispositivos`) | nada escuchando fuera de 127.0.0.1 |

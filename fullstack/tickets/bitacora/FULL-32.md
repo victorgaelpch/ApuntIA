@@ -15,3 +15,11 @@
   vulnerabilidades; secretos limpios (513 rutas). **Pendiente** (no se marca el Issue como hecho): prueba
   entre dos redes con el túnel real, laptop real del profesor y más fotos reales con permiso
   (`fullstack/docs/pruebas-y-metricas.md` §3).
+- Sesión real: 2026-11-14 08:33 (instalación de `cloudflared`)–08:44 (America/Mexico_City). Responsable:
+  Claude Code con autorización del dueño; **falta revisión humana**. Actividad: preparar la prueba entre
+  redes. Cloudflare Quick Tunnel (sin cuenta) hacia el servidor IA; cliente en la misma PC con una
+  carpeta de datos temporal. Evidencia: `/salud` 200 en 521–562 ms por el túnel; vinculación aprobada
+  con `ia_servidor.admin`, credencial DPAPI; diagnóstico 5/5; análisis real de una fórmula sintética con
+  LaTeX exacto (21,7 s en frío). Después: túnel cerrado, equipo de prueba revocado, modelo descargado.
+  `validar.ps1 -SoloRemoto` para la laptop (probado: sin URL sale con 2, sin servidor con 1, con
+  servidor con 0) y lista de pasos en `conexion-remota.md` §6. **Sigue pendiente** la laptop en otra red.

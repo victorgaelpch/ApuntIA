@@ -69,7 +69,7 @@ jobs:
       - name: Vulnerabilidades conocidas (pip-audit)
         run: |
           pip install pip-audit
-          pip-audit -r back/motori_magenes/requirements.txt -r back/motori_magenes/requirements-dev.txt
+          pip-audit -r back/motori_magenes/requirements.txt -r back/motori_magenes/requirements-dev.txt -r ia_servidor/requirements.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -151,6 +151,14 @@ jobs:
         run: |
           pip install -r ia_servidor/requirements.txt -c back/motori_magenes/constraints.txt pytest httpx
           python -m pytest ia_servidor/tests
+      - name: "Backend en Windows: respaldo, PDF, IA remota, investigación y seguridad (FULL-32)"
+        shell: pwsh
+        working-directory: back/motori_magenes
+        # Sin Tesseract en el runner: estas pruebas no lo necesitan. Detectaron que el respaldo fallaba
+        # en Windows (conexiones SQLite abiertas y rutas con «\»), que es el sistema de la laptop.
+        run: |
+          pip install -r requirements.txt -r requirements-dev.txt -c constraints.txt
+          python -m pytest -p no:cacheprovider tests/test_respaldo.py tests/test_pdf.py tests/test_estructura.py tests/test_analisis_remoto.py tests/test_ia_remota.py tests/test_investigacion.py tests/test_seguridad_api.py tests/test_documento.py
 
   docker:
     name: Docker (construcción y prueba de humo)

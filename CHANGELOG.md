@@ -8,6 +8,12 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Cierre de ApuntIA 3.0, parte verificable** (FULL-32): `fullstack/scripts/validar.ps1` (rápido,
+  `-Completo`, `-Gpu` con el servidor IA real y `-Remoto` para la prueba entre redes); CI con el backend
+  en Windows y `pip-audit` del servidor IA; `/api/v2/listo` avisa si a Tesseract le faltan idiomas;
+  README con los dos perfiles y guías `algoritmos.md`, `modelos-y-requisitos.md`,
+  `exposicion-paso-a-paso.md`, `pruebas-y-metricas.md` y `referencias.md`. La prueba entre dos redes
+  sigue pendiente.
 - **Propuestas del servidor IA en el PDF y fuentes verificables** (BACK-38): etiqueta «propuesta del
   servidor IA: sin revisar/revisada», recorte de la foto una vez por región (opción
   `incluir_recortes_ia`, clave de exportación por defecto sin cambios) y aviso en la portada; las
@@ -69,6 +75,14 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 - El análisis tarda más: ~1 s por foto en la mediana (antes ~0,4 s). Límites configurables con
   `RECONOCIMIENTO_MAX_VARIANTES`, `RECONOCIMIENTO_MAX_BLOQUES` y `RECONOCIMIENTO_MAX_SEGUNDOS`.
 - Igualdades cortas como `F = ma` se detectan como fórmula.
+
+### Corregido
+
+- **Copias de seguridad en Windows** (FULL-32): `respaldo crear/verificar` dejaba abiertas las
+  conexiones SQLite (`with sqlite3.connect()` no cierra) y Windows no podía borrar la carpeta temporal;
+  además las rutas con `\` no coincidían con los nombres del archivo tar. Ahora se cierran con
+  `contextlib.closing` y las rutas se normalizan. Pruebas del respaldo portables a Windows.
+- Pruebas de integración en Windows: `pdftotext -enc UTF-8` y borrado temporal con reintentos.
 
 ## [2.0.0] — 2026-11-10 (preparada, sin etiqueta publicada)
 

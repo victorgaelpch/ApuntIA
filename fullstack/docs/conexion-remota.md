@@ -15,8 +15,11 @@ falla: [recuperacion-conexion.md](recuperacion-conexion.md).
 > **Probado a través de Internet (14/11/2026, FULL-32)** con un Cloudflare Quick Tunnel (§4.3), sin
 > cuenta: el cliente estaba en la misma PC, pero todo el tráfico salió a Cloudflare y volvió por
 > `https://….trycloudflare.com`. Resultados en §4.3.
-> **Pendiente**: la laptop conectada desde OTRA red (por ejemplo, el hotspot del celular), con los
-> pasos de §6; para el uso diario, Tailscale o un túnel con nombre (necesitan cuenta o dominio,
+> **Probado entre dos redes (15/11/2026)**: una segunda laptop en el hotspot del celular, por el
+> Quick Tunnel, se vinculó, pasó el diagnóstico 5/5 y analizó una foto con el motor «Servidor IA»
+> (detalle en [pruebas-y-metricas.md §3](pruebas-y-metricas.md)).
+> **Pendiente**: cortar el túnel a mitad de un análisis (pasos 8–9 de §6), la laptop real del
+> profesor y, para el uso diario, Tailscale o un túnel con nombre (necesitan cuenta o dominio,
 > una decisión del dueño de la PC).
 
 ## 1. Piezas
@@ -148,7 +151,7 @@ datos temporal, sin tocar la configuración del equipo):
   `iniciar.bat -Modo diagnostico` debe mostrar «IA remota … responde» y, en
   `python -m herramientas.vincular_ia --diagnostico`, los 5 pasos en OK.
 
-## 6. Prueba entre dos redes, paso a paso (pendiente)
+## 6. Prueba entre dos redes, paso a paso (pasos 1–7 probados el 15/11/2026)
 
 Hace falta: la PC de casa con el servidor IA instalado, la laptop con ApuntIA instalado y una red
 distinta para la laptop (el hotspot del celular basta). Unos 20 minutos. Anota en cada paso la hora,
@@ -161,7 +164,7 @@ OK o el código de error, y pásalo a [pruebas-y-metricas.md](pruebas-y-metricas
 | 3 | Laptop (otra red) | `powershell -ExecutionPolicy Bypass -File fullstack\scripts\validar.ps1 -SoloRemoto -Remoto https://…` | `/salud -> HTTP 200` y «Todo correcto» |
 | 4 | Laptop | `iniciar.bat -Modo configurar` → pegar la URL → «¿Vincular ahora?» | un código como `JX9T-CUGJ` |
 | 5 | PC | `iniciar.bat -Modo dispositivos` → opción 1 → el código → aprobar | en la laptop: «equipo vinculado» |
-| 6 | Laptop | `cd back\motori_magenes` y `python -m herramientas.vincular_ia --diagnostico` | 5 pasos en OK |
+| 6 | Laptop | `cd back\motori_magenes` y `.\.venv\Scripts\python.exe -m herramientas.vincular_ia --diagnostico` (el `python` del sistema no tiene los módulos de ApuntIA) | 5 pasos en OK |
 | 7 | Laptop | Abrir ApuntIA, subir una foto con el motor **Servidor IA**, revisar, investigar un concepto, exportar el PDF | bloques marcados como propuesta del servidor IA y PDF descargado |
 | 8 | PC | Ctrl+C en la ventana del túnel a mitad de un análisis | en la laptop: «El servidor IA no está disponible (PC apagada, túnel o Internet caídos). Tu foto se conservó…» y el botón «Analizar en modo local»; nada se pierde |
 | 9 | Ambos | Volver a abrir el túnel (URL nueva) y repetir 4–6 | vuelve a funcionar (con Tailscale la URL no cambia y no hace falta) |

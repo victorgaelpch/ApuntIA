@@ -43,12 +43,12 @@ No descarga modelos ni usa credenciales reales.
 
 | Caso | Estado | Qué hace falta |
 |------|--------|----------------|
-| Laptop en otra red → túnel HTTPS → PC de casa → análisis → editor → investigación → PDF | **pendiente** (el túnel ya se probó por Internet desde la propia PC) | la laptop fuera de la red de casa (basta el hotspot del celular); el Quick Tunnel no necesita cuenta. Pasos: [conexion-remota.md §6](conexion-remota.md); comprobar con `validar.ps1 -SoloRemoto -Remoto https://…` |
+| Laptop en otra red → túnel HTTPS → PC de casa → análisis → editor → investigación → PDF | **probado (15/11/2026)** con una segunda laptop en el hotspot del celular y un Quick Tunnel: `validar.ps1 -SoloRemoto -Remoto` → `/salud` 200 en 613 ms; vinculación con código aprobado en la PC (credencial cifrada con DPAPI); `vincular_ia --diagnostico` 5/5 (DNS 15 ms, salud/TLS 675 ms, credencial 412 ms, modelo y GPU 511 ms); análisis de una foto con el motor «Servidor IA» en la interfaz: funciona (comprobado por el usuario). Editor, investigación y PDF no se anotaron por separado | pasos 8–9 de [conexion-remota.md §6](conexion-remota.md) (cortar el túnel a mitad de un análisis) |
 | Reconexión automática tras reiniciar la laptop; cambio de servidor; URL manual | pendiente en dos redes (probado en local) | ídem |
 | Túnel caído, PC suspendida, DNS/TLS inválido, caída de Internet a mitad | pendiente en dos redes; cubiertos con simulación en `test_ia_remota.py` / `test_analisis_remoto.py` | ídem |
 | `iniciar.bat` en una ruta con espacios y acentos, usuario sin administrador, segunda instancia | parcial: funciones probadas en `windows.pruebas.ps1`; sin prueba en otra cuenta de Windows | otra cuenta de usuario |
 | Tres categorías de fotos reales (agrupamiento, vectorial, circuitos) | **pendiente**: solo hay una foto real con permiso (pizarrón de trigonometría) | fotos con permiso de su autor, guardadas en `fullstack/evaluacion/privado/` |
-| Laptop real del profesor (otro equipo) | pendiente | el equipo |
+| Laptop real del profesor (otro equipo) | pendiente (la prueba del 15/11 fue con otra laptop del equipo del proyecto; sacó a la luz dos fallos de `iniciar.bat`, ya corregidos: «El término 'C'» al vincular y «ApuntIA no arrancó» con ApuntIA en marcha) | el equipo |
 
 Estos casos **no** se dan por cumplidos: FULL-32 no se cierra hasta tenerlos.
 

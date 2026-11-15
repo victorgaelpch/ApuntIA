@@ -88,10 +88,11 @@ if ($Spring) {
     Bien "Spring Boot detectado en back\$($Spring.Name)"
 } else { Bien "Sin backend Spring Boot en el repositorio: no hace falta Java." }
 
-try {
-    $s = Invoke-RestMethod "$Url/salud" -TimeoutSec 2
-    if ($s.estado -eq "ok") { Bien "ApuntIA ya está en marcha en $Url"; Write-Host "  Ábrela en: $Url/inicio"; exit 0 }
-} catch { }
+# Sonda por 127.0.0.1 y con Invoke-Json (-UseBasicParsing): en una laptop con Windows PowerShell 5.1,
+# Invoke-RestMethod contra «localhost» fallaba siempre y ApuntIA, ya en marcha, se daba por caída.
+$Sonda = "http://127.0.0.1:$Puerto/salud"
+$s = Invoke-Json $Sonda 2
+if ($s.Estado -eq 200 -and $s.Cuerpo.estado -eq "ok") { Bien "ApuntIA ya está en marcha en $Url"; Write-Host "  Ábrela en: $Url/inicio"; exit 0 }
 $ocupado = Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction SilentlyContinue
 if ($ocupado) { Fallo "El puerto $Puerto está ocupado por otro programa. Usa otro: iniciar.bat -Puerto 8080" 3 }
 Bien "Puerto $Puerto libre"
@@ -138,7 +139,9 @@ Set-Content (Join-Path $Estado "backend.pid") $p.Id
 
 $fin = (Get-Date).AddSeconds(60); $listo = $false
 while ((Get-Date) -lt $fin -and -not $p.HasExited) {
-    try { if ((Invoke-RestMethod "$Url/salud" -TimeoutSec 2).estado -eq "ok") { $listo = $true; break } } catch { Start-Sleep -Milliseconds 500 }
+    $s = Invoke-Json $Sonda 2
+    if ($s.Estado -eq 200 -and $s.Cuerpo.estado -eq "ok") { $listo = $true; break }
+    Start-Sleep -Milliseconds 500
 }
 if (-not $listo) {
     Write-Host "X ApuntIA no arrancó. Últimas líneas del registro:" -ForegroundColor Red

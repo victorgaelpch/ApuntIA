@@ -293,7 +293,8 @@ function Invoke-Configurar {
     # Vinculación (FULL-31): la hace el backend de ApuntIA, que guarda la credencial cifrada en su carpeta de datos.
     if (Test-ConsolaInteractiva) {
         if (Preguntar "¿Vincular ahora este equipo con el servidor IA? (el administrador debe aprobar un código)") {
-            $null = Invoke-Vincular @()
+            # Sin asignar: si se captura su salida, el código de vinculación no se ve en pantalla.
+            Invoke-Vincular @("--url", $Url.TrimEnd("/"))
         } else { Write-Host "  Cuando quieras: iniciar.bat -Modo configurar, o desde la interfaz." }
     } else { Write-Host "  Para vincular: cd back\motori_magenes; python -m herramientas.vincular_ia" }
     Salir 0
@@ -302,12 +303,14 @@ function Invoke-Configurar {
 function Invoke-Vincular([string[]]$Extra) {
     $backend = Join-Path $Raiz "back\motori_magenes"
     $py = Join-Path $backend ".venv\Scripts\python.exe"
-    $comando = if (Test-Path $py) { @($py) } else { Find-Python }
+    # Asignar dentro de cada rama: `$x = if (…) { @($py) }` desenvuelve el arreglo de UN elemento a
+    # texto y $comando[0] sería «C» (visto en la laptop al vincular).
+    if (Test-Path $py) { $comando = @($py) } else { $comando = Find-Python }
     if (-not $comando) { Write-Error2 "Hace falta Python 3.10 o superior."; Salir 1 }
     Push-Location $backend
-    try { & $comando[0] @($comando[1..9] | Where-Object { $_ }) -m herramientas.vincular_ia @Extra; $codigo = $LASTEXITCODE }
+    # No devuelve nada: la salida de Python va directa a la consola; el resultado queda en $LASTEXITCODE.
+    try { & $comando[0] @($comando[1..9] | Where-Object { $_ }) -m herramientas.vincular_ia @Extra }
     finally { Pop-Location }
-    return $codigo
 }
 
 # =============================================================================== dispositivos (PC del servidor IA)

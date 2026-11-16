@@ -178,7 +178,7 @@ def test_exportar_descargar_y_reutilizar(apunte):
     assert exp["version"] == 2 and trabajo["tipo"] == "exportacion"
     assert esperar(c, trabajo["id"])["estado"] == "completado"
     exp = c.get(f"/api/v2/exportaciones/{exp['id']}").json()["exportacion"]
-    assert exp["estado"] == "completado" and exp["descarga"] and exp["paginas"] >= 3
+    assert exp["estado"] == "completado" and exp["descarga"] and exp["paginas"] >= 2   # portada + contenido (sin índice de 1 entrada)
     d = c.get(exp["descarga"])
     assert d.status_code == 200 and d.headers["content-type"] == "application/pdf"
     assert d.headers["content-disposition"] == 'attachment; filename="fisica-optica-v2.pdf"'
@@ -317,3 +317,56 @@ def test_lo_derivado_no_usa_propuestas_de_ia_sin_revisar():
     assert any(b["id"] == "b6" for s in e.secciones for b in s.bloques)    # pero sí está en la transcripción
     e2 = estructurar(doc_con_ia(revisado=True))
     assert any("integral acumula" in f for f in e2.resumen)
+
+
+# ------------------------------------------------------------------ hallazgos del PDF real (15/11/2026)
+def _doc_una_seccion(*bloques):
+    p = Pagina(id="p1", orden=1, tipo_fuente="cuaderno", archivo_original="a1", ancho=10, alto=10)
+    return Documento(titulo="electronica", paginas=[p], bloques=list(bloques))
+
+
+def _bloque(i, tipo, texto="", **kw):
+    return Bloque(id=f"b{i}", pagina="p1", orden=i, tipo=tipo, origen="ocr", texto=texto, texto_original=texto,
+                  confianza=0.9, **kw)
+
+
+def test_formula_dentro_de_un_parrafo_se_dibuja_y_no_deja_los_dolares():
+    import os
+    import tempfile
+    antes = set(os.listdir(tempfile.gettempdir()))
+    doc = _doc_una_seccion(_bloque(1, "texto", "en caso de que este entre 2 mallas\n"
+                                              "$ V_o = R(I_2 - I_1) $ I2 entra por positivo\nCuesta $5 y $10"))
+    lector, texto = texto_de(pdf(doc)[0])
+    assert "I2 entra por positivo" in texto and "en caso de que este entre 2 mallas" in texto
+    assert "V_o" not in texto and "$ V" not in texto              # la fórmula es una imagen en la línea
+    assert "Cuesta $5 y $10" in texto                              # dinero, no matemáticas: literal
+    nuevos = {n for n in set(os.listdir(tempfile.gettempdir())) - antes if n.startswith("apuntia-pdf-")}
+    assert not nuevos                                              # la carpeta temporal se borra
+
+
+def test_formula_en_linea_invalida_queda_literal():
+    doc = _doc_una_seccion(_bloque(1, "texto", r"Mira $\frac{1}{2$ aquí"))
+    _, texto = texto_de(pdf(doc)[0])
+    assert r"$\frac{1}{2$" in texto
+
+
+def test_sin_indice_cuando_solo_hay_una_seccion():
+    _, texto = texto_de(pdf(_doc_una_seccion(_bloque(1, "texto", "Corrientes en nodos")))[0])
+    assert "Índice" not in texto and "Corrientes en nodos" in texto
+    _, texto = texto_de(pdf()[0])                                  # con varias secciones, sí
+    assert "Índice" in texto
+
+
+def test_esquema_de_ia_se_ve_en_su_sitio_con_su_descripcion():
+    from app.services.documento import Procedencia
+    ia = Procedencia(motor="ia_remota", version="m", reconocimiento="documento/opencv")
+    comun = dict(recorte="rC", procedencia=ia, revision="sin_confirmar")
+    doc = _doc_una_seccion(_bloque(1, "texto", "Para nodos es ley de ohm", **comun),
+                           _bloque(2, "imagen", "Un esquema de circuitos", conservar_imagen=True, **comun),
+                           _bloque(3, "texto", "Voltajes", **comun))
+    leidos = []
+    _, texto = texto_de(pdf(doc, leer=lambda a: leidos.append(a) or png())[0])
+    assert "Esquema o dibujo del apunte: Un esquema de circuitos" in texto
+    assert leidos.count("rC") == 1                                 # el recorte una vez, donde va el esquema
+    assert texto.index("Para nodos es ley de ohm") < texto.index("Esquema o dibujo") < texto.index("Voltajes")
+    assert "Recorte de la foto: compáralo" not in texto           # ya se ve: no se repite al final

@@ -31,17 +31,46 @@ class Region:
     tipo: str | None = None  # sugerencia (vlm); None = desconocido
 
 
+PAPEL_CON_LINEAS = 0.15  # fracción de la foto cubierta por líneas largas a partir de la que se atenúan
+
+
+def lineas_en_gris(mapa: np.ndarray, tolerancia: int = 9) -> np.ndarray:
+    """Intensidad de las líneas largas y casi rectas de un mapa de «cuánta tinta» (0-255).
+
+    Hallazgo real (cuaderno de electrónica, 15/11/2026): en una foto de móvil la cuadrícula está
+    algo ondulada e inclinada y, al umbralizar, se rompe en trocitos que ya no parecen líneas; la
+    dilatación los une con el texto y TODO el apunte acaba en una sola región. En grises la línea
+    sigue siendo continua: se ensancha `tolerancia` px en perpendicular (el máximo local tolera la
+    ondulación) y una apertura larga deja solo lo que se mantiene a lo largo de la línea."""
+    alto, ancho = mapa.shape
+    banda_h = cv2.dilate(mapa, np.ones((tolerancia, 1), np.uint8))
+    banda_v = cv2.dilate(mapa, np.ones((1, tolerancia), np.uint8))
+    # Mismo largo mínimo que quitar_lineas_y_marco: un cable de circuito o una barra de fracción
+    # son más cortos que un cuarto de la página y no se tocan.
+    horiz = cv2.morphologyEx(banda_h, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (max(40, ancho // 4), 1)))
+    vert = cv2.morphologyEx(banda_v, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, max(40, alto // 4))))
+    return cv2.max(horiz, vert)
+
+
 def mascara_tinta(imagen: np.ndarray) -> np.ndarray:
     gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
     lado = max(gris.shape)
     k = max(31, (lado // 25) | 1)                       # ventana del fondo ≫ altura de letra
     fondo = cv2.medianBlur(gris, k)
     oscuro = cv2.subtract(fondo, gris)                  # cuánto más oscuro que su fondo
+    s = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)[:, :, 1]
+    s_dif = cv2.subtract(s, cv2.medianBlur(s, k))
+    # Papel cuadriculado o de renglones: las líneas cubren la mayor parte de la foto (medido: 60-83 %
+    # en páginas de cuaderno sintéticas; 1,9 % en el pizarrón real). Solo entonces se restan, de la
+    # oscuridad y de la saturación (la cuadrícula azul también es «color»): un trazo de bolígrafo
+    # que las cruza es más intenso que ellas y sobrevive. En un pizarrón no se toca nada.
+    lineas = lineas_en_gris(oscuro)
+    if (lineas > 12).mean() > PAPEL_CON_LINEAS:
+        oscuro = cv2.subtract(oscuro, lineas)
+        s_dif = cv2.subtract(s_dif, lineas_en_gris(s_dif))
     _, oscura = cv2.threshold(oscuro, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     oscura[oscuro < 18] = 0                             # Otsu en una pizarra casi vacía da umbrales absurdos
-    s = cv2.cvtColor(imagen, cv2.COLOR_BGR2HSV)[:, :, 1]
-    s_fondo = cv2.medianBlur(s, k)
-    saturada = (cv2.subtract(s, s_fondo) > 45).astype(np.uint8) * 255
+    saturada = (s_dif > 45).astype(np.uint8) * 255
     tinta = cv2.bitwise_or(oscura, saturada)
     return cv2.morphologyEx(tinta, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))  # motas sueltas fuera
 
@@ -125,6 +154,18 @@ def _sin_lineas_largas(tinta: np.ndarray, h: float) -> np.ndarray:
     return cv2.subtract(tinta, cv2.dilate(cv2.bitwise_or(horiz, vert), np.ones((3, 3), np.uint8)))
 
 
+def _es_raya(recorte: np.ndarray, h: float) -> bool:
+    """Una raya horizontal (o casi): tinta solo en una franja de menos de media altura de letra y
+    al menos 3 veces más ancha que alta. Una letra suelta, un signo «−» dentro de una fórmula o
+    una palabra tienen tinta en más filas o no son tan alargados."""
+    filas = np.flatnonzero(recorte.any(axis=1))
+    cols = np.flatnonzero(recorte.any(axis=0))
+    if not len(filas):
+        return True
+    alto_tinta, ancho_tinta = filas[-1] - filas[0] + 1, cols[-1] - cols[0] + 1
+    return alto_tinta < 0.5 * h and ancho_tinta > 3 * alto_tinta
+
+
 def _unir_lineas(cajas: list[list[int]], h: float, hueco: float = 0.6, solape: float = 0.5) -> list[list[int]]:
     """Líneas consecutivas del mismo párrafo: separadas verticalmente menos de `hueco` alturas de
     letra y que se solapan en horizontal más de `solape` del ancho de la más estrecha."""
@@ -176,6 +217,9 @@ def regiones_opencv(imagen: np.ndarray, union_h: float = 1.6, union_v: float = 1
     cajas = [c for c in cajas if not ((c[3] - c[1]) < 1.6 * h and (c[2] - c[0]) > 12 * (c[3] - c[1]))]
     # casi sin tinta (reflejos, bordes): menos del 3 % de la caja
     cajas = [c for c in cajas if tinta[c[1]:c[3], c[0]:c[2]].mean() / 255 >= 0.03]
+    # rayas: separadores punteados, subrayados sueltos, restos de renglón. Toda su tinta cabe en una
+    # franja más baja que media letra; el modelo las daba como «fragmento no transcrito» (hallazgo real).
+    cajas = [c for c in cajas if not _es_raya(tinta[c[1]:c[3], c[0]:c[2]], h)]
     cajas = _fusionar(cajas)
     if hueco_lineas > 0:  # 0 = no unir líneas (regiones más pequeñas)
         cajas = _unir_lineas(cajas, h, hueco_lineas)

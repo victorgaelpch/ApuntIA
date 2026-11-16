@@ -78,6 +78,16 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Corregido
 
+- **Apuntes de cuaderno con el servidor IA** (hallazgo de la prueba real del 15/11/2026, pipeline del
+  servidor 1.3.0 y del backend `documento/1.3`): la cuadrícula de una foto real (ondulada e inclinada)
+  unía todo el apunte en una sola región; ahora se atenúa antes de segmentar, solo en papel con líneas
+  (el pizarrón real da la misma cobertura, 95 %, y la misma fidelidad, 6/0/0). La plantilla impresa
+  del cuaderno («Día Mes Año», «Folio», «Nombre: Tema:») y sus adornos se apartan con su motivo
+  (`segmentacion.descartes`) y ApuntIA avisa; las rayas y los separadores punteados no se mandan al
+  modelo; los trozos de un mismo circuito se unen en un dibujo. En el PDF: los esquemas se ven en su
+  sitio con la descripción de pie, las fórmulas `$…$` dentro de un párrafo se dibujan en la línea y
+  no hay índice si tendría menos de 3 entradas. `iniciar.bat`: el código de vinculación se muestra
+  (antes «El término 'C' no se reconoce») y ApuntIA en marcha ya no se da por caída.
 - **Copias de seguridad en Windows** (FULL-32): `respaldo crear/verificar` dejaba abiertas las
   conexiones SQLite (`with sqlite3.connect()` no cierra) y Windows no podía borrar la carpeta temporal;
   además las rutas con `\` no coincidían con los nombres del archivo tar. Ahora se cierran con

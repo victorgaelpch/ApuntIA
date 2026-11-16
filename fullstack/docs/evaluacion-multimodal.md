@@ -146,3 +146,36 @@ controla cuánto se unen las líneas de un mismo párrafo (0 = regiones por lín
 - **Configuración por defecto provisional**: `qwen3-vl:8b-instruct` y `IA_SEG_HUECO_LINEAS=0.2`
   (la única combinación sin ninguna trampa corregida). Es una sola foto: revisar con más fotos.
 - Pendiente: *grounding* (cajas propuestas por el VLM) y tablas, que la segmentación aún parte en trozos.
+
+### 5.3 Cuaderno cuadriculado (pipeline 1.3.0, 15/11/2026)
+
+**Hallazgo real.** Un PDF de electrónica analizado desde la laptop salió con 19 bloques «sin revisar»:
+unos 12 eran la plantilla impresa del cuaderno («Día Mes Año», «Folio», «Nombre: Tema:») o sus
+adornos («dos figuras abstractas, posiblemente animales»), y todo el contenido compartía un único
+recorte: la cuadrícula de la foto, ondulada e inclinada, se rompía al umbralizar en trocitos que la
+dilatación unía con el texto, y la página entera quedaba en una región. Los circuitos se perdían
+(solo una frase «DIBUJO: …») y una fórmula `$…$` dentro de un párrafo salía con los `$`.
+
+**Reproducción sin la foto** (no está en este equipo): página sintética de 3200×2400 px con plantilla
+impresa, logotipo, circuitos, texto, separadores punteados y una cuadrícula ondulada (amplitud 6–7 px,
+inclinación 1 %) de intensidad creciente.
+
+| Cuadrícula | Antes: región mayor | Después: región mayor |
+|------------|---------------------|-----------------------|
+| suave (40) | 2 % de la foto | 5 % |
+| media (60) | **76 %** | 5 % |
+| fuerte (90, 120) | **100 %** (una sola región) | 5–6 % |
+
+Cambios: las líneas largas se restan en grises antes de umbralizar, tolerando 9 px de ondulación,
+**solo si cubren más del 15 % de la foto** (medido: 60–83 % en papel cuadriculado, 1,9 % en el
+pizarrón); las rayas (tinta en menos de media altura de letra) no se mandan al modelo; tras el modelo
+se apartan la plantilla (texto solo con palabras de encabezado, sin números) y los adornos (dibujo o
+ilegible, < 2 % de la foto, en el 20 % superior), y los dibujos a menos del 2 % del lado mayor se
+unen. Nada se borra en silencio: `segmentacion.descartes` trae cada caja con su motivo.
+
+| Prueba con el modelo real (`qwen3-vl:8b-instruct`, RTX 3060) | Resultado |
+|---------------------------------------------------------------|-----------|
+| Página sintética de cuaderno (cuadrícula fuerte) | 36 regiones → 11 descartes (todo el encabezado: Día, Mes, Año, Folio, Nombre/Tema y logotipos) y 23 bloques; texto y fórmulas leídos en su propio bloque; 7 trozos de circuito → 4 dibujos (uno por circuito); 84 s |
+| Pizarrón real (regresión) | 14 regiones (antes 17: los 3 trozos de marco son rayas), 0 descartes, **95 % de cobertura y fidelidad 6/0/0, igual que §5.2**; 47 s (antes 53 s) |
+
+Sigue pendiente medir con la foto real del cuaderno (con permiso de su autor, en `privado/`).

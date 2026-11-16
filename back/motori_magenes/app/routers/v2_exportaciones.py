@@ -25,6 +25,7 @@ class PeticionExportacion(BaseModel):
     estilo: Literal["basico", "extendido"] = "extendido"
     incluir_originales: bool = False
     incluir_complementos: bool = True
+    incluir_recortes_ia: bool = True     # BACK-38: recorte junto a cada propuesta del servidor IA sin revisar
 
 
 def nombre_descarga(titulo: str, version: int) -> str:
@@ -37,7 +38,8 @@ def nombre_descarga(titulo: str, version: int) -> str:
 @router.post("/apuntes/{apunte_id}/exportaciones", status_code=202)
 def exportar(apunte_id: str, datos: PeticionExportacion | None = None, sesion: Sesion = Depends(sesion_actual)):
     datos = datos or PeticionExportacion()
-    opciones = OpcionesPDF(datos.estilo, datos.incluir_originales, datos.incluir_complementos)
+    opciones = OpcionesPDF(datos.estilo, datos.incluir_originales, datos.incluir_complementos,
+                           datos.incluir_recortes_ia)
     exp, trabajo, creada = exportacion.solicitar(sesion.usuario.id, apunte_id, datos.version, opciones)
     return JSONResponse({"exportacion": exp, "trabajo": trabajo}, status_code=202 if creada else 200)
 

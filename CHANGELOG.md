@@ -8,6 +8,48 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 
 ### Añadido
 
+- **Cierre de ApuntIA 3.0, parte verificable** (FULL-32): `fullstack/scripts/validar.ps1` (rápido,
+  `-Completo`, `-Gpu` con el servidor IA real y `-Remoto` para la prueba entre redes); CI con el backend
+  en Windows y `pip-audit` del servidor IA; `/api/v2/listo` avisa si a Tesseract le faltan idiomas;
+  README con los dos perfiles y guías `algoritmos.md`, `modelos-y-requisitos.md`,
+  `exposicion-paso-a-paso.md`, `pruebas-y-metricas.md` y `referencias.md`. La prueba entre dos redes
+  sigue pendiente.
+- **Propuestas del servidor IA en el PDF y fuentes verificables** (BACK-38): etiqueta «propuesta del
+  servidor IA: sin revisar/revisada», recorte de la foto una vez por región (opción
+  `incluir_recortes_ia`, clave de exportación por defecto sin cambios) y aviso en la portada; las
+  regiones multilínea se dividen en un bloque por fórmula; resumen, glosario y conceptos a investigar
+  solo de bloques confirmados; Wikilibros como segunda fuente (`INVESTIGACION_PROVEEDOR=wikipedia,wikilibros`)
+  y redirecciones a otros hosts rechazadas. Guías `generacion-pdf.md`, `investigacion-verificada.md`,
+  `trazabilidad-contenido.md` y PDFs sintéticos de referencia.
+- **Editor de revisión de propuestas de IA** (FRONT-26): etiqueta «Propuesta de IA · sin revisar» sin
+  porcentajes, recorte siempre visible, dudas del modelo, aviso de símbolos confundibles y «Marcar como
+  revisado» (campo `revisado`, opcional y compatible con apuntes anteriores).
+- **Pantalla «Servidor IA»** (FRONT-25): estado con texto, conexión automática/manual/sin IA, vinculación
+  con código, diagnóstico paso a paso; selector de reconocimiento al crear apuntes y «Analizar en modo
+  local» cuando el servidor IA falla. El navegador nunca recibe el token.
+- **Análisis con el servidor IA en trabajos durables** (BACK-37): `motor` local / ia_remota / auto, cola
+  asíncrona en el servidor IA (`/api/v1/trabajos`), clave idempotente por página y resultado guardado
+  (`ia_resultados`), retomar por id tras cortes o reinicios, cancelación remota, códigos AI_* y
+  `POST /api/v2/apuntes/{id}/analisis` para re-analizar sin perder correcciones (versión nueva).
+- **Banco de evaluación con fotos reales** (BACK-36): `python -m ia_servidor.medir --corpus` sobre un corpus
+  privado fuera de Git (permiso obligatorio por foto), con métricas de fórmulas por LaTeX normalizado y
+  notación equivalente. Guía: `fullstack/docs/evaluacion-multimodal.md`.
+- **Conexión remota segura** (FULL-31): vinculación de un solo uso aprobada en la consola de la PC
+  del servidor (`iniciar.bat -Modo dispositivos`), token individual revocable (el servidor guarda
+  solo su hash), credencial cifrada con DPAPI en la laptop y enviada solo al origen vinculado, sin
+  redirecciones, con reintentos, circuit breaker y códigos `AI_*`. Rutas `/api/v2/ia/*` (estado,
+  configuración, vinculación, diagnóstico) y `python -m herramientas.vincular_ia`. Guías de
+  Tailscale Serve y Cloudflare Tunnel (sin probar aún entre dos redes reales).
+- Servidor IA, pipeline 1.1 (BACK-35): prompts cortos y texto plano, `qwen3-vl:8b-instruct` y
+  `4b-instruct` por defecto (la etiqueta `qwen3-vl:8b` es la variante «thinking»), medido en la RTX 3060.
+- **Servidor de inferencia IA** (BACK-35): `ia_servidor/` (FastAPI) para la PC con GPU, con contrato
+  v1 (`/salud`, `/listo`, `/api/v1/capacidades`, `/api/v1/analisis`), errores con código y
+  `reintentable`, una inferencia a la vez, respaldo `qwen3-vl:4b` ante falta de memoria y Ollama
+  solo en loopback. Guía: `fullstack/docs/servidor-ia.md`.
+- **Menú y modos en Windows** (FULL-30): `iniciar.bat` sin argumentos muestra un menú;
+  `-Modo app|servidor-ia|instalar-ia|diagnostico|configurar|detener`. Instalación reanudable
+  del servidor IA (pregunta antes de instalar Ollama o descargar el modelo), diagnóstico y URL del
+  servidor validada. CI nueva en Windows para los scripts.
 - **Tickets con trazabilidad real** (FULL-29): `fullstack/tickets/` con una ficha por cada Issue de
   GitHub (abiertos y cerrados), índice, cronograma PLANIFICADO, plantilla y bitácoras REALES.
   `fullstack/scripts/sincronizar_tickets.py` pagina la API, separa Pull Requests de Issues, no pisa
@@ -33,6 +75,14 @@ Cómo se publica una versión: [fullstack/docs/entrega.md](fullstack/docs/entreg
 - El análisis tarda más: ~1 s por foto en la mediana (antes ~0,4 s). Límites configurables con
   `RECONOCIMIENTO_MAX_VARIANTES`, `RECONOCIMIENTO_MAX_BLOQUES` y `RECONOCIMIENTO_MAX_SEGUNDOS`.
 - Igualdades cortas como `F = ma` se detectan como fórmula.
+
+### Corregido
+
+- **Copias de seguridad en Windows** (FULL-32): `respaldo crear/verificar` dejaba abiertas las
+  conexiones SQLite (`with sqlite3.connect()` no cierra) y Windows no podía borrar la carpeta temporal;
+  además las rutas con `\` no coincidían con los nombres del archivo tar. Ahora se cierran con
+  `contextlib.closing` y las rutas se normalizan. Pruebas del respaldo portables a Windows.
+- Pruebas de integración en Windows: `pdftotext -enc UTF-8` y borrado temporal con reintentos.
 
 ## [2.0.0] — 2026-11-10 (preparada, sin etiqueta publicada)
 

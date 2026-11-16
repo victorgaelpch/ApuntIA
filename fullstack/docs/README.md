@@ -14,7 +14,9 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 
 | Documento | Contenido |
 |-----------|-----------|
-| [arquitectura.md](arquitectura.md) | Componentes, despliegue, configuración y árbol del repositorio (FULL-10) |
+| [arquitectura.md](arquitectura.md) | Componentes, despliegue, configuración y árbol del repositorio (FULL-10); ApuntIA 3.0 con dos equipos (FULL-32) |
+| [algoritmos.md](algoritmos.md) | Qué algoritmos usa el código, con parámetros reales, coste, motivos y límites (FULL-32) |
+| [modelos-y-requisitos.md](modelos-y-requisitos.md) | Perfiles laptop/PC, modelos, licencias y consumo medido de la RTX 3060 (FULL-32) |
 | [flujo.md](flujo.md) | Requerimientos, flujo v1, errores y alcance (FULL-01, FULL-05) |
 | [flujo-v2.md](flujo-v2.md) | De la foto al PDF: interfaz, API, trabajos, almacenamiento (FULL-16) |
 | [datos.md](datos.md) | Base de datos, archivos privados y migraciones (BACK-22) |
@@ -27,6 +29,12 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [api.md](api.md) | Contrato v1 (`/analisis`, `/salud`) (FULL-03) |
 | [api-v2.md](api-v2.md) | Contrato v2: cuentas, apuntes, trabajos, fórmulas, PDF (FULL-15) |
 | [compatibilidad.md](compatibilidad.md) | Compatibilidad real frontend ↔ backend (FULL-06) |
+| [servidor-ia.md](servidor-ia.md) | Servidor de inferencia IA en la PC con GPU: arquitectura, contrato v1, errores, límites (BACK-35) |
+| [conexion-remota.md](conexion-remota.md) | Vinculación, API `/api/v2/ia`, Tailscale y Cloudflare Tunnel (FULL-31) |
+| [trabajos-remotos.md](trabajos-remotos.md) | Análisis con el servidor IA: cola, reintentos, recuperación y códigos AI_* (BACK-37) |
+| [trazabilidad-contenido.md](trazabilidad-contenido.md) | Procedencia de cada bloque de la foto al PDF; regiones divididas (BACK-38) |
+| [generacion-pdf.md](generacion-pdf.md) | PDF educativo: partes, opciones, propuestas de IA, fidelidad de fórmulas, PDFs de referencia (BACK-38) |
+| [investigacion-verificada.md](investigacion-verificada.md) | Información complementaria citada: reglas, Wikipedia y Wikilibros, SSRF, errores (BACK-18/38) |
 
 ## Arranque, operación y entrega
 
@@ -34,10 +42,14 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 |-----------|-----------|
 | [arranque.md](arranque.md) | `iniciar.*` / `detener.*` sin Docker, opciones y códigos de salida (FULL-11) |
 | [docker.md](docker.md) | Docker Compose (FULL-13) |
+| [instalacion-clientes.md](instalacion-clientes.md) | Laptop: menú, `-Modo`, conexión con el servidor IA y diagnóstico (FULL-30) |
+| [instalacion-servidor-ia.md](instalacion-servidor-ia.md) | PC con GPU: Ollama, modelo, arranque y errores (FULL-30) |
 | [ejecutar.md](ejecutar.md) | Ejecución manual de las dos partes, CORS, celular (FULL-04) |
 | [diagnostico.md](diagnostico.md) | Salud, preparación y manejo de fallos (FULL-21) |
 | [respaldo.md](respaldo.md) | Copias de seguridad y recuperación (FULL-23) |
+| [recuperacion-conexion.md](recuperacion-conexion.md) | Códigos `AI_*` de la conexión remota y solución manual (FULL-31) |
 | [entrega.md](entrega.md) | Instalación desde cero, demostración, versión y actualización (FULL-22) |
+| [exposicion-paso-a-paso.md](exposicion-paso-a-paso.md) | Demostración de 10 minutos con el servidor IA, plan B y lista de puesta en marcha en casa (FULL-32) |
 
 ## Seguridad y privacidad
 
@@ -46,6 +58,7 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [seguridad.md](seguridad.md) | Auditoría transversal de seguridad (FULL-20) |
 | [seguridad-api.md](seguridad-api.md) | Protecciones de la API v2 (BACK-24) |
 | [privacidad.md](privacidad.md) | Política de datos (FULL-20) |
+| [seguridad-servidor-ia.md](seguridad-servidor-ia.md) | Amenazas y controles del servidor IA y la conexión remota (FULL-31) |
 | [dependencias.md](dependencias.md) | Dependencias, vulnerabilidades y licencias |
 
 ## Calidad, pruebas y evidencias
@@ -55,7 +68,10 @@ Reglas de ubicación y mapa completo: [ESTRUCTURA_DOCUMENTAL.md](ESTRUCTURA_DOCU
 | [ci.md](ci.md) | Pruebas y CI de todo el proyecto (FULL-17) |
 | [pruebas-backend.md](pruebas-backend.md) | Pruebas del backend (BACK-25) |
 | [pruebas-integracion.md](pruebas-integracion.md) | Integración interfaz + FastAPI reales (FULL-07) |
+| [pruebas-y-metricas.md](pruebas-y-metricas.md) | Niveles de validación (validar.sh/ps1, GPU, red), resultados reales y matriz pendiente (FULL-32) |
+| [referencias.md](referencias.md) | Bibliografía de algoritmos, modelos, conexión y licencias (FULL-32) |
 | [evaluacion.md](evaluacion.md) | Banco de evaluación y métricas de OCR, fórmulas y PDF (FULL-19, BACK-28) |
+| [evaluacion-multimodal.md](evaluacion-multimodal.md) | Corpus privado de fotos reales, métricas y decisiones del reconocimiento con IA (BACK-36) |
 | [aceptacion.md](aceptacion.md) | Aceptación educativa y evidencias de entrega (FULL-24) |
 | [validacion-ux.md](validacion-ux.md) | Validación de la experiencia de usuario (FULL-09) |
 | [incidencias.md](incidencias.md) | Errores multicapa: causa, solución y evidencia (FULL-08) |

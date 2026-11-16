@@ -34,3 +34,12 @@ fullstack/.estado/
 # Copias de seguridad
 respaldos/
 fullstack/evaluacion/resultados/
+
+# Servidor IA (FULL-31): registro de dispositivos y token de administrador local
+ia_servidor/.datos/
+
+# Corpus PRIVADO de fotos reales para evaluar el reconocimiento (BACK-36): nunca en Git
+fullstack/evaluacion/privado/
+
+# npm install genera este archivo; el proyecto no lo versiona (la CI usa npm install)
+package-lock.json

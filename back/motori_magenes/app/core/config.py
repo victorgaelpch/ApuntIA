@@ -65,7 +65,8 @@ class Settings:
     # Páginas por apunte en la API v2 (BACK-11).
     max_paginas: int = int(os.getenv("MAX_PAGINAS", "20"))
 
-    # Investigación opcional (BACK-18): "wikipedia" o "ninguno" (sin Internet).
+    # Investigación opcional (BACK-18/38): "wikipedia", "wikilibros", "wikipedia,wikilibros" (en ese orden)
+    # o "ninguno" (sin Internet). Solo hosts fijos de Wikimedia; nunca URLs configurables.
     investigacion_proveedor: str = os.getenv("INVESTIGACION_PROVEEDOR", "wikipedia").strip().lower()
     investigacion_timeout_s: float = float(os.getenv("INVESTIGACION_TIMEOUT_S", "6"))
 
@@ -77,6 +78,12 @@ class Settings:
     # URL pública del servidor (p. ej. https://apuntia.ejemplo.edu) para los enlaces
     # de recuperación de contraseña. Recomendado en producción.
     url_publica: str = os.getenv("URL_PUBLICA", "").strip()
+
+    # Servidor IA remoto (FULL-31). URL PÚBLICA sin credenciales; vacía = modo local. La credencial
+    # individual NO va aquí: se obtiene vinculando el equipo y se guarda cifrada en DATA_DIR.
+    ia_url: str = os.getenv("APUNTIA_IA_URL", "").strip()
+    ia_timeout_s: float = float(os.getenv("APUNTIA_IA_TIMEOUT_S", "10"))
+    ia_timeout_analisis_s: float = float(os.getenv("APUNTIA_IA_TIMEOUT_ANALISIS_S", "240"))
 
     # Diagnóstico (FULL-21): alertas en el log y espacio mínimo para declararse «listo».
     alerta_peticion_ms: int = int(os.getenv("ALERTA_PETICION_MS", "10000"))

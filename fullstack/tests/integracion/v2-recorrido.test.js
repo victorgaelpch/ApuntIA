@@ -95,7 +95,7 @@ describe("FRONT-21 recorrido completo desde la foto hasta el PDF", () => {
             await capturar(pagina, "4-pdf");
             const [descarga] = await Promise.all([pagina.waitForEvent("download"), pagina.click("#enlaceDescargaPdf")]);
             assert.equal(descarga.suggestedFilename(), "calculo-semana-3-v5.pdf");  // v3 edición, v4 complementos, v5 aceptado
-            const textoPdf = execFileSync("pdftotext", ["-layout", await descarga.path(), "-"], { encoding: "utf8" });
+            const textoPdf = execFileSync("pdftotext", ["-enc", "UTF-8", "-layout", await descarga.path(), "-"], { encoding: "utf8" });
             for (const esperado of ["Cálculo — semana 3", "razón de cambio", "Repaso", "Derivada", "2x",
                                     "Información complementaria", "Fuentes", "es.wikipedia.org/wiki/Derivada"]) {
                 assert.ok(textoPdf.includes(esperado), `«${esperado}» en el PDF`);

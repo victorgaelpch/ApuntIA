@@ -12,7 +12,7 @@ const { crearApunte, esperarTrabajo } = require("./v2-apuntes-ayuda");
 function textoPdf(buffer) {
     const archivo = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "apuntia-pdf-")), "a.pdf");
     fs.writeFileSync(archivo, buffer);
-    try { return execFileSync("pdftotext", ["-layout", archivo, "-"], { encoding: "utf8" }); }
+    try { return execFileSync("pdftotext", ["-enc", "UTF-8", "-layout", archivo, "-"], { encoding: "utf8" }); }
     finally { fs.rmSync(path.dirname(archivo), { recursive: true, force: true }); }
 }
 

@@ -52,6 +52,12 @@ class FalsaWikipedia:
             q = urllib.parse.parse_qs(partes.query)["q"][0]
             claves = [k for k in self.paginas if k.lower() == q.lower()]
             return io.BytesIO(json.dumps({"pages": [{"key": k, "title": k} for k in claves]}).encode())
+        if partes.path.endswith("/w/api.php"):          # TextExtracts (Wikilibros)
+            titulo = urllib.parse.parse_qs(partes.query)["titles"][0]
+            p = self.paginas.get(titulo)
+            pagina = ({"title": titulo, "missing": True} if p is None
+                      else {"title": p["title"], "extract": "== Sección ==\n" + p["extract"]})
+            return io.BytesIO(json.dumps({"query": {"pages": [pagina]}}).encode())
         clave = urllib.parse.unquote(partes.path.rsplit("/", 1)[1])
         if clave not in self.paginas:
             raise urllib.error.HTTPError(url, 404, "no", {}, None)
@@ -258,3 +264,62 @@ def test_limpiar_texto_y_url_fija():
         p._json("https://169.254.169.254/latest/meta-data")
     with pytest.raises(investigacion.ProveedorNoDisponible):
         p._json("http://es.wikipedia.org/x")
+
+
+# ------------------------------------------------------------------ BACK-38: más fuentes verificables
+def test_wikilibros_con_host_fijo_y_su_propia_atribucion():
+    falsa = FalsaWikipedia()
+    p = investigacion.ProveedorWikilibros(abrir=falsa)
+    h = p.buscar("Derivada", "es")
+    assert h.proveedor == "wikilibros" and h.autor == "Colaboradores de Wikilibros" and h.licencia == "CC BY-SA 4.0"
+    assert h.url.startswith("https://es.wikibooks.org/wiki/")
+    assert "==" not in h.fragmento and "Sección" not in h.fragmento and h.fragmento.startswith("La derivada de una función")
+    assert all(u.startswith("https://es.wikibooks.org/") for u in falsa.pedidas)
+    with pytest.raises(investigacion.ProveedorNoDisponible):
+        p._json("https://es.wikipedia.org/w/rest.php/v1/search/page?q=x")   # cada proveedor, solo su host
+
+
+def test_cadena_usa_la_siguiente_fuente_y_solo_falla_si_fallan_todas():
+    caida, buena = FalsaWikipedia(), FalsaWikipedia()
+    caida.caida = True
+    cadena = investigacion.ProveedorCadena([ProveedorWikipedia(abrir=caida), investigacion.ProveedorWikilibros(abrir=buena)])
+    assert cadena.nombre == "wikipedia+wikilibros" and cadena.disponible()
+    assert cadena.buscar("Derivada", "es").proveedor == "wikilibros"
+    assert cadena.buscar("Inexistente", "es") is None                       # sin resultado: no inventa
+    buena.caida = True
+    with pytest.raises(investigacion.ProveedorNoDisponible):
+        cadena.buscar("Derivada", "es")
+
+
+def test_configuracion_de_fuentes():
+    assert investigacion.crear_proveedor("wikipedia").nombre == "wikipedia"
+    assert investigacion.crear_proveedor("wikipedia,wikilibros").nombre == "wikipedia+wikilibros"
+    assert investigacion.crear_proveedor("ninguno").disponible() is False
+    assert investigacion.crear_proveedor("http://169.254.169.254").disponible() is False   # no se aceptan URLs
+
+
+def test_redireccion_a_otro_host_se_rechaza():
+    import urllib.request
+    p = ProveedorWikipedia()
+    manejador = investigacion._SoloHosts(p.hosts)
+    peticion = urllib.request.Request("https://es.wikipedia.org/w/rest.php/v1/search/page?q=x")
+    for destino in ("https://169.254.169.254/latest/meta-data", "http://es.wikipedia.org/x", "https://evil.example/x"):
+        with pytest.raises(investigacion.ProveedorNoDisponible):
+            manejador.redirect_request(peticion, None, 302, "Found", {}, destino)
+    assert manejador.redirect_request(peticion, None, 302, "Found", {}, "https://en.wikipedia.org/x") is not None
+
+
+def test_conceptos_sugeridos_ignoran_propuestas_de_ia_sin_revisar(entorno):
+    from app.services.documento import Procedencia
+    c, aid, falsa, repo, u = entorno
+    doc = repo.documento(u["id"], aid)
+    ia = Procedencia(motor="ia_remota", version="modelo", reconocimiento="documento/opencv")
+    doc.bloques.append(Bloque(id="p1b2", pagina="p1", orden=1, tipo="texto", origen="ocr",
+                              texto="Hipotenusa: lado opuesto al ángulo recto.", texto_original="x", bbox=[0, 0, 5, 5],
+                              procedencia=ia, revision="sin_confirmar"))
+    repo.nueva_version(u["id"], aid, doc, "edicion")
+    assert "Hipotenusa" not in c.get(f"/api/v2/apuntes/{aid}/conceptos").json()["conceptos"]
+    doc = repo.documento(u["id"], aid)
+    doc.bloques[-1] = doc.bloques[-1].model_copy(update={"revisado": True})
+    repo.nueva_version(u["id"], aid, doc, "edicion")
+    assert "Hipotenusa" in c.get(f"/api/v2/apuntes/{aid}/conceptos").json()["conceptos"]

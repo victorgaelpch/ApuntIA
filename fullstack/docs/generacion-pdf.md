@@ -9,8 +9,8 @@ generador ni otra base de datos. Contrato HTTP: [api-v2.md §5](api-v2.md).
 | Parte | Estilo | De dónde sale |
 |-------|--------|---------------|
 | Portada | ambos | título, fecha, origen (pizarrón/cuaderno), páginas, versión y **avisos** (inciertos, fragmentos sin leer, propuestas de IA sin revisar) |
-| Índice | ambos | encabezados reales (TableOfContents) con número de página |
-| Transcripción | ambos | bloques en orden, secciones por títulos; fórmulas dibujadas desde LaTeX validado; tablas con encabezado repetido en cada página; esquemas y fragmentos sin leer como imagen con pie |
+| Índice | ambos, si tiene 3 entradas o más | encabezados reales (TableOfContents) con número de página |
+| Transcripción | ambos | bloques en orden, secciones por títulos; fórmulas dibujadas desde LaTeX validado, también las `$…$` **dentro de un párrafo** (en la misma línea; si no se pueden dibujar quedan literales; «$5 y $10» no se toma por fórmula); tablas con encabezado repetido en cada página; esquemas (también los que propone el servidor IA, con su descripción de pie) y fragmentos sin leer como imagen en su sitio |
 | Resumen, conceptos, glosario, ejemplos, fórmulas, tabla comparativa | extendido | **solo de bloques confirmados** (ver [trazabilidad-contenido.md](trazabilidad-contenido.md) §4) |
 | Información complementaria y Fuentes | si `incluir_complementos` | solo ampliaciones **aceptadas**, con título, autor, licencia, URL y fecha de consulta |
 | Anexo de fotos originales | si `incluir_originales` | archivos originales del propio usuario |
@@ -20,7 +20,7 @@ generador ni otra base de datos. Contrato HTTP: [api-v2.md §5](api-v2.md).
 
 | Opción | Por defecto | Efecto |
 |--------|-------------|--------|
-| `estilo` | `extendido` | `basico`: portada + índice + transcripción + complementos |
+| `estilo` | `extendido` | `basico`: portada + índice + transcripción + complementos. El índice solo se pone si tendría 3 entradas o más (con una sola sección era una página casi vacía) |
 | `incluir_originales` | `false` | anexo con las fotos |
 | `incluir_complementos` | `true` | sección de investigación aceptada |
 | `incluir_recortes_ia` (BACK-38) | `true` | recorte de la foto junto a cada propuesta del servidor IA sin revisar. La **etiqueta** «propuesta del servidor IA: sin revisar» se pone siempre, también con `false` |

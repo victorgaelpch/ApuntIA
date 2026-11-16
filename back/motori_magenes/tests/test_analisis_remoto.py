@@ -316,3 +316,15 @@ def test_texto_con_lineas_que_son_solo_formula_se_divide():
     assert partes[2]["texto"] == "sin θ = $x$ mezclada\nSin(0) = 0"     # líneas de texto seguidas, juntas
     solo_texto = {**region, "texto": "Uno\nDos"}
     assert dividir_lineas(solo_texto) == [solo_texto]
+
+
+def test_dibujo_dentro_de_un_texto_pasa_a_ser_imagen():
+    # Hallazgo real (15/11/2026): el modelo leyó una región con texto y circuitos y terminó con
+    # «DIBUJO: Un esquema de circuitos…»; quedaba como una frase y el circuito no salía en el PDF.
+    from app.services.analisis_remoto import dividir_lineas
+    region = {"tipo": "texto", "bbox": [0, 0, 9, 9], "estado": "reconocido", "latex": None, "dudas": [],
+              "texto": "Corrientes\nPara nodos es ley de ohm\nDIBUJO: Un esquema de circuitos\nVoltajes"}
+    partes = dividir_lineas(region)
+    assert [p["tipo"] for p in partes] == ["texto", "imagen", "texto"]
+    assert partes[1]["descripcion"] == "Un esquema de circuitos" and partes[1]["texto"] == ""
+    assert partes[0]["texto"] == "Corrientes\nPara nodos es ley de ohm" and partes[2]["texto"] == "Voltajes"

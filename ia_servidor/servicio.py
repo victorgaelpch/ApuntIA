@@ -26,6 +26,7 @@ from ia_servidor import API_VERSION, PIPELINE_VERSION, compartido, gpu
 from ia_servidor.config import Configuracion
 from ia_servidor.errores import ErrorIA
 from ia_servidor.esquemas import TAREAS, TAREAS_PUBLICAS, construir, prompt
+from ia_servidor.depurar import depurar
 from ia_servidor.segmentacion import regiones_opencv
 from ia_servidor.imagen import reducir, validar
 from ia_servidor.ollama import VERSION_MINIMA, ClienteOllama, version_tupla
@@ -202,9 +203,11 @@ class Servicio:
                                                 "reconocimiento": f"documento/{r.origen}"}})
         finally:
             self._turnos.release()
+        leidos = len(bloques)
+        bloques, descartes = depurar(bloques, img.ancho, img.alto)
         total = round(time.perf_counter() - inicio, 2)
-        logger.info("ia: id=%s tarea=documento modelo=%s bytes=%d regiones=%d segundos=%s tokens=%d",
-                    id_correlacion, estado["modelo"], img.bytes, len(bloques), total, tokens)
+        logger.info("ia: id=%s tarea=documento modelo=%s bytes=%d regiones=%d bloques=%d descartes=%d segundos=%s tokens=%d",
+                    id_correlacion, estado["modelo"], img.bytes, leidos, len(bloques), len(descartes), total, tokens)
         texto = "\n".join(b["latex"] or b["texto"] or ("DIBUJO: " + (b["descripcion"] or "")) for b in bloques)
         return {
             "api_version": API_VERSION, "pipeline_version": PIPELINE_VERSION, "id_correlacion": id_correlacion,
@@ -215,8 +218,9 @@ class Servicio:
             "resultado": {"estado": "propuesta" if bloques else "ilegible", "revision_requerida": True, "origen": "imagen",
                           "texto": texto, "latex": None, "descripcion": None,
                           "dudas": [d for b in bloques for d in b["dudas"]], "bloques": bloques,
-                          "segmentacion": {"metodo": "opencv", "regiones": len(bloques),
-                                           "hueco_lineas": self.config.seg_hueco_lineas}},
+                          "segmentacion": {"metodo": "opencv", "regiones": leidos,
+                                           "hueco_lineas": self.config.seg_hueco_lineas,
+                                           "descartes": descartes}},
             "metricas": {"segundos_total": total, "tokens_salida": tokens, "segundos_modelo": round(segundos_modelo, 2)},
         }
 

@@ -12,9 +12,9 @@ function Detener($nombre, $patron) {
     elseif ($proc.CommandLine -notmatch $patron) { Write-Host "! El proceso $id ya no es de ApuntIA: no se toca." -ForegroundColor Yellow }
     else {
         # taskkill /T termina también los procesos hijos (p. ej. Java bajo mvnw.cmd)
-        taskkill /PID $id /T | Out-Null
+        taskkill /PID $id /T 2>&1 | Out-Null
         Start-Sleep -Seconds 2
-        if (Get-Process -Id $id -ErrorAction SilentlyContinue) { taskkill /PID $id /T /F | Out-Null }
+        if (Get-Process -Id $id -ErrorAction SilentlyContinue) { taskkill /PID $id /T /F 2>&1 | Out-Null }
         Write-Host "OK $nombre detenido." -ForegroundColor Green
     }
     Remove-Item $archivo -Force
@@ -23,4 +23,7 @@ function Detener($nombre, $patron) {
 if (-not (Test-Path $Estado) -or -not (Get-ChildItem $Estado -Filter *.pid)) { Write-Host "OK ApuntIA no estaba en marcha." -ForegroundColor Green; exit 0 }
 Detener "backend" "uvicorn main:app"
 Detener "spring" "spring-boot|bootRun"
+# Servidor IA y Ollama (FULL-30): solo si los arrancó ia.ps1 (PID registrado y línea de órdenes propia).
+Detener "ia-servidor" "ia_servidor"
+Detener "ollama" "ollama(\.exe)?`"?\s+serve"
 exit 0

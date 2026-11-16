@@ -11,7 +11,7 @@ from app.core.errores import ApiError
 from app.services.documento import Documento, fusionar, texto_plano, validar
 
 EJEMPLO = json.loads(re.search(r"```json\n(.*?)```",
-                               (Path(__file__).resolve().parents[3] / "fullstack" / "docs" / "api-v2.md").read_text(), re.S).group(1))
+                               (Path(__file__).resolve().parents[3] / "fullstack" / "docs" / "api-v2.md").read_text(encoding="utf-8"), re.S).group(1))
 
 
 def test_el_ejemplo_del_contrato_es_valido():

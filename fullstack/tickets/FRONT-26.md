@@ -29,7 +29,7 @@ del Issue (creación, última modificación, cierre), **no** horas de trabajo.
 
 ## REGISTRO REAL
 
-no registrada (no hay archivo en `bitacora/`; no se estima ni se deduce de las fechas de GitHub)
+[bitacora/FRONT-26.md](bitacora/FRONT-26.md) — 1 sesión(es) real(es) registrada(s)
 
 ## EVIDENCIA
 

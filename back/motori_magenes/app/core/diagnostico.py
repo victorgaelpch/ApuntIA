@@ -212,6 +212,12 @@ def comprobar_dependencias() -> dict[str, dict]:
                         "detalle": (f"{info['motor']} {info.get('version', '')}".strip() if info["disponible"] else
                                     "Tesseract no responde: instálalo o define TESSERACT_CMD" if requerido else
                                     "desactivado (OCR_MOTOR=ninguno)")}
+    # FULL-32: sin «spa» Tesseract funciona pero pierde tildes y eñes; se avisa sin bloquear el arranque.
+    faltan = [i for i in settings.ocr_idiomas.split("+") if i and info["disponible"] and i not in info.get("idiomas", [])]
+    if faltan:
+        resultado["ocr"]["faltan_idiomas"] = faltan
+        resultado["ocr"]["detalle"] += (f"; faltan los idiomas {', '.join(faltan)}: copia "
+                                        f"{', '.join(i + '.traineddata' for i in faltan)} en la carpeta tessdata")
     prov = investigacion.proveedor()
     resultado["investigacion"] = {"ok": prov.disponible(), "obligatoria": False,
                                   "detalle": f"proveedor {prov.nombre}" if prov.disponible() else "desactivada: opcional"}

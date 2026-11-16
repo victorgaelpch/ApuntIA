@@ -56,14 +56,17 @@ class BaseDatos:
 
     def cerrar(self) -> None:
         """Cierra las conexiones de TODOS los hilos (al apagar o al terminar una prueba)."""
-        with self._bloqueo_abiertas:
-            abiertas, self._abiertas = self._abiertas, []
-            self._generacion += 1  # un hilo que siga vivo abrirá una conexión nueva
-        for con in abiertas:
-            try:
-                con.close()
-            except sqlite3.Error:
-                pass
+        # Con el bloqueo de escritura: ninguna transacción de otro hilo queda a medias sobre una
+        # conexión cerrada (sqlite3 puede abortar el proceso en ese caso).
+        with self._bloqueo_escritura:
+            with self._bloqueo_abiertas:
+                abiertas, self._abiertas = self._abiertas, []
+                self._generacion += 1  # un hilo que siga vivo abrirá una conexión nueva
+            for con in abiertas:
+                try:
+                    con.close()
+                except sqlite3.Error:
+                    pass
         self._local.con = None
 
     @contextmanager

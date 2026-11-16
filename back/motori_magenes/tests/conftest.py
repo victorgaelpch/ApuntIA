@@ -60,6 +60,9 @@ def datos_tmp(tmp_path):
     from app.core import contexto
     ctx = contexto.reiniciar(tmp_path / "datos")
     yield ctx
+    # Primero los hilos de trabajos: cerrar la BD con una transacción en curso en otro hilo
+    # puede tumbar el proceso (Segmentation fault en sqlite3, visto en CI).
+    ctx.trabajos.detener(esperar=True)
     ctx.bd.cerrar()
 
 

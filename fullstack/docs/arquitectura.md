@@ -1,5 +1,51 @@
 # Arquitectura de ApuntIA (FULL-10)
 
+## ApuntIA 3.0: dos equipos
+
+Desde la versión 3.0 el reconocimiento con IA corre en **otra máquina**: la laptop no necesita GPU.
+Detalle de cada pieza: [servidor-ia.md](servidor-ia.md) (contrato), [conexion-remota.md](conexion-remota.md)
+(vinculación y túnel), [trabajos-remotos.md](trabajos-remotos.md) (cola y recuperación),
+[trazabilidad-contenido.md](trazabilidad-contenido.md) (procedencia), [modelos-y-requisitos.md](modelos-y-requisitos.md).
+
+```mermaid
+flowchart LR
+    subgraph Laptop["Laptop del profesor (sin GPU)"]
+        NAV["Navegador<br/>front/"] --> BE["Backend FastAPI<br/>apuntes · versiones · PDF<br/>SQLite + archivos privados"]
+        BE --> CLI["Cliente IA<br/>token cifrado con DPAPI"]
+        BE --> TES["Tesseract<br/>(modo local)"]
+    end
+    subgraph Casa["PC de casa (RTX 3060)"]
+        T["Túnel HTTPS<br/>Cloudflare / Tailscale"] --> IA["Servidor IA FastAPI<br/>127.0.0.1:8100<br/>OpenCV + cola"]
+        IA --> OL["Ollama 127.0.0.1:11434<br/>qwen3-vl:8b-instruct"]
+    end
+    CLI -- "HTTPS + Bearer (solo al origen vinculado)" --> T
+```
+
+```mermaid
+sequenceDiagram
+    participant N as Navegador (laptop)
+    participant B as Backend (laptop)
+    participant S as Servidor IA (casa)
+    participant O as Ollama (casa)
+    Note over B,S: Una sola vez: vinculación con código aprobado en la consola de la PC (FULL-31)
+    N->>B: POST /api/v2/apuntes (fotos, motor=ia_remota)
+    B-->>N: 202 + trabajo (durable)
+    B->>S: POST /api/v1/trabajos (foto, Idempotency-Key)
+    S-->>B: 202 trabajo_id (se guarda para retomar)
+    loop por región (OpenCV)
+        S->>O: recorte + prompt corto
+        O-->>S: texto / LaTeX
+    end
+    B->>S: GET /api/v1/trabajos/{id} (sondeo cada 1–5 s con jitter)
+    S-->>B: resultado (bloques, dudas, procedencia)
+    B->>B: dividir regiones, guardar versión (propuesta sin revisar)
+    N->>B: GET trabajo → completado → editor con recortes
+```
+
+Si la PC está apagada o el túnel cae, el trabajo falla con `AI_NO_DISPONIBLE`, la foto se conserva y
+se puede analizar en modo local; si el backend se reinicia a mitad, retoma el mismo `trabajo_id` sin
+repetir la GPU ([trabajos-remotos.md](trabajos-remotos.md)).
+
 ## 1. Componentes
 
 ```mermaid

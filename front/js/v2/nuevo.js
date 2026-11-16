@@ -169,6 +169,8 @@
         for (const p of estado.paginas) datos.append("paginas", p.archivo, p.archivo.name);
         for (const p of estado.paginas) datos.append("tipos", tipoFinal(p));
         datos.append("titulo", $("#inpTitulo").value.trim());
+        const motor = document.querySelector("input[name=motor]:checked");
+        datos.append("motor", motor ? motor.value : "local");
 
         const clave = estado.clave;
         const xhr = new XMLHttpRequest();
@@ -233,11 +235,29 @@
     const listo = new Promise((r) => { marcarListo = r; });
     const alElegir = (e) => { const archivos = [...e.target.files]; e.target.value = ""; listo.then(() => anadir(archivos)); };
 
+    // Estado del servidor IA para el selector de reconocimiento (FRONT-25). Una sola consulta, sin sondeo.
+    async function estadoServidorIA() {
+        const texto = $("#estadoMotorIA");
+        const enlace = h("a", { href: "/front/ia.html", text: "Configurar" });
+        const pintar = (t) => { vaciar(texto).append(document.createTextNode(`${t} · `), enlace); };
+        try {
+            const e = await NS.v2.pedir("/api/v2/ia/estado");
+            const remoto = $("#motorRemoto");
+            if (!e.url) { remoto.disabled = true; pintar("Sin servidor IA configurado: se usará el reconocimiento local."); }
+            else if (!e.vinculado) { remoto.disabled = true; pintar("Servidor IA configurado pero este equipo no está vinculado: se usará el local."); }
+            else pintar("Este equipo está vinculado con el servidor IA. Si la PC del servidor está apagada, podrás reintentar o usar el local.");
+            if (remoto.disabled && remoto.checked) document.querySelector("input[name=motor][value=auto]").checked = true;
+        } catch (_) {
+            pintar("No se pudo comprobar el servidor IA.");
+        }
+    }
+
     async function iniciar() {
         $("#inpFotos").addEventListener("change", alElegir);
         $("#inpCamaraNuevo").addEventListener("change", alElegir);
         const usuario = await requerirSesion();
         cabecera("nuevo");
+        estadoServidorIA();
         const preferido = (usuario.preferencias || {}).tipo_fuente;
         if (["auto", "pizarron", "cuaderno"].includes(preferido)) $("#selFuente").value = preferido;
         try {

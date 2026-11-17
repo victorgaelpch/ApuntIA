@@ -92,6 +92,7 @@ class Configuracion:
     max_cola: int = 10                          # trabajos asíncronos en espera o en curso (BACK-37)
     ttl_trabajos_s: int = 1800                  # cuánto se guarda un resultado para recogerlo
     seg_hueco_lineas: float = 0.2               # unir líneas del mismo párrafo (alturas de letra; 0 = no unir). Medido: §5.2
+    seg_hueco_renglon: float = 2.5              # unir trozos del mismo renglón (alturas de letra; 0 = no unir). evaluacion-multimodal.md §5.4
     formatos: tuple[str, ...] = field(default=("jpeg", "png", "webp"))
 
     @classmethod
@@ -118,6 +119,7 @@ class Configuracion:
             max_cola=_entero("IA_MAX_COLA", 10, 1, 200),
             ttl_trabajos_s=_entero("IA_TTL_TRABAJOS_S", 1800, 60, 86400),
             seg_hueco_lineas=_decimal("IA_SEG_HUECO_LINEAS", 0.2, 0.0, 3.0),
+            seg_hueco_renglon=_decimal("IA_SEG_HUECO_RENGLON", 2.5, 0.0, 10.0),
         )
         c.validar()
         return c

@@ -52,7 +52,7 @@ def lineas_en_gris(mapa: np.ndarray, tolerancia: int = 9) -> np.ndarray:
     return cv2.max(horiz, vert)
 
 
-def mascara_tinta(imagen: np.ndarray) -> np.ndarray:
+def mascara_tinta(imagen: np.ndarray, info: dict | None = None) -> np.ndarray:
     gris = cv2.cvtColor(imagen, cv2.COLOR_BGR2GRAY)
     lado = max(gris.shape)
     k = max(31, (lado // 25) | 1)                       # ventana del fondo ≫ altura de letra
@@ -65,7 +65,10 @@ def mascara_tinta(imagen: np.ndarray) -> np.ndarray:
     # oscuridad y de la saturación (la cuadrícula azul también es «color»): un trazo de bolígrafo
     # que las cruza es más intenso que ellas y sobrevive. En un pizarrón no se toca nada.
     lineas = lineas_en_gris(oscuro)
-    if (lineas > 12).mean() > PAPEL_CON_LINEAS:
+    papel = bool((lineas > 12).mean() > PAPEL_CON_LINEAS)
+    if info is not None:
+        info["papel_con_lineas"] = papel
+    if papel:
         oscuro = cv2.subtract(oscuro, lineas)
         s_dif = cv2.subtract(s_dif, lineas_en_gris(s_dif))
     _, oscura = cv2.threshold(oscuro, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -188,15 +191,95 @@ def _unir_lineas(cajas: list[list[int]], h: float, hueco: float = 0.6, solape: f
     return cajas
 
 
+BANDA_BORDE = 0.07       # fracción del ancho (o alto) junto a cada borde donde viven espiral y perforaciones
+ALTO_RENGLON = 3.5       # alturas de letra: lo más alto que mide un renglón (fracciones incluidas)
+ALTO_MINIMO_LETRA = 0.015  # fracción del alto de la foto (solo para unir renglones)
+MINIMO_BORDE = 4         # cajas en la misma banda a partir de las que es una fila de aros, no apuntes
+
+
+def separar_bordes(cajas: list[list[int]], ancho: int, alto: int) -> tuple[list[list[int]], list[list[int]]]:
+    """(cajas que se quedan, cajas del borde de la hoja).
+
+    Hallazgo real (cuaderno de electrónica, 16/11/2026): los aros del espiral salían como 19 de las
+    23 regiones; el modelo los describía como «un trombón» o «un martillo» y gastaban la mayor parte
+    del tiempo de GPU. Un aro o una perforación cabe ENTERO en la franja del borde y aparecen en
+    fila; lo escrito por el alumno casi nunca: una nota al margen suelta (1-3 cajas) se queda.
+    También se aparta una tira larga y fina pegada a un lado (el borde perforado de la hoja)."""
+    bandas = {
+        "izquierda": lambda c: c[2] <= BANDA_BORDE * ancho,
+        "derecha": lambda c: c[0] >= (1 - BANDA_BORDE) * ancho,
+        "arriba": lambda c: c[3] <= BANDA_BORDE * alto,
+        "abajo": lambda c: c[1] >= (1 - BANDA_BORDE) * alto,
+    }
+    fuera: set[int] = set()
+    for dentro in bandas.values():
+        indices = [i for i, c in enumerate(cajas) if dentro(c)]
+        if len(indices) >= MINIMO_BORDE:
+            fuera.update(indices)
+    for i, (x0, y0, x1, y1) in enumerate(cajas):
+        w, h = x1 - x0, y1 - y0
+        pegada_lado = x0 <= 0.01 * ancho or x1 >= 0.99 * ancho
+        pegada_tope = y0 <= 0.01 * alto or y1 >= 0.99 * alto
+        if (pegada_lado and w <= 0.04 * ancho and h >= 0.25 * alto) or (pegada_tope and h <= 0.04 * alto and w >= 0.25 * ancho):
+            fuera.add(i)
+    return [c for i, c in enumerate(cajas) if i not in fuera], [c for i, c in enumerate(cajas) if i in fuera]
+
+
+def _unir_renglon(cajas: list[list[int]], h: float, hueco: float, mitades_de_parrafo: bool = False) -> list[list[int]]:
+    """Trozos del MISMO renglón (se solapan en vertical al menos la mitad de la altura del menor)
+    separados menos de `hueco` alturas de letra. Hallazgo real: en el cuaderno, con la cuadrícula
+    restada, una fórmula como «v = dx/dt î + dy/dt ĵ» salía en 6 regiones sueltas y el modelo leía
+    cada pedazo sin contexto. Así cada renglón de fórmula llega entero."""
+    cambiado = True
+    while cambiado:
+        cambiado = False
+        cajas.sort(key=lambda b: (b[0], b[1]))
+        for i in range(len(cajas)):
+            for j in range(i + 1, len(cajas)):
+                a, b = cajas[i], cajas[j]
+                solape_v = min(a[3], b[3]) - max(a[1], b[1])
+                hueco_h = max(a[0], b[0]) - min(a[2], b[2])
+                # Solo trozos de UN renglón (una fracción mide ~2,5 letras): un párrafo o una gráfica no
+                # participan, y la unión no debe crecer en vertical. Sin esto se encadena la página
+                # (medido en el pizarrón real: 14 regiones → 1).
+                alto_union = max(a[3], b[3]) - min(a[1], b[1])
+                alto_min, alto_max = min(a[3] - a[1], b[3] - b[1]), max(a[3] - a[1], b[3] - b[1])
+                renglon = solape_v >= 0.5 * alto_min and alto_union <= ALTO_RENGLON * h and alto_union <= 1.25 * alto_max
+                # Un párrafo que la subdivisión partió en dos mitades de la MISMA altura (hallazgo real:
+                # «Suponga que una partícula…» salía en tres trozos ilegibles). Casi el mismo alto y casi
+                # el mismo arranque y final: no encadena columnas de alturas distintas.
+                # Solo en papel con renglones o cuadrícula: en el pizarrón real unía columnas (14 → 10 regiones).
+                mitades = (mitades_de_parrafo and solape_v >= 0.8 * alto_min and alto_union <= 1.1 * alto_max
+                           and alto_min >= 0.6 * alto_max)
+                if (renglon or mitades) and hueco_h < hueco * h:
+                    cajas[i] = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+                    del cajas[j]
+                    cambiado = True
+                    break
+            if cambiado:
+                break
+    return cajas
+
+
 def regiones_opencv(imagen: np.ndarray, union_h: float = 1.6, union_v: float = 1.1,
-                    max_area: float = 0.06, hueco_lineas: float = 0.6) -> list[Region]:
+                    max_area: float = 0.06, hueco_lineas: float = 0.6, hueco_renglon: float = 0.0) -> list[Region]:
+    """Solo las regiones (compatibilidad); `segmentar_pagina` devuelve además los bordes apartados."""
+    return segmentar_pagina(imagen, union_h, union_v, max_area, hueco_lineas, hueco_renglon)[0]
+
+
+def segmentar_pagina(imagen: np.ndarray, union_h: float = 1.6, union_v: float = 1.1, max_area: float = 0.06,
+                     hueco_lineas: float = 0.6, hueco_renglon: float = 0.0) -> tuple[list[Region], list[dict]]:
     """`union_h`/`union_v`: cuánto se dilata (en alturas de letra) para unir letras en palabras,
     palabras en líneas y líneas en bloques. Un bloque = un párrafo, una fórmula o una tabla.
-    Las regiones con más de `max_area` de la página se subdividen una vez sin líneas largas."""
+    Las regiones con más de `max_area` de la página se subdividen una vez sin líneas largas.
+    `hueco_renglon` > 0 une los trozos de un mismo renglón separados menos de esas alturas de letra.
+    Devuelve (regiones, descartes); los descartes son el espiral y el borde perforado de la hoja,
+    con su caja y su motivo, para que la app avise en lugar de borrarlos en silencio."""
     alto, ancho = imagen.shape[:2]
     escala = min(1.0, LADO_TRABAJO / max(alto, ancho))
     pequena = cv2.resize(imagen, None, fx=escala, fy=escala, interpolation=cv2.INTER_AREA) if escala < 1 else imagen
-    tinta = quitar_lineas_y_marco(mascara_tinta(pequena))
+    info: dict = {}
+    tinta = quitar_lineas_y_marco(mascara_tinta(pequena, info))
     h = altura_letra(tinta)
     area_total = pequena.shape[0] * pequena.shape[1]
 
@@ -220,15 +303,26 @@ def regiones_opencv(imagen: np.ndarray, union_h: float = 1.6, union_v: float = 1
     # rayas: separadores punteados, subrayados sueltos, restos de renglón. Toda su tinta cabe en una
     # franja más baja que media letra; el modelo las daba como «fragmento no transcrito» (hallazgo real).
     cajas = [c for c in cajas if not _es_raya(tinta[c[1]:c[3], c[0]:c[2]], h)]
+    # antes de unir nada: un aro pegado a un renglón lo arrastraría consigo
+    cajas, bordes = separar_bordes(cajas, pequena.shape[1], pequena.shape[0])
     cajas = _fusionar(cajas)
     if hueco_lineas > 0:  # 0 = no unir líneas (regiones más pequeñas)
         cajas = _unir_lineas(cajas, h, hueco_lineas)
+    if hueco_renglon > 0:  # después: con los renglones ya anchos, unir líneas encadenaría la página
+        # En el cuaderno, con la cuadrícula restada, la letra sale en trocitos y `h` se queda corta
+        # (medido: 8 px frente a ~25 px reales): para los renglones se usa al menos 1,5 % del alto.
+        cajas = _unir_renglon(cajas, max(h, ALTO_MINIMO_LETRA * pequena.shape[0]), hueco_renglon,
+                              mitades_de_parrafo=info.get("papel_con_lineas", False))
     margen = int(h * 0.4)
-    regiones = []
-    for x0, y0, x1, y1 in _orden_lectura(cajas):
-        regiones.append(Region([max(0, int((x0 - margen) / escala)), max(0, int((y0 - margen) / escala)),
-                                min(ancho, int((x1 + margen) / escala)), min(alto, int((y1 + margen) / escala))]))
-    return regiones
+
+    def original(c):
+        x0, y0, x1, y1 = c
+        return [max(0, int((x0 - margen) / escala)), max(0, int((y0 - margen) / escala)),
+                min(ancho, int((x1 + margen) / escala)), min(alto, int((y1 + margen) / escala))]
+
+    regiones = [Region(original(c)) for c in _orden_lectura(cajas)]
+    descartes = [{"bbox": original(c), "motivo": "espiral o borde perforado de la hoja", "texto": ""} for c in bordes]
+    return regiones, descartes
 
 
 def contencion(manual: list[int], auto: list[int]) -> float:

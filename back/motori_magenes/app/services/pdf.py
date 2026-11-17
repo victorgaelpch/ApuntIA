@@ -45,6 +45,7 @@ from reportlab.platypus.tableofcontents import TableOfContents
 from app.services.documento import Documento
 from app.services.estructura import ApunteEstructurado
 from app.services.formulas import renderizar_png
+from app.services.lectura_formulas import leer_formula
 
 FUENTE, NEGRITA, CURSIVA, MONO = "DejaVuSans", "DejaVuSans-Bold", "DejaVuSans-Oblique", "DejaVuSansMono"
 MAX_PIXELES_IMAGEN = 12_000_000
@@ -103,6 +104,8 @@ def _estilos() -> dict[str, ParagraphStyle]:
                                    textColor=colors.HexColor("#8a5a00"), spaceAfter=1, keepWithNext=1),
         "nota": ParagraphStyle("nota", fontName=CURSIVA, fontSize=9, leading=12, textColor=colors.HexColor("#555555"),
                                spaceAfter=6),
+        "lectura": ParagraphStyle("lectura", fontName=CURSIVA, fontSize=9, leading=12, alignment=TA_CENTER,
+                                  textColor=colors.HexColor("#1d5a4a"), spaceBefore=2, spaceAfter=2),
         "celda": ParagraphStyle("celda", fontName=FUENTE, fontSize=9, leading=11),
         "celda_cab": ParagraphStyle("celda_cab", fontName=NEGRITA, fontSize=9, leading=11),
         "mono": ParagraphStyle("mono", fontName=MONO, fontSize=9.5, leading=13, spaceAfter=6),
@@ -356,6 +359,11 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
                 if img is not None:
                     img.hAlign = "CENTER"
                     h.append(img)
+                    # Cómo se lee, traducido del mismo LaTeX (sin IA): ayuda a estudiarla y a ver si se
+                    # transcribió bien. Si no se sabe leer entera, no se pone nada.
+                    lectura = leer_formula(b["latex"])
+                    if lectura:
+                        h.append(Paragraph(texto_seguro(f"Se lee: {lectura}."), e["lectura"]))
                     h.append(Spacer(1, 4))
                 elif b["recorte"] and b["recorte"] not in mostrados:
                     h += imagen_o_aviso(b["recorte"], "Fórmula conservada como imagen (no se pudo verificar)", 0.25)

@@ -328,3 +328,28 @@ def test_dibujo_dentro_de_un_texto_pasa_a_ser_imagen():
     assert [p["tipo"] for p in partes] == ["texto", "imagen", "texto"]
     assert partes[1]["descripcion"] == "Un esquema de circuitos" and partes[1]["texto"] == ""
     assert partes[0]["texto"] == "Corrientes\nPara nodos es ley de ohm" and partes[2]["texto"] == "Voltajes"
+
+
+def test_frases_envueltas_en_latex_y_varias_formulas_en_un_renglon():
+    # Hallazgo real (cuaderno de cálculo, 16/11/2026, modelo 4B): «\text{la (P) se mueve…}» llegaba
+    # como fórmula («no se pudo dibujar» en el PDF) y «t = 0 $ $ x = 0» no se podía dibujar.
+    from app.services.analisis_remoto import dividir_lineas
+    from app.services.formulas import validar_latex
+    region = {"tipo": "formula", "bbox": [0, 0, 9, 9], "estado": "reconocido", "dudas": [], "texto": "",
+              "latex": "\n".join([r"\text{la (P) se mueve a lo largo de una}", r"\text{de la velocidad y aceleración}",
+                                  "t = 0 $ $ x = 0 $ $ y = 2", r"\Delta r = r(\text{cut } \Delta u) - r u",
+                                  "b) Encuentre la magnitud de la velocidad cuando $t = 0$"])}
+    partes = dividir_lineas(region)
+    assert [p["tipo"] for p in partes] == ["texto", "formula", "formula", "texto"]
+    assert partes[0]["texto"] == "la (P) se mueve a lo largo de una\nde la velocidad y aceleración"
+    assert partes[1]["latex"] == r"t = 0 \quad x = 0 \quad y = 2"
+    assert partes[2]["latex"] == r"\Delta r = r(\mathrm{cut} \Delta u) - r u"
+    assert all(validar_latex(p["latex"])[0] for p in partes if p["tipo"] == "formula")
+    assert partes[3]["texto"] == "b) Encuentre la magnitud de la velocidad cuando $t = 0$"
+    # «$t = 0$ $x = 0$» dentro de un texto: varias fórmulas en un renglón → una fórmula
+    texto = {"tipo": "texto", "bbox": [0, 0, 9, 9], "estado": "reconocido", "latex": None, "dudas": [],
+             "texto": "Datos:\n$t = 0$ $x = 0$"}
+    assert [p.get("latex") for p in dividir_lineas(texto)] == [None, r"t = 0 \quad x = 0"]
+    # una «fórmula» de una sola línea que era una frase pasa a texto
+    sola = {**region, "latex": r"\text{son las siguientes}"}
+    assert dividir_lineas(sola)[0]["tipo"] == "texto" and dividir_lineas(sola)[0]["texto"] == "son las siguientes"

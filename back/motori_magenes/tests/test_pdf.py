@@ -370,3 +370,11 @@ def test_esquema_de_ia_se_ve_en_su_sitio_con_su_descripcion():
     assert leidos.count("rC") == 1                                 # el recorte una vez, donde va el esquema
     assert texto.index("Para nodos es ley de ohm") < texto.index("Esquema o dibujo") < texto.index("Voltajes")
     assert "Recorte de la foto: compáralo" not in texto           # ya se ve: no se repite al final
+
+
+def test_formula_dibujada_lleva_como_se_lee():
+    doc = doc_ejemplo()
+    formula = next(b for b in doc.bloques if b.tipo == "formula")
+    formula.latex = r"v = \frac{dx}{dt}"
+    _, texto = texto_de(pdf(doc)[0])
+    assert "Se lee: v es igual a la derivada de x respecto a t." in " ".join(texto.split())

@@ -27,7 +27,7 @@ from ia_servidor.config import Configuracion
 from ia_servidor.errores import ErrorIA
 from ia_servidor.esquemas import TAREAS, TAREAS_PUBLICAS, construir, prompt
 from ia_servidor.depurar import depurar
-from ia_servidor.segmentacion import regiones_opencv
+from ia_servidor.segmentacion import segmentar_pagina
 from ia_servidor.imagen import reducir, validar
 from ia_servidor.ollama import VERSION_MINIMA, ClienteOllama, version_tupla
 
@@ -161,7 +161,12 @@ class Servicio:
         """Segmenta la página (OpenCV, sin GPU) y lee cada región por separado: medido, conserva lo
         escrito mucho mejor que enviar la página entera (evaluacion-multimodal.md §5). Devuelve
         bloques compatibles con el editor (id p1bN, orden, tipo, bbox en píxeles del original)."""
-        regiones = regiones_opencv(img.imagen, hueco_lineas=self.config.seg_hueco_lineas)[: self.config.max_regiones]
+        regiones, bordes = segmentar_pagina(img.imagen, hueco_lineas=self.config.seg_hueco_lineas,
+                                            hueco_renglon=self.config.seg_hueco_renglon)
+        # Las que pasan del límite no se leen, pero se avisan (antes se perdían en silencio)
+        sobrantes = [{"bbox": r.bbox, "motivo": "la página superó el límite de regiones (IA_MAX_REGIONES)", "texto": ""}
+                     for r in regiones[self.config.max_regiones:]]
+        regiones = regiones[: self.config.max_regiones]
         if not self._turnos.acquire(timeout=self.config.espera_cola_s):
             raise ErrorIA("OCUPADO", "cola llena")
         bloques, tokens, segundos_modelo = [], 0, 0.0
@@ -205,6 +210,7 @@ class Servicio:
             self._turnos.release()
         leidos = len(bloques)
         bloques, descartes = depurar(bloques, img.ancho, img.alto)
+        descartes = bordes + descartes + sobrantes
         total = round(time.perf_counter() - inicio, 2)
         logger.info("ia: id=%s tarea=documento modelo=%s bytes=%d regiones=%d bloques=%d descartes=%d segundos=%s tokens=%d",
                     id_correlacion, estado["modelo"], img.bytes, leidos, len(bloques), len(descartes), total, tokens)
@@ -220,6 +226,7 @@ class Servicio:
                           "dudas": [d for b in bloques for d in b["dudas"]], "bloques": bloques,
                           "segmentacion": {"metodo": "opencv", "regiones": leidos,
                                            "hueco_lineas": self.config.seg_hueco_lineas,
+                                           "hueco_renglon": self.config.seg_hueco_renglon,
                                            "descartes": descartes}},
             "metricas": {"segundos_total": total, "tokens_salida": tokens, "segundos_modelo": round(segundos_modelo, 2)},
         }

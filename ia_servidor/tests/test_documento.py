@@ -6,7 +6,7 @@ import pytest
 
 from conftest import OllamaFalso
 from ia_servidor.esquemas import construir
-from ia_servidor.segmentacion import contencion, evaluar_segmentacion, regiones_opencv
+from ia_servidor.segmentacion import contencion, evaluar_segmentacion, regiones_opencv, segmentar_pagina
 
 
 def pizarron() -> np.ndarray:
@@ -68,7 +68,7 @@ def test_tarea_documento(armar):
     assert all(0 <= b["bbox"][0] < b["bbox"][2] <= 1200 and 0 <= b["bbox"][1] < b["bbox"][3] <= 900 for b in res["bloques"])
     assert len(ollama.chats()) == 3                                     # una inferencia por región
     assert all(len(c["messages"][0]["images"]) == 1 for c in ollama.chats())
-    assert res["revision_requerida"] is True and r.json()["pipeline_version"] == "1.3.0"
+    assert res["revision_requerida"] is True and r.json()["pipeline_version"] == "1.4.0"
     assert res["segmentacion"]["descartes"] == []                       # nada parecía plantilla
 
 
@@ -205,3 +205,69 @@ def test_documento_informa_los_descartes(armar):
     assert [d["motivo"] for d in res["segmentacion"]["descartes"]] == ["plantilla impresa del cuaderno"]
     assert res["segmentacion"]["regiones"] == 4 and len(res["bloques"]) == 3
     assert "Folio" not in res["texto"]
+
+
+# ---------------------------------------------------------------------------- espiral y renglones (16/11/2026)
+
+def con_espiral(img: np.ndarray, aros: int = 10) -> np.ndarray:
+    """Aros del espiral en fila junto al borde izquierdo, como en la foto real del cuaderno."""
+    img = img.copy()
+    alto, ancho = img.shape[:2]
+    for k in range(aros):
+        y = 250 + k * (alto - 400) // aros
+        cv2.ellipse(img, (40, y), (28, 16), 20, 0, 360, (25, 25, 25), -1)
+    return img
+
+
+def test_los_aros_del_espiral_se_apartan_y_no_van_al_modelo():
+    regiones, descartes = segmentar_pagina(con_espiral(cuaderno()), hueco_lineas=0.2, hueco_renglon=2.5)
+    # (cada aro sintético puede salir en 1-2 trozos: lo que importa es que ninguno llegue al modelo)
+    assert len(descartes) >= 10 and {d["motivo"] for d in descartes} == {"espiral o borde perforado de la hoja"}
+    assert all(d["bbox"][2] <= 0.07 * 1500 + 20 for d in descartes)                # todos en el borde
+    assert not any(r.bbox[2] <= 0.07 * 1500 + 20 for r in regiones)                 # ninguna región es un aro
+    assert any(contencion([700, 375, 1100, 415], r.bbox) >= 0.85 for r in regiones)  # el apunte sigue
+
+
+def test_notas_sueltas_al_margen_se_quedan():
+    img = cuaderno()
+    for k, y in enumerate((300, 900, 1500)):                                         # 3 notas, no una fila de aros
+        cv2.putText(img, "n" + str(k), (1420, y), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (40, 40, 40), 3)
+    regiones, descartes = segmentar_pagina(img, hueco_lineas=0.2, hueco_renglon=2.5)
+    assert descartes == [] and sum(r.bbox[0] > 1340 for r in regiones) == 3
+
+
+def test_los_trozos_de_un_renglon_llegan_juntos():
+    # Hallazgo real: «v = dx/dt î + dy/dt ĵ» salía en 6 regiones sueltas y el modelo leía pedazos.
+    img = np.full((1400, 1000, 3), 240, np.uint8)
+    for x, trozo in ((80, "v ="), (215, "dx/dt"), (385, "+ dy/dt"), (590, "+ dz/dt")):
+        cv2.putText(img, trozo, (x, 400), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (30, 30, 30), 3)
+    cv2.putText(img, "Otra linea", (80, 700), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (30, 30, 30), 3)
+    sueltas, _ = segmentar_pagina(img, hueco_lineas=0.2, hueco_renglon=0)
+    juntas, _ = segmentar_pagina(img, hueco_lineas=0.2, hueco_renglon=2.5)
+    assert len(sueltas) >= 4
+    assert len(juntas) == 2 and contencion([80, 370, 760, 410], juntas[0].bbox) >= 0.85
+
+
+def test_el_pizarron_no_cambia_al_unir_renglones():
+    # Medido también con la foto real del pizarrón: 14 regiones con y sin unir renglones.
+    antes = [r.bbox for r in segmentar_pagina(pizarron(), hueco_lineas=0.2, hueco_renglon=0)[0]]
+    assert [r.bbox for r in segmentar_pagina(pizarron(), hueco_lineas=0.2, hueco_renglon=2.5)[0]] == antes
+
+
+def test_documento_no_manda_el_espiral_al_modelo(armar):
+    ollama = OllamaFalso(chat=["uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho"])
+    cliente, *_ = armar(ollama)
+    png = cv2.imencode(".png", con_espiral(cuaderno()))[1].tobytes()
+    res = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"}).json()
+    descartes = res["resultado"]["segmentacion"]["descartes"]
+    assert sum(d["motivo"] == "espiral o borde perforado de la hoja" for d in descartes) >= 10
+    assert len(ollama.chats()) == res["resultado"]["segmentacion"]["regiones"]     # solo las regiones de verdad
+
+
+def test_regiones_de_mas_se_avisan_en_lugar_de_perderse(armar):
+    cliente, ollama, _ = armar(OllamaFalso(chat=["x"] * 5), max_regiones=2)
+    png = cv2.imencode(".png", pizarron())[1].tobytes()
+    res = cliente.post("/api/v1/analisis?tarea=documento", content=png, headers={"Content-Type": "image/png"}).json()
+    motivos = [d["motivo"] for d in res["resultado"]["segmentacion"]["descartes"]]
+    assert motivos and set(motivos) == {"la página superó el límite de regiones (IA_MAX_REGIONES)"}
+    assert len(ollama.chats()) == 2

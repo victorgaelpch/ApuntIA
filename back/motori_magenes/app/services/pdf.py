@@ -22,6 +22,9 @@ Si el apunte no tiene contenido no se genera un PDF vacío: se lanza ErrorPDF.
 
 import io
 import os
+import re
+import shutil
+import tempfile
 from dataclasses import dataclass
 from datetime import date
 from xml.sax.saxutils import escape
@@ -42,6 +45,7 @@ from reportlab.platypus.tableofcontents import TableOfContents
 from app.services.documento import Documento
 from app.services.estructura import ApunteEstructurado
 from app.services.formulas import renderizar_png
+from app.services.lectura_formulas import leer_formula
 
 FUENTE, NEGRITA, CURSIVA, MONO = "DejaVuSans", "DejaVuSans-Bold", "DejaVuSans-Oblique", "DejaVuSansMono"
 MAX_PIXELES_IMAGEN = 12_000_000
@@ -100,6 +104,8 @@ def _estilos() -> dict[str, ParagraphStyle]:
                                    textColor=colors.HexColor("#8a5a00"), spaceAfter=1, keepWithNext=1),
         "nota": ParagraphStyle("nota", fontName=CURSIVA, fontSize=9, leading=12, textColor=colors.HexColor("#555555"),
                                spaceAfter=6),
+        "lectura": ParagraphStyle("lectura", fontName=CURSIVA, fontSize=9, leading=12, alignment=TA_CENTER,
+                                  textColor=colors.HexColor("#1d5a4a"), spaceBefore=2, spaceAfter=2),
         "celda": ParagraphStyle("celda", fontName=FUENTE, fontSize=9, leading=11),
         "celda_cab": ParagraphStyle("celda_cab", fontName=NEGRITA, fontSize=9, leading=11),
         "mono": ParagraphStyle("mono", fontName=MONO, fontSize=9.5, leading=13, spaceAfter=6),
@@ -115,6 +121,62 @@ def texto_seguro(texto: str) -> str:
     """Texto del usuario → marcado de ReportLab sin etiquetas: se escapa todo."""
     limpio = "".join(c for c in (texto or "") if c in "\n\t" or ord(c) >= 32)
     return escape(limpio).replace("\n", "<br/>")
+
+
+_EN_LINEA = re.compile(r"\$\$?([^$\n]{1,300}?)\$\$?")
+_PARECE_MATEMATICA = re.compile(r"\\[a-zA-Z]+|[=^_{}]")   # «$5 y $10» no es una fórmula
+
+
+class _FormulasEnLinea:
+    """Fórmulas `$…$` dentro de un párrafo → imágenes en la misma línea del texto.
+
+    Hallazgo real (15/11/2026): «$ V_o = R(I_2 - I_1) $ I2 entra por positivo» salía en el PDF con
+    los `$` y el LaTeX a la vista. Las fórmulas se dibujan con el mismo mathtext seguro de siempre;
+    ReportLab solo lee imágenes en línea desde un archivo, así que se escriben en una carpeta
+    temporal que se borra al terminar el PDF. Si una fórmula no se puede dibujar, queda tal cual."""
+
+    PUNTOS_MATHTEXT = 14     # renderizar_png dibuja a 14 pt
+
+    def __init__(self, ancho_max: float):
+        self.ancho_max = ancho_max
+        self.carpeta: str | None = None
+        self.n = 0
+
+    def marcado(self, texto: str, puntos: float) -> str:
+        partes, pos = [], 0
+        for m in _EN_LINEA.finditer(texto):
+            latex = m.group(1).strip()
+            imagen = self._imagen(latex, puntos) if _PARECE_MATEMATICA.search(latex) else None
+            if imagen is None:
+                continue
+            ruta, ancho, alto = imagen
+            partes += [texto_seguro(texto[pos:m.start()]),
+                       f'<img src="{escape(ruta)}" width="{ancho:.1f}" height="{alto:.1f}" valign="middle"/>']
+            pos = m.end()
+        if not partes:
+            return texto_seguro(texto)
+        return "".join(partes) + texto_seguro(texto[pos:])
+
+    def _imagen(self, latex: str, puntos: float) -> tuple[str, float, float] | None:
+        try:
+            png = renderizar_png(latex, dpi=220)
+            with PILImage.open(io.BytesIO(png)) as im:
+                ancho, alto = im.size
+        except Exception:  # noqa: BLE001 — fórmula inválida: se deja el texto literal
+            return None
+        escala = puntos / self.PUNTOS_MATHTEXT * 72 / 220
+        escala = min(escala, self.ancho_max / ancho)
+        if self.carpeta is None:
+            self.carpeta = tempfile.mkdtemp(prefix="apuntia-pdf-")
+        self.n += 1
+        ruta = os.path.join(self.carpeta, f"formula{self.n}.png")
+        with open(ruta, "wb") as f:
+            f.write(png)
+        return ruta, ancho * escala, alto * escala
+
+    def limpiar(self) -> None:
+        if self.carpeta:
+            shutil.rmtree(self.carpeta, ignore_errors=True)
 
 
 class _Documento(BaseDocTemplate):
@@ -220,6 +282,7 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
     ancho, alto = plantilla.width, plantilla.height
     fecha = fecha or date.today()
     fuentes_vistas: dict[str, dict] = {}
+    formulas = _FormulasEnLinea(ancho)
 
     def leer(archivo_id: str | None) -> bytes | None:
         if not archivo_id:
@@ -253,8 +316,10 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
     h += [NextPageTemplate("contenido"), PageBreak()]
 
     # ---------------------------------------------------------------- índice
+    # Se decide al final: con menos de 3 entradas era una página casi vacía (hallazgo real).
     indice = TableOfContents()
     indice.levelStyles = [e["toc1"], e["toc2"]]
+    pos_indice = len(h)
     h += [Paragraph("Índice", e["h1"]), indice, PageBreak()]
 
     # ---------------------------------------------------------------- transcripción
@@ -294,6 +359,11 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
                 if img is not None:
                     img.hAlign = "CENTER"
                     h.append(img)
+                    # Cómo se lee, traducido del mismo LaTeX (sin IA): ayuda a estudiarla y a ver si se
+                    # transcribió bien. Si no se sabe leer entera, no se pone nada.
+                    lectura = leer_formula(b["latex"])
+                    if lectura:
+                        h.append(Paragraph(texto_seguro(f"Se lee: {lectura}."), e["lectura"]))
                     h.append(Spacer(1, 4))
                 elif b["recorte"] and b["recorte"] not in mostrados:
                     h += imagen_o_aviso(b["recorte"], "Fórmula conservada como imagen (no se pudo verificar)", 0.25)
@@ -305,8 +375,17 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
                                        e["nota"]))
             elif b["tipo"] == "tabla" and b["tabla"]:
                 h += [_tabla(b["tabla"]["encabezados"], b["tabla"]["filas"], ancho, e), Spacer(1, 8)]
+            elif b["tipo"] == "imagen" and b["recorte"]:
+                # Un esquema (circuito, gráfica) se ve como lo dibujaste, en su sitio; la descripción
+                # del modelo va de pie de foto. Antes salía solo la frase y el recorte, diminuto, al final.
+                descripcion = b["texto"].strip()
+                if b["recorte"] not in mostrados:
+                    h += imagen_o_aviso(b["recorte"], "Esquema o dibujo del apunte" + (f": {descripcion}" if descripcion else ""))
+                    mostrados.add(b["recorte"])
+                elif descripcion:
+                    h.append(Paragraph(texto_seguro(f"Esquema o dibujo: {descripcion}"), e["nota"]))
             elif b["texto"].strip():
-                h.append(Paragraph(texto_seguro(b["texto"]), e["cuerpo"]))
+                h.append(Paragraph(formulas.marcado(b["texto"], e["cuerpo"].fontSize), e["cuerpo"]))
             elif b["recorte"] and b["recorte"] not in mostrados:
                 pie = {"imagen": "Esquema o dibujo del apunte",
                        "manuscrito": "Fragmento manuscrito no transcrito (imagen original)"}.get(
@@ -326,7 +405,7 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
         if estructura.resumen:
             h.append(_titulo("Resumen", e["h1"], 0))
             h.append(Paragraph("Frases tomadas de tu apunte.", e["nota"]))
-            h.append(ListFlowable([ListItem(Paragraph(texto_seguro(f), e["cuerpo"])) for f in estructura.resumen],
+            h.append(ListFlowable([ListItem(Paragraph(formulas.marcado(f, e["cuerpo"].fontSize), e["cuerpo"])) for f in estructura.resumen],
                                   bulletType="bullet", bulletFontName=FUENTE))
         if estructura.conceptos:
             h.append(_titulo("Conceptos clave", e["h1"], 0))
@@ -334,7 +413,7 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
         if estructura.glosario:
             h.append(_titulo("Glosario del apunte", e["h1"], 0))
             for g in estructura.glosario:
-                h.append(Paragraph(f"<b>{texto_seguro(g['concepto'])}</b>: {texto_seguro(g['definicion'])}",
+                h.append(Paragraph(f"<b>{texto_seguro(g['concepto'])}</b>: {formulas.marcado(g['definicion'], e['cuerpo'].fontSize)}",
                                    e["cuerpo"]))
         derivadas = [t for t in estructura.tablas if t["titulo"] == "Conceptos definidos en el apunte"]
         if derivadas:
@@ -342,7 +421,7 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
             h.append(_tabla(derivadas[0]["encabezados"], derivadas[0]["filas"], ancho, e))
         if estructura.ejemplos:
             h.append(_titulo("Ejemplos", e["h1"], 0))
-            h.append(ListFlowable([ListItem(Paragraph(texto_seguro(x), e["cuerpo"])) for x in estructura.ejemplos],
+            h.append(ListFlowable([ListItem(Paragraph(formulas.marcado(x, e["cuerpo"].fontSize), e["cuerpo"])) for x in estructura.ejemplos],
                                   bulletType="bullet", bulletFontName=FUENTE))
 
     # ---------------------------------------------------------------- complementos citados
@@ -373,11 +452,15 @@ def generar_pdf(doc: Documento, estructura: ApunteEstructurado, version: int, le
         for p in sorted(doc.paginas, key=lambda x: x.orden):
             h += imagen_o_aviso(p.archivo_original, f"Página {p.orden} ({tipos.get(p.tipo_fuente, '')})", 0.8)
 
+    if sum(getattr(f, "_nivel_indice", None) is not None for f in h) < 3:
+        del h[pos_indice:pos_indice + 3]
     try:
         plantilla.multiBuild(h, maxPasses=6)
     except LayoutError as exc:
         raise ErrorPDF("PDF_MAQUETACION", "Un elemento del apunte no cabe en la página; revisa tablas o "
                                           "imágenes muy grandes.") from exc
+    finally:
+        formulas.limpiar()
     datos = salida.getvalue()
     if not datos.startswith(b"%PDF-"):
         raise ErrorPDF("PDF_FALLO", "No se pudo generar el PDF.")

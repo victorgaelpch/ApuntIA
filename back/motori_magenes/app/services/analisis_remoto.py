@@ -34,7 +34,7 @@ from app.services.ia_remota import Almacen, ClienteIARemota, ErrorIARemota, codi
 from app.services.trabajos import Cancelado, ErrorTrabajo, Trabajo
 
 logger = logging.getLogger("apuntia.analisis_remoto")
-PIPELINE = "documento/1.2"
+PIPELINE = "documento/1.4"   # 1.4: sin espiral del cuaderno, renglones enteros y sin eco del prompt; resultados anteriores no se reutilizan
 RETENCION_DIAS = 7
 
 
@@ -121,7 +121,41 @@ def obtener_resultado(trabajo: Trabajo, pagina, datos: bytes, c: ClienteIARemota
 
 _MATEMATICA = re.compile(r"\\[a-zA-Z]+|[=^_{}]|\d")
 _SOLO_FORMULA = re.compile(r"\$\$?[^$]+\$\$?|\\\[.+\\\]")   # una línea de texto que es SOLO una fórmula
+_SOLO_SEGMENTOS = re.compile(r"(?:\s*\$[^$]+\$)+\s*")        # «$t = 0$ $x = 0$»: varias fórmulas en un renglón
 _DUDA_LINEA = re.compile(r"en la línea (\d+)$")
+_DIBUJO = re.compile(r"(?i)^\s*DIBUJO\s*:\s*")              # el modelo describe un esquema dentro de un texto
+_TEXTO_LATEX = re.compile(r"\\text\{([^{}]*)\}")
+_PALABRA = re.compile(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3,}")
+
+
+def es_prosa(linea: str) -> bool:
+    """Una frase, aunque el modelo la haya envuelto en LaTeX. Hallazgo real (cuaderno, 16/11/2026):
+    «\\text{la (P) se mueve a lo largo de una}» llegaba como fórmula y el PDF decía «no se pudo
+    dibujar». Cuenta palabras de 3+ letras fuera de las fórmulas y de los comandos."""
+    if re.fullmatch(r"\$?\s*\\text\{[^{}]*\}\s*\$?", linea.strip()):
+        return True                      # «\text{de la velocidad y aceleración}»: entera envuelta
+    sin_mat = re.sub(r"\$[^$]*\$", " ", _TEXTO_LATEX.sub(r" \1 ", linea))
+    sin_mat = re.sub(r"\\[a-zA-Z]+", " ", sin_mat)
+    return len(_PALABRA.findall(sin_mat)) >= 3
+
+
+def texto_de(linea: str) -> str:
+    """Una línea de prosa sin el envoltorio LaTeX (\\text{…} o $\\text{…}$)."""
+    t = _TEXTO_LATEX.sub(r"\1", linea).strip()
+    if t.count("$") == 2 and t.startswith("$") and t.endswith("$"):
+        t = t.strip("$").strip()
+    return t
+
+
+def limpiar_latex(linea: str) -> str:
+    """Una línea matemática → LaTeX que el editor y el PDF pueden dibujar.
+    «$t = 0$ $x = 0$» o «t = 0 $ $ x = 0» → «t = 0 \\quad x = 0»; \\text{…} → \\mathrm{…}."""
+    l = linea.strip()
+    if _SOLO_SEGMENTOS.fullmatch(l):
+        l = r" \quad ".join(s.strip() for s in re.findall(r"\$([^$]+)\$", l))
+    l = re.sub(r"^\$+|\$+$|^\\\[|\\\]$", "", l).strip()
+    l = re.sub(r"\s*\$\s*\$\s*", r" \\quad ", l)
+    return _TEXTO_LATEX.sub(lambda m: r"\mathrm{" + m.group(1).strip().replace(" ", r"\ ") + "}", l)
 
 
 def dividir_lineas(b: dict) -> list[dict]:
@@ -136,21 +170,36 @@ def dividir_lineas(b: dict) -> list[dict]:
     """
     if b.get("tipo") == "formula":
         lineas = [l.strip() for l in (b.get("latex") or "").splitlines() if l.strip()]
-        es_formula, latex_de = (lambda l: bool(_MATEMATICA.search(l))), (lambda l: l)
+        es_formula = lambda l: bool(_MATEMATICA.search(l)) and not es_prosa(l)
     elif b.get("tipo") == "texto" and not b.get("latex"):
         lineas = [l.strip() for l in (b.get("texto") or "").splitlines() if l.strip()]
-        es_formula = lambda l: bool(_SOLO_FORMULA.fullmatch(l))
-        latex_de = lambda l: re.sub(r"^\$+|\$+$|^\\\[|\\\]$", "", l).strip()
+        es_formula = lambda l: bool(_SOLO_FORMULA.fullmatch(l) or _SOLO_SEGMENTOS.fullmatch(l)) and not es_prosa(l)
     else:
         return [b]
-    grupos: list[tuple[bool, list[tuple[int, str]]]] = []
+    latex_de = limpiar_latex
+    # Clase de cada línea: "formula", "dibujo" (el modelo escribió «DIBUJO: …» en medio del texto:
+    # hallazgo real, un circuito quedaba como una frase y desaparecía del PDF) o "texto".
+    def clase(linea: str) -> str:
+        if _DIBUJO.match(linea):
+            return "dibujo"
+        return "formula" if es_formula(linea) else "texto"
+
+    grupos: list[tuple[str, list[tuple[int, str]]]] = []
     for k, linea in enumerate(lineas, 1):
-        formula = es_formula(linea)
-        if formula or not grupos or grupos[-1][0]:
-            grupos.append((formula, [(k, linea)]))
+        c = clase(linea)
+        if c != "texto" or not grupos or grupos[-1][0] != "texto":
+            grupos.append((c, [(k, linea)]))
         else:
             grupos[-1][1].append((k, linea))
     if len(grupos) < 2:
+        if not grupos:
+            return [b]
+        c, ls = grupos[0]
+        if c == "formula":   # una sola fórmula: igual, pero con el LaTeX limpio
+            latex = latex_de(ls[0][1])
+            return [b] if latex == b.get("latex") else [{**b, "tipo": "formula", "texto": latex, "latex": latex}]
+        if c == "texto" and b.get("tipo") == "formula":   # «fórmula» que en realidad era una frase
+            return [{**b, "tipo": "texto", "texto": "\n".join(texto_de(l) for _, l in ls), "latex": None}]
         return [b]
     por_linea: dict[int, list[str]] = {}
     generales = []
@@ -159,13 +208,16 @@ def dividir_lineas(b: dict) -> list[dict]:
         (por_linea.setdefault(int(m.group(1)), []) if m else generales).append(d)
     con_marca = [i for i, (_, ls) in enumerate(grupos) if any("[?]" in l for _, l in ls)]
     partes = []
-    for i, (formula, ls) in enumerate(grupos):
+    for i, (c, ls) in enumerate(grupos):
         dudas = [d for k, _ in ls for d in por_linea.get(k, [])] + (generales if (i in con_marca or not con_marca) else [])
-        if formula:
+        if c == "formula":
             latex = latex_de(ls[0][1])
             partes.append({**b, "tipo": "formula", "texto": latex, "latex": latex, "dudas": dudas})
+        elif c == "dibujo":
+            descripcion = _DIBUJO.sub("", ls[0][1])
+            partes.append({**b, "tipo": "imagen", "texto": "", "descripcion": descripcion, "latex": None, "dudas": dudas})
         else:
-            partes.append({**b, "tipo": "texto", "texto": "\n".join(l for _, l in ls), "latex": None, "dudas": dudas})
+            partes.append({**b, "tipo": "texto", "texto": "\n".join(texto_de(l) for _, l in ls), "latex": None, "dudas": dudas})
     return partes
 
 
@@ -203,6 +255,11 @@ def analizar_pagina_remota(trabajo: Trabajo, pagina, guardar, c: ClienteIARemota
                 procedencia=Procedencia(motor="ia_remota", version=modelo, reconocimiento=str(
                     (b.get("procedencia") or {}).get("reconocimiento", PIPELINE))[:40]),
                 revision="sin_confirmar" if estado != "no_reconocido" else None))
-    cambios = {"archivo_procesado": vista, "ancho": ancho, "alto": alto, "error": None,
-               "advertencias": [f"Transcripción propuesta por el servidor IA ({modelo}): revísala contra cada recorte."]}
+    advertencias = [f"Transcripción propuesta por el servidor IA ({modelo}): revísala contra cada recorte."]
+    descartes = (respuesta["resultado"].get("segmentacion") or {}).get("descartes") or []
+    if isinstance(descartes, list) and descartes:
+        advertencias.append(f"Se omitieron {len(descartes)} recorte(s) que parecían el espiral o el borde de la hoja, "
+                            "la plantilla impresa o adornos del cuaderno (como «Día Mes Año», «Folio» o el logotipo). "
+                            "Si falta algo, recorta la foto y vuelve a analizarla.")
+    cambios = {"archivo_procesado": vista, "ancho": ancho, "alto": alto, "error": None, "advertencias": advertencias}
     return cambios, bloques

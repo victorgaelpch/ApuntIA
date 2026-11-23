@@ -84,6 +84,20 @@ git config commit.template .gitmessage
 npm run lint:commits
 ```
 
+## Commits hechos con un asistente de IA (Claude Code u otros)
+
+- **Autor:** la persona del equipo que dirigió y revisó el cambio, con el correo vinculado a su
+  cuenta de GitHub. El asistente **nunca** es el autor.
+- **Coautor:** si el asistente escribió parte del cambio, se declara al final del mensaje con
+  `Co-Authored-By: Claude <noreply@anthropic.com>` (o el equivalente de otra herramienta). No se
+  quita para ocultar la ayuda. GitHub no cuenta a los coautores en la lista de *Contributors*.
+- **Claude Code en la web** firma como `Claude <noreply@anthropic.com>` si no se configura nada:
+  antes del primer commit, `git config user.name` y `git config user.email` con tus datos. Las
+  instrucciones para el propio Claude están en [`CLAUDE.md`](CLAUDE.md).
+- Por qué importa: hasta el 2026-11-16 hubo 88 commits de `main` con Claude como autor (todos de
+  sesiones dirigidas por el equipo), y por eso aparecía en *Contributors*. Su corrección quedó
+  preparada en la rama `correccion/autoria-claude`.
+
 ## Qué no hacer
 
 - No reescribir (`push --force`) ramas compartidas ni `main`.

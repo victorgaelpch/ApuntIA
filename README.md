@@ -217,3 +217,11 @@ y sus datos de idioma son Apache-2.0; el modelo Qwen3-VL es Apache-2.0 (sus peso
 Ollama); el contenido de Wikipedia y Wikilibros es CC BY-SA 4.0 y se cita en el PDF.
 
 Proyecto académico ApuntIA.
+
+## Publicar ApuntIA desde una laptop (Cloudflare Tunnel)
+
+Hay una composición Docker de **un único servicio** que sirve frontend y FastAPI,
+almacena SQLite y archivos en un volumen persistente, y permite vincular el servidor
+IA existente desde la consola del administrador sin exponerlo al navegador.
+Consulta [la guía de servidor en laptop](fullstack/docs/servidor-laptop.md)
+y ejecuta `docker compose --env-file fullstack/config/.env -f fullstack/compose.servidor.yaml up --build -d`.

@@ -27,6 +27,12 @@ RUN pip install -r requirements.txt -c constraints.txt
 # Código: solo lo necesario para ejecutar (sin pruebas, datos ni entornos locales).
 COPY back/motori_magenes/app ./app
 COPY back/motori_magenes/main.py ./
+# La web pública usa la interfaz servida por FastAPI; sin Nginx adicional.
+COPY index.html /app/index.html
+COPY front/ /app/front/
+# La vinculación IA se administra por consola, sin exponer credenciales a la web.
+COPY back/motori_magenes/herramientas/__init__.py ./herramientas/__init__.py
+COPY back/motori_magenes/herramientas/vincular_ia.py ./herramientas/vincular_ia.py
 
 # Usuario sin privilegios y carpeta de datos persistente (volumen).
 RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin apuntia \

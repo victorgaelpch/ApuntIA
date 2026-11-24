@@ -27,7 +27,9 @@ def cuentas() -> Cuentas:
 def comprobar_origen(request: Request) -> None:
     origen = request.headers.get("origin")
     if origen and origen != "null":
-        propio = f"{request.url.scheme}://{request.url.netloc}"
+        # Si un túnel termina HTTPS, Request.url puede ser HTTP interno.
+        # La URL pública es una configuración confiable del administrador.
+        propio = settings.url_publica.rstrip("/") if settings.url_publica else f"{request.url.scheme}://{request.url.netloc}"
         if urlsplit(origen)._replace(path="").geturl().rstrip("/") != propio:
             raise ApiError(403, "ORIGEN_NO_PERMITIDO", "La petición viene de otro sitio y se rechazó.")
 

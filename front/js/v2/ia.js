@@ -94,7 +94,9 @@
     function bloquearAcciones() {
         for (const id of ["#btVincularIA", "#btDesvincularIA", "#btDiagnosticoIA", "#btComprobarIA"]) $(id).disabled = true;
         for (const r of document.querySelectorAll("input[name=modoIA]")) r.disabled = true;
-        avisar(aviso(), "info", "Estás usando ApuntIA desde otro dispositivo de la red: la conexión con el servidor IA solo se configura en el equipo donde está instalado.");
+        avisar(aviso(), "info", E.estado && E.estado.administracion_cli
+            ? "En ApuntIA Web, el administrador configura y vincula el servidor IA desde la consola de la laptop."
+            : "Estás usando ApuntIA desde otro dispositivo de la red: la conexión con el servidor IA solo se configura en el equipo donde está instalado.");
     }
 
     // ---------------------------------------------------------------- modo y URL

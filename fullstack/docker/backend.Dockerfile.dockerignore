@@ -6,3 +6,14 @@
 !back/motori_magenes/app/
 **/__pycache__
 **/*.pyc
+
+# Únicamente assets de frontend y utilidad de vinculación del servidor IA.
+!index.html
+!front/
+!front/**
+front/docs/
+front/tests/
+front/maqueta.html
+!back/motori_magenes/herramientas/
+!back/motori_magenes/herramientas/__init__.py
+!back/motori_magenes/herramientas/vincular_ia.py

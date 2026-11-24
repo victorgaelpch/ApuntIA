@@ -1,80 +1,87 @@
-# Tickets de ApuntIA (`fullstack/tickets/`)
+# Evidencias de ApuntIA
 
-Aquí se consultan **todos** los Issues del proyecto (abiertos y cerrados) con su número real de
-GitHub, identificador lógico, responsable, estado, fechas y evidencia, separando lo **planificado**
-de lo **realmente trabajado**.
+Fechas reales de GitHub API, en hora de CDMX. Las estimaciones se documentan por separado.
 
-| Archivo | Qué es | ¿Quién lo escribe? |
-|---------|--------|--------------------|
-| [INDICE.md](INDICE.md) | Tabla de todos los Issues, colisiones detectadas y PRs | Generado por el sincronizador |
-| `FULL-n.md`, `BACK-n.md`, `FRONT-n.md`, `issue-n.md` | Una ficha por Issue (enlazadas desde el índice) | Bloque sincronizado + notas manuales |
-| [cronograma-planeado.md](cronograma-planeado.md) | Sesiones PROPUESTAS de ApuntIA 3.0 (no es trabajo hecho) | A mano |
-| [PLANTILLA_TICKET.md](PLANTILLA_TICKET.md) | Plantilla de bitácora real y de notas de ficha | A mano |
-| [bitacora/](bitacora/README.md) | Registro REAL de sesiones: fecha y hora efectivas + commit/PR/prueba | A mano; el sincronizador nunca lo toca |
-| [datos/issues.json](datos/issues.json) | Snapshot normalizado de la API de GitHub (uso offline) | Generado |
-
-## Las tres fechas que no hay que confundir
-
-| Campo | Fuente | Significa | NO significa |
-|-------|--------|-----------|--------------|
-| `created_at` / `updated_at` / `closed_at` | API de GitHub (UTC, mostrado también en CDMX) | Cuándo se creó, modificó o cerró el Issue | Que ese día se trabajó |
-| FECHA PLANIFICADA | Descripción del Issue / `cronograma-planeado.md` | Sesión propuesta para repartir el trabajo | Trabajo realizado (aunque la fecha ya haya pasado) |
-| REGISTRO REAL | `bitacora/<ID>.md` | Sesión efectiva, con hora real y enlace a commit, PR o prueba | — |
-
-Si una ficha no tiene bitácora se muestra «no registrada»: nunca se estima ni se deduce.
-Zona horaria: `America/Mexico_City` (UTC−06:00 todo el año desde el 30/10/2022).
-
-## Sincronizar
-
-Después de crear, cerrar o editar un Issue, o de fusionar un PR:
-
-```bash
-python fullstack/scripts/sincronizar_tickets.py
-```
-
-- Usa la API pública de GitHub (60 peticiones/hora sin token; el repositorio cabe en 2).
-  Para más margen: `GITHUB_TOKEN=<token de solo lectura> python fullstack/scripts/sincronizar_tickets.py`
-  (el token se lee del entorno, no se guarda ni se imprime; no lo pongas en archivos).
-- Sin Internet: `python fullstack/scripts/sincronizar_tickets.py --offline` regenera las fichas
-  desde `datos/issues.json`.
-- Si GitHub falla (DNS, red, 403/429 por límite, 5xx, JSON inválido) usa el snapshot, avisa y sale
-  con código 3; sin snapshot sale con 2 y no escribe nada. Vuelve a ejecutarlo más tarde.
-- Es **idempotente**: si nada cambió en GitHub, no modifica ningún archivo (`git status` limpio).
-
-Reglas que aplica:
-
-- Los Pull Requests **no** generan ficha (la API de Issues los mezcla; se reconocen por
-  `pull_request`). Aparecen al final del índice, con los Issues que declaran cerrar.
-- El identificador lógico sale del título (`[FULL-29] …`). `FULL-29` **no** es el `#29` de GitHub.
-- Sin identificador → `issue-<número>.md`.
-- Dos Issues con el mismo identificador → no se pisan: el dueño previo conserva `<ID>.md` y el otro
-  va a `<ID>-issue-<número>.md`; el índice registra la colisión.
-- En cada ficha solo se reescribe lo que hay entre `<!-- SINCRONIZADO:INICIO -->` y
-  `<!-- SINCRONIZADO:FIN -->`. Lo que escribas debajo («Notas manuales») se conserva.
-
-## Registrar trabajo real
-
-1. Al empezar una sesión, anota la hora (la del reloj, no la planificada).
-2. Al terminar, añade una línea en `bitacora/<ID>.md` con el formato de
-   [PLANTILLA_TICKET.md](PLANTILLA_TICKET.md) y el SHA del commit, el PR o la prueba ejecutada.
-3. Ejecuta el sincronizador: la ficha mostrará el número de sesiones reales registradas.
-
-No se registran horas que no ocurrieron, ni se hacen commits con fechas alteradas.
-
-## Conflictos
-
-- Conflicto de Git en una ficha dentro del bloque sincronizado: acepta cualquiera de los dos lados
-  y vuelve a sincronizar; el bloque se regenera.
-- Conflicto en `bitacora/` o en notas manuales: resolverlo a mano (son datos humanos).
-- `INDICE.md` y `datos/issues.json`: acepta cualquiera y vuelve a sincronizar.
-
-## Trello
-
-No se encontró en el repositorio ninguna referencia a un tablero de Trello. Si existe, sus tarjetas
-pueden citarse en las notas manuales de cada ficha (enlace sin claves ni tokens).
-
-## Pruebas
-
-```bash
-python -m unittest discover -s fullstack/tests/tickets
-```
+- [\[BACK-01\] Revisar y organizar la estructura del backend. (#2)](%5BBACK-01%5D%20Revisar%20y%20organizar%20la%20estructura%20del%20backend.md) — capturado
+- [\[BACK-02\] implementa la carga y validación de imagenes (#3)](%5BBACK-02%5D%20implementa%20la%20carga%20y%20validaci%C3%B3n%20de%20imagenes.md) — capturado
+- [\[BACK-03\] Implementar el procesamiento de imágenes con OpenCV (#4)](%5BBACK-03%5D%20Implementar%20el%20procesamiento%20de%20im%C3%A1genes%20con%20OpenCV.md) — capturado
+- [\[BACK-04\] Implementar la corrección de perspectiva del pizarrón (#5)](%5BBACK-04%5D%20Implementar%20la%20correcci%C3%B3n%20de%20perspectiva%20del%20pizarr%C3%B3n.md) — capturado
+- [\[BACK-05\] Mejorar la calidad y nitidez de las imágenes (#6)](%5BBACK-05%5D%20Mejorar%20la%20calidad%20y%20nitidez%20de%20las%20im%C3%A1genes.md) — capturado
+- [\[BACK-06\] Implementar la eliminación de ruido en las imágenes (#7)](%5BBACK-06%5D%20Implementar%20la%20eliminaci%C3%B3n%20de%20ruido%20en%20las%20im%C3%A1genes.md) — capturado
+- [\[BACK-07\] Implementar el manejo de errores de la API (#8)](%5BBACK-07%5D%20Implementar%20el%20manejo%20de%20errores%20de%20la%20API.md) — capturado
+- [\[BACK-08\] Realizar pruebas de los endpoints de FastAPI (#9)](%5BBACK-08%5D%20Realizar%20pruebas%20de%20los%20endpoints%20de%20FastAPI.md) — capturado
+- [\[BACK-09\] Optimizar el tiempo de procesamiento de las imágenes (#10)](%5BBACK-09%5D%20Optimizar%20el%20tiempo%20de%20procesamiento%20de%20las%20im%C3%A1genes.md) — capturado
+- [\[BACK-10\] Documentar la instalación y ejecución del backend (#11)](%5BBACK-10%5D%20Documentar%20la%20instalaci%C3%B3n%20y%20ejecuci%C3%B3n%20del%20backend.md) — capturado
+- [\[FRONT-01\] Diseñar la interfaz principal de ApuntIA (#12)](%5BFRONT-01%5D%20Dise%C3%B1ar%20la%20interfaz%20principal%20de%20ApuntIA.md) — capturado
+- [\[FRONT-02\] Implementar la carga de imágenes desde el dispositivo (#13)](%5BFRONT-02%5D%20Implementar%20la%20carga%20de%20im%C3%A1genes%20desde%20el%20dispositivo.md) — capturado
+- [\[FRONT-03\] Implementar la captura de fotografías desde la cámara (#14)](%5BFRONT-03%5D%20Implementar%20la%20captura%20de%20fotograf%C3%ADas%20desde%20la%20c%C3%A1mara.md) — capturado
+- [\[FRONT-04\] Mostrar una vista previa de la imagen seleccionada (#15)](%5BFRONT-04%5D%20Mostrar%20una%20vista%20previa%20de%20la%20imagen%20seleccionada.md) — capturado
+- [\[FRONT-05\] Preparar la interfaz para comunicarse con la API de FastAPI (#16)](%5BFRONT-05%5D%20Preparar%20la%20interfaz%20para%20comunicarse%20con%20la%20API%20de%20FastAPI.md) — capturado
+- [\[FRONT-06\] Mostrar la imagen después del procesamiento (#17)](%5BFRONT-06%5D%20Mostrar%20la%20imagen%20despu%C3%A9s%20del%20procesamiento.md) — capturado
+- [\[FRONT-07\] Implementar indicadores de carga durante el procesamiento (#18)](%5BFRONT-07%5D%20Implementar%20indicadores%20de%20carga%20durante%20el%20procesamiento.md) — capturado
+- [\[FRONT-08\] Mostrar mensajes de error y validación al usuario (#19)](%5BFRONT-08%5D%20Mostrar%20mensajes%20de%20error%20y%20validaci%C3%B3n%20al%20usuario.md) — capturado
+- [\[FRONT-09\] Adaptar la interfaz para dispositivos móviles y computadoras (#20)](%5BFRONT-09%5D%20Adaptar%20la%20interfaz%20para%20dispositivos%20m%C3%B3viles%20y%20computadoras.md) — capturado
+- [\[FRONT-10\] Realizar pruebas de funcionamiento de la interfaz (#21)](%5BFRONT-10%5D%20Realizar%20pruebas%20de%20funcionamiento%20de%20la%20interfaz.md) — capturado
+- [\[FULL-01\] Analizar los requerimientos y definir el flujo completo de la aplicación (#22)](%5BFULL-01%5D%20Analizar%20los%20requerimientos%20y%20definir%20el%20flujo%20completo%20de%20la%20aplicaci%C3%B3n.md) — capturado
+- [\[FULL-02\] Coordinar la integración entre el frontend y el backend (#23)](%5BFULL-02%5D%20Coordinar%20la%20integraci%C3%B3n%20entre%20el%20frontend%20y%20el%20backend.md) — capturado
+- [\[FULL-03\] Diseñar y documentar los contratos de la API (#24)](%5BFULL-03%5D%20Dise%C3%B1ar%20y%20documentar%20los%20contratos%20de%20la%20API.md) — capturado
+- [\[FULL-04\] Integrar el frontend con los endpoints de FastAPI (#25)](%5BFULL-04%5D%20Integrar%20el%20frontend%20con%20los%20endpoints%20de%20FastAPI.md) — capturado
+- [\[FULL-05\] Implementar el flujo completo de carga, procesamiento y visualización de imágenes (#26)](%5BFULL-05%5D%20Implementar%20el%20flujo%20completo%20de%20carga%2C%20procesamiento%20y%20visualizaci%C3%B3n%20de%20im%C3%A1genes.md) — capturado
+- [\[FULL-06\] Verificar que los datos enviados desde el frontend sean compatibles con el backend (#27)](%5BFULL-06%5D%20Verificar%20que%20los%20datos%20enviados%20desde%20el%20frontend%20sean%20compatibles%20con%20el%20backend.md) — capturado
+- [\[FULL-07\] Realizar pruebas de integración entre frontend y backend (#28)](%5BFULL-07%5D%20Realizar%20pruebas%20de%20integraci%C3%B3n%20entre%20frontend%20y%20backend.md) — capturado
+- [\[FULL-08\] Detectar y corregir errores que involucren varias capas de la aplicación (#29)](%5BFULL-08%5D%20Detectar%20y%20corregir%20errores%20que%20involucren%20varias%20capas%20de%20la%20aplicaci%C3%B3n.md) — capturado
+- [\[FULL-09\] Validar el funcionamiento completo de la aplicación y la experiencia del usuario (#30)](%5BFULL-09%5D%20Validar%20el%20funcionamiento%20completo%20de%20la%20aplicaci%C3%B3n%20y%20la%20experiencia%20del%20usuario.md) — capturado
+- [\[FULL-10\] Documentar la arquitectura, los flujos principales y la configuración del proyecto (#31)](%5BFULL-10%5D%20Documentar%20la%20arquitectura%2C%20los%20flujos%20principales%20y%20la%20configuraci%C3%B3n%20del%20proyecto.md) — capturado
+- [\[FULL-11\] Automatizar la instalación, configuración y ejecución de ApuntIA mediante scripts (#41)](%5BFULL-11%5D%20Automatizar%20la%20instalaci%C3%B3n%2C%20configuraci%C3%B3n%20y%20ejecuci%C3%B3n%20de%20ApuntIA%20mediante%20scripts.md) — capturado
+- [\[FULL-12\] Crear y organizar la carpeta fullstack para ejecución, documentación y pruebas de integración (#42)](%5BFULL-12%5D%20Crear%20y%20organizar%20la%20carpeta%20fullstack%20para%20ejecuci%C3%B3n%2C%20documentaci%C3%B3n%20y%20pruebas%20de%20integraci%C3%B3n.md) — capturado
+- [\[FULL-13\] Implementar arranque alternativo mediante Docker y Docker Compose en fullstack (#43)](%5BFULL-13%5D%20Implementar%20arranque%20alternativo%20mediante%20Docker%20y%20Docker%20Compose%20en%20fullstack.md) — capturado
+- [\[FULL-14\] Reescribir README y documentación para instalación reproducible por cualquier evaluador (#44)](%5BFULL-14%5D%20Reescribir%20README%20y%20documentaci%C3%B3n%20para%20instalaci%C3%B3n%20reproducible%20por%20cualquier%20evaluador.md) — capturado
+- [\[FULL-15\] Diseñar arquitectura y contratos API v2 para OCR, fórmulas, PDF y cuentas sin romper /analisis (#45)](%5BFULL-15%5D%20Dise%C3%B1ar%20arquitectura%20y%20contratos%20API%20v2%20para%20OCR%2C%20f%C3%B3rmulas%2C%20PDF%20y%20cuentas%20sin%20romper%20-analisis.md) — sin captura
+- [\[FULL-16\] Integrar flujo completo de imagen/cuaderno a apunte editable, ampliado y PDF descargable (#46)](%5BFULL-16%5D%20Integrar%20flujo%20completo%20de%20imagen-cuaderno%20a%20apunte%20editable%2C%20ampliado%20y%20PDF%20descargable.md) — sin captura
+- [\[FULL-17\] Centralizar pruebas unitarias, integración y CI para scripts y contenedores (#47)](%5BFULL-17%5D%20Centralizar%20pruebas%20unitarias%2C%20integraci%C3%B3n%20y%20CI%20para%20scripts%20y%20contenedores.md) — capturado
+- [\[FULL-18\] Integrar autenticación, historial de apuntes y permisos de extremo a extremo (#48)](%5BFULL-18%5D%20Integrar%20autenticaci%C3%B3n%2C%20historial%20de%20apuntes%20y%20permisos%20de%20extremo%20a%20extremo.md) — capturado
+- [\[FULL-19\] Crear banco de muestras y métricas verificables para OCR, fórmulas y PDFs ETIQUETA: fullStack (#49)](%5BFULL-19%5D%20Crear%20banco%20de%20muestras%20y%20m%C3%A9tricas%20verificables%20para%20OCR%2C%20f%C3%B3rmulas%20y%20PDFs%20ETIQUETA-%20fullStack.md) — capturado
+- [\[FULL-20\] Auditar seguridad y privacidad de toda la arquitectura y dependencias (#50)](%5BFULL-20%5D%20Auditar%20seguridad%20y%20privacidad%20de%20toda%20la%20arquitectura%20y%20dependencias.md) — capturado
+- [\[FULL-21\] Agregar diagnósticos, métricas y manejo de fallos del sistema completo (#51)](%5BFULL-21%5D%20Agregar%20diagn%C3%B3sticos%2C%20m%C3%A9tricas%20y%20manejo%20de%20fallos%20del%20sistema%20completo.md) — capturado
+- [\[FULL-22\] Preparar entrega reproducible, versión de release y arranque en equipos (#52)](%5BFULL-22%5D%20Preparar%20entrega%20reproducible%2C%20versi%C3%B3n%20de%20release%20y%20arranque%20en%20equipos.md) — capturado
+- [\[FULL-23\] Diseñar migraciones, respaldo y recuperación de la base de datos y archivos (#53)](%5BFULL-23%5D%20Dise%C3%B1ar%20migraciones%2C%20respaldo%20y%20recuperaci%C3%B3n%20de%20la%20base%20de%20datos%20y%20archivos.md) — capturado
+- [\[FULL-24\] Validar alcance educativo con escenarios reales y preparar evidencia de entrega (#54)](%5BFULL-24%5D%20Validar%20alcance%20educativo%20con%20escenarios%20reales%20y%20preparar%20evidencia%20de%20entrega.md) — capturado
+- [\[BACK-11\] Ampliar entrada de documentos para pizarrón, hojas de cuaderno y múltiples páginas (#55)](%5BBACK-11%5D%20Ampliar%20entrada%20de%20documentos%20para%20pizarr%C3%B3n%2C%20hojas%20de%20cuaderno%20y%20m%C3%BAltiples%20p%C3%A1ginas.md) — capturado
+- [\[BACK-12\] Adaptar OpenCV y preprocesamiento para mejorar OCR de cuadernos y pizarrones (#56)](%5BBACK-12%5D%20Adaptar%20OpenCV%20y%20preprocesamiento%20para%20mejorar%20OCR%20de%20cuadernos%20y%20pizarrones.md) — capturado
+- [\[BACK-13\] Implementar OCR de texto impreso en fotografías y extracción por bloques (#57)](%5BBACK-13%5D%20Implementar%20OCR%20de%20texto%20impreso%20en%20fotograf%C3%ADas%20y%20extracci%C3%B3n%20por%20bloques.md) — capturado
+- [\[BACK-14\] Reconocer escritura manuscrita de cuadernos y pizarrones con fallback seguro (#58)](%5BBACK-14%5D%20Reconocer%20escritura%20manuscrita%20de%20cuadernos%20y%20pizarrones%20con%20fallback%20seguro.md) — capturado
+- [\[BACK-15\] Detectar fórmulas y convertir expresiones matemáticas a LaTeX verificable (#59)](%5BBACK-15%5D%20Detectar%20f%C3%B3rmulas%20y%20convertir%20expresiones%20matem%C3%A1ticas%20a%20LaTeX%20verificable.md) — capturado
+- [\[BACK-17\] Crear modelo intermedio editable de apuntes con confianza y trazabilidad (#60)](%5BBACK-17%5D%20Crear%20modelo%20intermedio%20editable%20de%20apuntes%20con%20confianza%20y%20trazabilidad.md) — capturado
+- [\[BACK-18\] Investigar temas de los apuntes y enriquecer información con fuentes citables y consentimiento (#61)](%5BBACK-18%5D%20Investigar%20temas%20de%20los%20apuntes%20y%20enriquecer%20informaci%C3%B3n%20con%20fuentes%20citables%20y%20consentimiento.md) — capturado
+- [\[BACK-19\] Generar apuntes estructurados y ampliados con resúmenes, conceptos y tablas comparativas (#62)](%5BBACK-19%5D%20Generar%20apuntes%20estructurados%20y%20ampliados%20con%20res%C3%BAmenes%2C%20conceptos%20y%20tablas%20comparativas.md) — capturado
+- [\[BACK-20\] Generar PDF académico completo con fórmulas, tablas, esquemas e índice ETIQUETA: backend (#63)](%5BBACK-20%5D%20Generar%20PDF%20acad%C3%A9mico%20completo%20con%20f%C3%B3rmulas%2C%20tablas%2C%20esquemas%20e%20%C3%ADndice%20ETIQUETA-%20backend.md) — capturado
+- [\[BACK-21\] Construir API de análisis y generación de apuntes con estado de tareas y errores (#64)](%5BBACK-21%5D%20Construir%20API%20de%20an%C3%A1lisis%20y%20generaci%C3%B3n%20de%20apuntes%20con%20estado%20de%20tareas%20y%20errores.md) — capturado
+- [\[BACK-22\] Implementar base de datos y almacenamiento privado para usuarios, apuntes, versiones y PDFs (#65)](%5BBACK-22%5D%20Implementar%20base%20de%20datos%20y%20almacenamiento%20privado%20para%20usuarios%2C%20apuntes%2C%20versiones%20y%20PDFs.md) — capturado
+- [\[BACK-23\] Crear autenticación segura: registro, login, sesión, logout y recuperación de contraseña (#66)](%5BBACK-23%5D%20Crear%20autenticaci%C3%B3n%20segura-%20registro%2C%20login%2C%20sesi%C3%B3n%2C%20logout%20y%20recuperaci%C3%B3n%20de%20contrase%C3%B1a.md) — capturado
+- [\[BACK-24\] Aplicar autorización por propietario, validaciones y protección de archivos en API (#67)](%5BBACK-24%5D%20Aplicar%20autorizaci%C3%B3n%20por%20propietario%2C%20validaciones%20y%20protecci%C3%B3n%20de%20archivos%20en%20API.md) — capturado
+- [\[BACK-25\] Ampliar pruebas unitarias y regresión para OCR, fórmulas, PDF, cuentas y datos (#68)](%5BBACK-25%5D%20Ampliar%20pruebas%20unitarias%20y%20regresi%C3%B3n%20para%20OCR%2C%20f%C3%B3rmulas%2C%20PDF%2C%20cuentas%20y%20datos.md) — capturado
+- [\[BACK-26\] Crear endpoints seguros de historial, búsqueda, edición y descarga de apuntes (#69)](%5BBACK-26%5D%20Crear%20endpoints%20seguros%20de%20historial%2C%20b%C3%BAsqueda%2C%20edici%C3%B3n%20y%20descarga%20de%20apuntes.md) — capturado
+- [\[BACK-27\] Crear gestor de trabajos durables para OCR y PDF con cancelación y límites (#70)](%5BBACK-27%5D%20Crear%20gestor%20de%20trabajos%20durables%20para%20OCR%20y%20PDF%20con%20cancelaci%C3%B3n%20y%20l%C3%ADmites.md) — capturado
+- [\[FRONT-11\] Actualizar concepto visual de ApuntIA para pizarrones y cuadernos (#71)](%5BFRONT-11%5D%20Actualizar%20concepto%20visual%20de%20ApuntIA%20para%20pizarrones%20y%20cuadernos.md) — capturado
+- [\[FRONT-12\] Permitir cargar y ordenar varias fotografías de cuadernos o pizarrones (#72)](%5BFRONT-12%5D%20Permitir%20cargar%20y%20ordenar%20varias%20fotograf%C3%ADas%20de%20cuadernos%20o%20pizarrones.md) — capturado
+- [\[FRONT-13\] Mostrar OCR y permitir corregir texto por bloques antes de generar apuntes (#73)](%5BFRONT-13%5D%20Mostrar%20OCR%20y%20permitir%20corregir%20texto%20por%20bloques%20antes%20de%20generar%20apuntes.md) — capturado
+- [\[FRONT-14\] Visualizar y corregir fórmulas, tablas y esquemas antes del PDF (#74)](%5BFRONT-14%5D%20Visualizar%20y%20corregir%20f%C3%B3rmulas%2C%20tablas%20y%20esquemas%20antes%20del%20PDF.md) — capturado
+- [\[FRONT-15\] Permitir ampliar apuntes con investigación y mostrar referencias verificables (#75)](%5BFRONT-15%5D%20Permitir%20ampliar%20apuntes%20con%20investigaci%C3%B3n%20y%20mostrar%20referencias%20verificables.md) — capturado
+- [\[FRONT-16\] Implementar progreso de generación, vista previa y descarga real del PDF (#76)](%5BFRONT-16%5D%20Implementar%20progreso%20de%20generaci%C3%B3n%2C%20vista%20previa%20y%20descarga%20real%20del%20PDF.md) — capturado
+- [\[FRONT-17\] Diseñar e integrar registro, inicio de sesión y recuperación de contraseña (#77)](%5BFRONT-17%5D%20Dise%C3%B1ar%20e%20integrar%20registro%2C%20inicio%20de%20sesi%C3%B3n%20y%20recuperaci%C3%B3n%20de%20contrase%C3%B1a.md) — capturado
+- [\[FRONT-18\] Crear panel Mis apuntes con historial, búsqueda, filtros y acceso a PDFs (#78)](%5BFRONT-18%5D%20Crear%20panel%20Mis%20apuntes%20con%20historial%2C%20b%C3%BAsqueda%2C%20filtros%20y%20acceso%20a%20PDFs.md) — capturado
+- [\[FRONT-19\] Implementar perfil de usuario, preferencias y cambio seguro de contraseña (#79)](%5BFRONT-19%5D%20Implementar%20perfil%20de%20usuario%2C%20preferencias%20y%20cambio%20seguro%20de%20contrase%C3%B1a.md) — capturado
+- [\[FRONT-20\] Unificar validaciones, mensajes de error y seguridad de interfaz en todos los flujos (#80)](%5BFRONT-20%5D%20Unificar%20validaciones%2C%20mensajes%20de%20error%20y%20seguridad%20de%20interfaz%20en%20todos%20los%20flujos.md) — capturado
+- [\[FRONT-21\] Extender pruebas de interfaz, accesibilidad y responsive para todos los módulos (#81)](%5BFRONT-21%5D%20Extender%20pruebas%20de%20interfaz%2C%20accesibilidad%20y%20responsive%20para%20todos%20los%20m%C3%B3dulos.md) — capturado
+- [\[FRONT-22\] Añadir revisión de versiones, autosalvado controlado y comparación de cambios de apuntes (#82)](%5BFRONT-22%5D%20A%C3%B1adir%20revisi%C3%B3n%20de%20versiones%2C%20autosalvado%20controlado%20y%20comparaci%C3%B3n%20de%20cambios%20de%20apuntes.md) — capturado
+- [\[BACK-28\] Implementar reconocimiento adaptativo y recuperación asistida de texto manuscrito y fórmulas difíciles (#84)](%5BBACK-28%5D%20Implementar%20reconocimiento%20adaptativo%20y%20recuperaci%C3%B3n%20asistida%20de%20texto%20manuscrito%20y%20f%C3%B3rmulas%20dif%C3%ADciles.md) — capturado
+- [\[FULLSTACK\]\[IA\]\[OCR\]\[P0\] Implementar motor multimodal avanzado de reconocimiento, interpretación y reconstrucción inteligente de apuntes académicos (#91)](%5BFULLSTACK%5D%5BIA%5D%5BOCR%5D%5BP0%5D%20Implementar%20motor%20multimodal%20avanzado%20de%20reconocimiento%2C%20interpretaci%C3%B3n%20y%20reconstrucci%C3%B3n%20inteligente%20de%20apuntes%20acad%C3%A9micos.md) — capturado
+- [\[FULL-29\] Reorganizar toda la documentación y centralizar los tickets de trabajo con trazabilidad real (#93)](%5BFULL-29%5D%20Reorganizar%20toda%20la%20documentaci%C3%B3n%20y%20centralizar%20los%20tickets%20de%20trabajo%20con%20trazabilidad%20real.md) — capturado
+- [\[FULL-30\] Implementar un instalador y menú único de ApuntIA y servidor IA en Windows sin romper los scripts actuales (#94)](%5BFULL-30%5D%20Implementar%20un%20instalador%20y%20men%C3%BA%20%C3%BAnico%20de%20ApuntIA%20y%20servidor%20IA%20en%20Windows%20sin%20romper%20los%20scripts%20actuales.md) — capturado
+- [\[FULL-31\] Conexión remota segura automática, emparejamiento inicial, configuración manual y respaldo para otras redes (#95)](%5BFULL-31%5D%20Conexi%C3%B3n%20remota%20segura%20autom%C3%A1tica%2C%20emparejamiento%20inicial%2C%20configuraci%C3%B3n%20manual%20y%20respaldo%20para%20otras%20redes.md) — capturado
+- [\[BACK-36\] Implementar el pipeline multimodelo de máximo reconocimiento para cuadernos, pizarrones, fórmulas, tablas, diagramas y dibujos (#96)](%5BBACK-36%5D%20Implementar%20el%20pipeline%20multimodelo%20de%20m%C3%A1ximo%20reconocimiento%20para%20cuadernos%2C%20pizarrones%2C%20f%C3%B3rmulas%2C%20tablas%2C%20diagramas%20y%20dibujos.md) — capturado
+- [\[BACK-37\] Gestionar trabajos remotos asíncronos, cola, reintentos, fallos y recuperación sin pérdida de apuntes (#97)](%5BBACK-37%5D%20Gestionar%20trabajos%20remotos%20as%C3%ADncronos%2C%20cola%2C%20reintentos%2C%20fallos%20y%20recuperaci%C3%B3n%20sin%20p%C3%A9rdida%20de%20apuntes.md) — capturado
+- [\[FRONT-25\] Añadir panel de estado IA, conexión automática/manual, vinculación y diagnóstico accesible (#98)](%5BFRONT-25%5D%20A%C3%B1adir%20panel%20de%20estado%20IA%2C%20conexi%C3%B3n%20autom%C3%A1tica-manual%2C%20vinculaci%C3%B3n%20y%20diagn%C3%B3stico%20accesible.md) — sin captura
+- [\[FRONT-26\] Ampliar el editor para revisión visual de manuscritos, fórmulas, tablas, diagramas y evidencia de reconocimiento (#99)](%5BFRONT-26%5D%20Ampliar%20el%20editor%20para%20revisi%C3%B3n%20visual%20de%20manuscritos%2C%20f%C3%B3rmulas%2C%20tablas%2C%20diagramas%20y%20evidencia%20de%20reconocimiento.md) — capturado
+- [\[BACK-38\] Integrar resultados de IA remota, investigación verificable y generación de PDF educativo completo con trazabilidad (#100)](%5BBACK-38%5D%20Integrar%20resultados%20de%20IA%20remota%2C%20investigaci%C3%B3n%20verificable%20y%20generaci%C3%B3n%20de%20PDF%20educativo%20completo%20con%20trazabilidad.md) — capturado
+- [\[FULL-32\] Cerrar ApuntIA 3.0 con pruebas en dos redes, documentación técnica exhaustiva, seguridad y guía de exposición (#101)](%5BFULL-32%5D%20Cerrar%20ApuntIA%203.0%20con%20pruebas%20en%20dos%20redes%2C%20documentaci%C3%B3n%20t%C3%A9cnica%20exhaustiva%2C%20seguridad%20y%20gu%C3%ADa%20de%20exposici%C3%B3n.md) — capturado

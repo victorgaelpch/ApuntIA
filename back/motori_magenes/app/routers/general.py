@@ -1,6 +1,7 @@
 """Rutas generales del servicio."""
 
 from fastapi import APIRouter
+from fastapi.responses import RedirectResponse
 
 from app.core.config import settings
 from app.services import investigacion
@@ -13,6 +14,8 @@ router = APIRouter(tags=["general"])
 @router.get("/")
 def holamundo():
     """Comprobación rápida de que el servidor está activo."""
+    if settings.redireccion_inicio:
+        return RedirectResponse(url="/inicio", status_code=302)
     return {"message": "Hola Mundo"}
 
 

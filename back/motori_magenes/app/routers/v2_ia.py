@@ -42,6 +42,9 @@ def cliente() -> ClienteIARemota:
 
 
 def solo_local(request: Request, sesion: Sesion = Depends(sesion_actual)) -> Sesion:
+    if settings.ia_solo_cli:
+        raise ApiError(403, "SOLO_ADMIN_SERVIDOR",
+                       "En el servidor web, configura y vincula la IA desde la consola de la laptop.")
     if not request.client or request.client.host not in LOCALES:
         raise ApiError(403, "SOLO_EQUIPO_LOCAL", "Esta acción solo se puede hacer en el propio equipo donde corre ApuntIA.")
     return sesion
@@ -54,7 +57,7 @@ def _como_api(e: ErrorIARemota) -> ApiError:
 @router.get("/estado")
 def estado(request: Request, sesion: Sesion = Depends(sesion_actual)):
     # puede_configurar: la petición viene del propio equipo (las acciones [local] están permitidas)
-    return {**cliente().estado(), "puede_configurar": bool(request.client and request.client.host in LOCALES)}
+    return {**cliente().estado(), "puede_configurar": bool(not settings.ia_solo_cli and request.client and request.client.host in LOCALES), "administracion_cli": settings.ia_solo_cli}
 
 
 @router.put("/configuracion")

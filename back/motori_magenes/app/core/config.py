@@ -78,6 +78,9 @@ class Settings:
     # URL pública del servidor (p. ej. https://apuntia.ejemplo.edu) para los enlaces
     # de recuperación de contraseña. Recomendado en producción.
     url_publica: str = os.getenv("URL_PUBLICA", "").strip()
+    # Publicación detrás de Cloudflare Tunnel: redirigir / y configurar IA solo por CLI.
+    redireccion_inicio: bool = _si("APUNTIA_REDIRECCION_INICIO")
+    ia_solo_cli: bool = _si("APUNTIA_IA_SOLO_CLI")
 
     # Servidor IA remoto (FULL-31). URL PÚBLICA sin credenciales; vacía = modo local. La credencial
     # individual NO va aquí: se obtiene vinculando el equipo y se guarda cifrada en DATA_DIR.
